@@ -1809,7 +1809,7 @@ void BotUpdateInventory(bot_state_t *bs) {
 	bs->inventory[INVENTORY_PROXLAUNCHER] = (bs->cur_ps.stats[STAT_WEAPONS] & (1 << WP_PROXLAUNCHER)) != 0;
 	bs->inventory[INVENTORY_GRENADELAUNCHER] = (bs->cur_ps.stats[STAT_WEAPONS] & (1 << WP_GRENADELAUNCHER)) != 0;
 	bs->inventory[INVENTORY_ROCKETLAUNCHER] = (bs->cur_ps.stats[STAT_WEAPONS] & (1 << WP_ROCKETLAUNCHER)) != 0;
-	bs->inventory[INVENTORY_LIGHTNING] = (bs->cur_ps.stats[STAT_WEAPONS] & (1 << WP_LIGHTNING)) != 0;
+	bs->inventory[INVENTORY_BEAMGUN] = (bs->cur_ps.stats[STAT_WEAPONS] & (1 << WP_BEAMGUN)) != 0;
 	bs->inventory[INVENTORY_RAILGUN] = (bs->cur_ps.stats[STAT_WEAPONS] & (1 << WP_RAILGUN)) != 0;
 	bs->inventory[INVENTORY_PLASMAGUN] = (bs->cur_ps.stats[STAT_WEAPONS] & (1 << WP_PLASMAGUN)) != 0;
 	bs->inventory[INVENTORY_BFG10K] = (bs->cur_ps.stats[STAT_WEAPONS] & (1 << WP_BFG)) != 0;
@@ -1822,10 +1822,10 @@ void BotUpdateInventory(bot_state_t *bs) {
 	bs->inventory[INVENTORY_MINES] = bs->cur_ps.ammo[WP_PROXLAUNCHER];
 	bs->inventory[INVENTORY_GRENADES] = bs->cur_ps.ammo[WP_GRENADELAUNCHER];
 	bs->inventory[INVENTORY_ROCKETS] = bs->cur_ps.ammo[WP_ROCKETLAUNCHER];
-	bs->inventory[INVENTORY_LIGHTNINGAMMO] = bs->cur_ps.ammo[WP_LIGHTNING];
+	bs->inventory[INVENTORY_BEAMGUN_AMMO] = bs->cur_ps.ammo[WP_BEAMGUN];
 	bs->inventory[INVENTORY_SLUGS] = bs->cur_ps.ammo[WP_RAILGUN];
 	bs->inventory[INVENTORY_CELLS] = bs->cur_ps.ammo[WP_PLASMAGUN];
-	bs->inventory[INVENTORY_BFGAMMO] = bs->cur_ps.ammo[WP_BFG];
+	bs->inventory[INVENTORY_BFG_AMMO] = bs->cur_ps.ammo[WP_BFG];
 	// holdables
 	bs->inventory[INVENTORY_TELEPORTER] = bs->cur_ps.stats[STAT_HOLDABLE_ITEM] == MODELINDEX_TELEPORTER;
 	bs->inventory[INVENTORY_MEDKIT] = bs->cur_ps.stats[STAT_HOLDABLE_ITEM] == MODELINDEX_MEDKIT;
@@ -2397,8 +2397,8 @@ float BotAggression(bot_state_t *bs) {
 	if (bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 5) {
 		return 90;
 	}
-	// if the bot can use the lightning gun
-	if (bs->inventory[INVENTORY_LIGHTNING] > 0 && bs->inventory[INVENTORY_LIGHTNINGAMMO] > 50) {
+	// if the bot can use the beam gun
+	if (bs->inventory[INVENTORY_BEAMGUN] > 0 && bs->inventory[INVENTORY_BEAMGUN_AMMO] > 50) {
 		return 90;
 	}
 	// if the bot can use the railgun
@@ -2410,7 +2410,7 @@ float BotAggression(bot_state_t *bs) {
 		return 85;
 	}
 	// if the bot can use the bfg
-	if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFGAMMO] > 7) {
+	if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFG_AMMO] > 7) {
 		return 100;
 	}
 	// otherwise the bot is not feeling too good
@@ -2657,8 +2657,8 @@ int BotHasPersistantPowerupAndWeapon(bot_state_t *bs) {
 	if (bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 5) {
 		return qtrue;
 	}
-	// if the bot can use the lightning gun
-	if (bs->inventory[INVENTORY_LIGHTNING] > 0 && bs->inventory[INVENTORY_LIGHTNINGAMMO] > 50) {
+	// if the bot can use the beam gun
+	if (bs->inventory[INVENTORY_BEAMGUN] > 0 && bs->inventory[INVENTORY_BEAMGUN_AMMO] > 50) {
 		return qtrue;
 	}
 	// if the bot can use the rail gun
@@ -2670,7 +2670,7 @@ int BotHasPersistantPowerupAndWeapon(bot_state_t *bs) {
 		return qtrue;
 	}
 	// if the bot can use the bfg
-	if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFGAMMO] > 7) {
+	if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFG_AMMO] > 7) {
 		return qtrue;
 	}
 
@@ -2741,7 +2741,7 @@ int BotWantsToCamp(bot_state_t *bs) {
 		return qfalse;
 	}
 	// the bot should have at least have the rocket launcher, the railgun or the bfg10k with some ammo
-	if ((bs->inventory[INVENTORY_ROCKETLAUNCHER] <= 0 || bs->inventory[INVENTORY_ROCKETS] < 10) && (bs->inventory[INVENTORY_RAILGUN] <= 0 || bs->inventory[INVENTORY_SLUGS] < 10) && (bs->inventory[INVENTORY_BFG10K] <= 0 || bs->inventory[INVENTORY_BFGAMMO] < 10)) {
+	if ((bs->inventory[INVENTORY_ROCKETLAUNCHER] <= 0 || bs->inventory[INVENTORY_ROCKETS] < 10) && (bs->inventory[INVENTORY_RAILGUN] <= 0 || bs->inventory[INVENTORY_SLUGS] < 10) && (bs->inventory[INVENTORY_BFG10K] <= 0 || bs->inventory[INVENTORY_BFG_AMMO] < 10)) {
 		return qfalse;
 	}
 	// find the closest camp spot
@@ -3696,8 +3696,8 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	} else if (wi.number == WP_ROCKETLAUNCHER) {
 		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_ROCKETLAUNCHER, 0, 1);
 		aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL_ROCKETLAUNCHER, 0, 1);
-	} else if (wi.number == WP_LIGHTNING) {
-		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_LIGHTNING, 0, 1);
+	} else if (wi.number == WP_BEAMGUN) {
+		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_BEAMGUN, 0, 1);
 	} else if (wi.number == WP_RAILGUN) {
 		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_RAILGUN, 0, 1);
 	} else if (wi.number == WP_PLASMAGUN) {
@@ -3885,7 +3885,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	// get aim direction
 	VectorSubtract(bestorigin, bs->eye, dir);
 
-	if (wi.number == WP_MACHINEGUN || wi.number == WP_SHOTGUN || wi.number == WP_LIGHTNING || wi.number == WP_RAILGUN) {
+	if (wi.number == WP_MACHINEGUN || wi.number == WP_SHOTGUN || wi.number == WP_BEAMGUN || wi.number == WP_RAILGUN) {
 		// distance towards the enemy
 		dist = VectorLength(dir);
 
@@ -5214,7 +5214,7 @@ void BotCheckForProxMines(bot_state_t *bs, entityState_t *state) {
 		return;
 	}
 	// if the bot doesn't have a weapon to deactivate the mine
-	if (!(bs->inventory[INVENTORY_PLASMAGUN] > 0 && bs->inventory[INVENTORY_CELLS] > 0) && !(bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 0) && !(bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFGAMMO] > 0)) {
+	if (!(bs->inventory[INVENTORY_PLASMAGUN] > 0 && bs->inventory[INVENTORY_CELLS] > 0) && !(bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 0) && !(bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFG_AMMO] > 0)) {
 		return;
 	}
 	// try to avoid the prox mine

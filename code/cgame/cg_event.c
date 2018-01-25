@@ -284,7 +284,7 @@ static void CG_Obituary(entityState_t *ent) {
 				message = "almost dodged";
 				message2 = "'s rocket";
 				break;
-			case MOD_LIGHTNING:
+			case MOD_BEAMGUN:
 				message = "was electrocuted by";
 				break;
 			case MOD_RAILGUN:

@@ -130,7 +130,7 @@ typedef struct {
 	lerpFrame_t legs, torso, flag;
 	int painTime;
 	int painDirection; // flip from 0 to 1
-	int lightningFiring;
+	int beamgunFiring;
 	int railFireTime;
 	// machinegun spinning
 	float barrelAngle;

@@ -1607,7 +1607,7 @@ static void PM_Weapon(void) {
 		case WP_ROCKETLAUNCHER:
 			addTime = 800;
 			break;
-		case WP_LIGHTNING:
+		case WP_BEAMGUN:
 			addTime = 50;
 			break;
 		case WP_RAILGUN:

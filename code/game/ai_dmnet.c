@@ -1398,13 +1398,13 @@ int BotSelectActivateWeapon(bot_state_t *bs) {
 		return WEAPONINDEX_GRENADELAUNCHER;
 	} else if (bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 0) {
 		return WEAPONINDEX_ROCKETLAUNCHER;
-	} else if (bs->inventory[INVENTORY_LIGHTNING] > 0 && bs->inventory[INVENTORY_LIGHTNINGAMMO] > 0) {
-		return WEAPONINDEX_LIGHTNING;
+	} else if (bs->inventory[INVENTORY_BEAMGUN] > 0 && bs->inventory[INVENTORY_BEAMGUN_AMMO] > 0) {
+		return WEAPONINDEX_BEAMGUN;
 	} else if (bs->inventory[INVENTORY_RAILGUN] > 0 && bs->inventory[INVENTORY_SLUGS] > 0) {
 		return WEAPONINDEX_RAILGUN;
 	} else if (bs->inventory[INVENTORY_PLASMAGUN] > 0 && bs->inventory[INVENTORY_CELLS] > 0) {
 		return WEAPONINDEX_PLASMAGUN;
-	} else if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFGAMMO] > 0) {
+	} else if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFG_AMMO] > 0) {
 		return WEAPONINDEX_BFG;
 	} else {
 		return -1;
@@ -1497,7 +1497,7 @@ void BotClearPath(bot_state_t *bs, bot_moveresult_t *moveresult) {
 				moveresult->weapon = WEAPONINDEX_PLASMAGUN;
 			} else if (bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 0) {
 				moveresult->weapon = WEAPONINDEX_ROCKETLAUNCHER;
-			} else if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFGAMMO] > 0) {
+			} else if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFG_AMMO] > 0) {
 				moveresult->weapon = WEAPONINDEX_BFG;
 			} else {
 				moveresult->weapon = 0;

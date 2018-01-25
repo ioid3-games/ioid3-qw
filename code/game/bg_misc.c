@@ -285,17 +285,17 @@ gitem_t bg_itemlist[] = {
 /* sounds */ ""
 	},
 
-/*QUAKED weapon_lightning (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED
+/*QUAKED weapon_beamgun (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED
 */
 	{
-		"weapon_lightning",
+		"weapon_beamgun",
 		"sound/misc/w_pkup.wav",
 		{"models/weapons2/lightning/lightning.md3", NULL, NULL, NULL},
 /* icon */		"icons/iconw_lightning",
-/* pickup */	"Lightning Gun",
+/* pickup */	"Beam Gun",
 		100,
 		IT_WEAPON,
-		WP_LIGHTNING,
+		WP_BEAMGUN,
 /* sounds */ ""
 	},
 
@@ -457,17 +457,17 @@ gitem_t bg_itemlist[] = {
 /* sounds */ ""
 	},
 
-/*QUAKED ammo_lightning (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED
+/*QUAKED ammo_cartridge (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED
 */
 	{
-		"ammo_lightning",
-		"sound/misc/am_pkup.wav",
+		"ammo_cartridge",
+		"snd/i/pum.wav",
 		{"models/powerups/ammo/lightningam.md3", NULL, NULL, NULL},
 /* icon */		"icons/icona_lightning",
-/* pickup */	"Lightning",
+/* pickup */	"Cartridge",
 		60,
 		IT_AMMO,
-		WP_LIGHTNING,
+		WP_BEAMGUN,
 /* sounds */ ""
 	},
 

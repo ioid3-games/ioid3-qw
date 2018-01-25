@@ -4288,7 +4288,7 @@ void AAS_SetWeaponJumpAreaFlags(void) {
 		}
 
 		if (!strcmp(classname, "item_health_mega") || !strcmp(classname, "item_armor_combat") || !strcmp(classname, "item_armor_body") ||
-			!strcmp(classname, "weapon_grenadelauncher") || !strcmp(classname, "weapon_rocketlauncher") || !strcmp(classname, "weapon_lightning") ||
+			!strcmp(classname, "weapon_grenadelauncher") || !strcmp(classname, "weapon_rocketlauncher") || !strcmp(classname, "weapon_beamgun") ||
 			!strcmp(classname, "weapon_railgun") || !strcmp(classname, "weapon_plasmagun") || !strcmp(classname, "weapon_bfg") ||
 			!strcmp(classname, "item_quad") || !strcmp(classname, "item_regen") || !strcmp(classname, "item_invulnerability")) {
 			if (AAS_VectorForBSPEpairKey(ent, "origin", origin)) {

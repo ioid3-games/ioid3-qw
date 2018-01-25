@@ -1696,7 +1696,7 @@ void BotMatch_WhereAreYou(bot_state_t *bs, bot_match_t *match) {
 		"Prox Launcher",
 		"Grenade Launcher",
 		"Rocket Launcher",
-		"Lightning Gun",
+		"Beam Gun",
 		"Railgun",
 		"Plasmagun",
 		"BFG10K",

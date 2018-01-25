@@ -37,7 +37,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define DEFAULT_SHOTGUN_SPREAD 700
 #define DEFAULT_SHOTGUN_COUNT 11
 #define ITEM_RADIUS 15			// item sizes are needed for client side pickup detection
-#define LIGHTNING_RANGE 768
+#define BEAMGUN_RANGE 768
 #define SCORE_NOT_PRESENT -9999	// for the CS_SCORES[12] when only one player is present
 #define VOTE_TIME 30000			// 30 seconds before vote times out
 #define MINS_Z -24
@@ -222,7 +222,7 @@ typedef enum {
 } persEnum_t;
 // entityState_t->eFlags
 #define EF_PLAYER_EVENT		0x00000001
-#define EF_FIRING			0x00000002 // for lightning gun
+#define EF_FIRING			0x00000002 // for beam gun
 #define EF_DEAD				0x00000004 // don't draw a foe marker over players with EF_DEAD
 #define EF_TICKING			0x00000008 // used to make players play the prox mine ticking sound
 #define EF_TELEPORT_BIT		0x00000010 // toggled every time the origin abruptly changes
@@ -282,7 +282,7 @@ typedef enum {
 	WP_PROXLAUNCHER,
 	WP_GRENADELAUNCHER,
 	WP_ROCKETLAUNCHER,
-	WP_LIGHTNING,
+	WP_BEAMGUN,
 	WP_RAILGUN,
 	WP_PLASMAGUN,
 	WP_BFG,
@@ -500,7 +500,7 @@ typedef enum {
 	MOD_GRENADE_SPLASH,
 	MOD_ROCKET,
 	MOD_ROCKET_SPLASH,
-	MOD_LIGHTNING,
+	MOD_BEAMGUN,
 	MOD_RAILGUN,
 	MOD_PLASMA,
 	MOD_PLASMA_SPLASH,
