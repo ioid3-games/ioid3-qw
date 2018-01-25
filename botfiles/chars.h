@@ -105,53 +105,48 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define CHARACTERISTIC_AIM_SKILL_ROCKETLAUNCHER		28 // float [0, 1]
 #define CHARACTERISTIC_AIM_SKILL_PLASMAGUN			29 // float [0, 1]
 #define CHARACTERISTIC_AIM_SKILL_BFG10K				30 // float [0, 1]
-#define CHARACTERISTIC_AIM_SKILL_MISSILELAUNCHER	31 // float [0, 1]
 // accuracy when aiming
-#define CHARACTERISTIC_AIM_ACCURACY					32 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY					31 // float [0, 1]
 // weapon specific aim accuracy
-#define CHARACTERISTIC_AIM_ACCURACY_HANDGUN			33 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_MACHINEGUN		34 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_H_MACHINEGUN	35 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_CHAINGUN		36 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_SHOTGUN			37 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_NAILGUN			38 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_PHOSPHORGUN		39 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_PROXLAUNCHER	40 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_GRENADELAUNCHER	41 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_NAPALMLAUNCHER	42 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_ROCKETLAUNCHER	43 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_BEAMGUN			44 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_RAILGUN			45 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_PLASMAGUN		46 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_BFG10K			47 // float [0, 1]
-#define CHARACTERISTIC_AIM_ACCURACY_MISSILELAUNCHER	48 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_MACHINEGUN		32 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_CHAINGUN		33 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_SHOTGUN			34 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_NAILGUN			35 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_PROXLAUNCHER	36 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_GRENADELAUNCHER	37 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_NAPALMLAUNCHER	38 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_ROCKETLAUNCHER	39 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_BEAMGUN			40 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_RAILGUN			41 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_PLASMAGUN		42 // float [0, 1]
+#define CHARACTERISTIC_AIM_ACCURACY_BFG10K			43 // float [0, 1]
 // how much the bot fires its weapon (continuous or bursts)
-#define CHARACTERISTIC_FIRETHROTTLE					49 // float [0, 1]
-#define CHARACTERISTIC_LEADER_STRATEGY				50 // integer [1, 4]
+#define CHARACTERISTIC_FIRETHROTTLE					44 // float [0, 1]
+#define CHARACTERISTIC_LEADER_STRATEGY				45 // integer [1, 4]
 //=====================================================================================================================================
 // CHAT
 //=====================================================================================================================================
 // tendency to insult/praise
-#define CHARACTERISTIC_CHAT_INSULT					51 // float [0, 1]
+#define CHARACTERISTIC_CHAT_INSULT					46 // float [0, 1]
 // tendency to chat about miscellaneous subject
-#define CHARACTERISTIC_CHAT_MISC					52 // float [0, 1]
+#define CHARACTERISTIC_CHAT_MISC					47 // float [0, 1]
 // tendency to chat at start or end of level
-#define CHARACTERISTIC_CHAT_STARTENDLEVEL			53 // float [0, 1]
+#define CHARACTERISTIC_CHAT_STARTENDLEVEL			48 // float [0, 1]
 // tendency to chat entering or exiting the game
-#define CHARACTERISTIC_CHAT_ENTEREXITGAME			54 // float [0, 1]
+#define CHARACTERISTIC_CHAT_ENTEREXITGAME			49 // float [0, 1]
 // tendency to chat when the character killed someone
-#define CHARACTERISTIC_CHAT_KILL					55 // float [0, 1]
+#define CHARACTERISTIC_CHAT_KILL					50 // float [0, 1]
 // tendency to chat when the character died
-#define CHARACTERISTIC_CHAT_DEATH					56 // float [0, 1]
+#define CHARACTERISTIC_CHAT_DEATH					51 // float [0, 1]
 // tendency to chat when enemy commits suicide
-#define CHARACTERISTIC_CHAT_ENEMYSUICIDE			57 // float [0, 1]
+#define CHARACTERISTIC_CHAT_ENEMYSUICIDE			52 // float [0, 1]
 // tendency to chat when hit while chatting
-#define CHARACTERISTIC_CHAT_HITTALKING				58 // float [0, 1]
+#define CHARACTERISTIC_CHAT_HITTALKING				53 // float [0, 1]
 // tendency to chat when bot was hit but didn't die
-#define CHARACTERISTIC_CHAT_HITNODEATH				59 // float [0, 1]
+#define CHARACTERISTIC_CHAT_HITNODEATH				54 // float [0, 1]
 // tendency to chat when bot hit the enemy but enemy didn't die
-#define CHARACTERISTIC_CHAT_HITNOKILL				60 // float [0, 1]
+#define CHARACTERISTIC_CHAT_HITNOKILL				55 // float [0, 1]
 // tendency to chat at random moments
-#define CHARACTERISTIC_CHAT_RANDOM					61 // float [0, 1]
+#define CHARACTERISTIC_CHAT_RANDOM					56 // float [0, 1]
 // tendency to reply to chats
-#define CHARACTERISTIC_CHAT_REPLY					62 // float [0, 1]
+#define CHARACTERISTIC_CHAT_REPLY					57 // float [0, 1]

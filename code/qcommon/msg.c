@@ -1668,7 +1668,7 @@ void MSG_ReadDeltaPlayerstate(msg_t *msg, playerState_t *from, playerState_t *to
 		*toF = *fromF;
 	}
 	// read the arrays
-	if (MSG_ReadBits(msg, 1)) {
+	if (MSG_ReadBits(msg, 1)) { // one general bit tells if any of this infrequently changing stuff has changed
 		// parse stats
 		if (MSG_ReadBits(msg, 1)) {
 			LOG("PS_STATS");

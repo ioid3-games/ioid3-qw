@@ -59,28 +59,6 @@ weaponinfo
 }
 
 //===========================================================================
-// Handgun
-//===========================================================================
-projectileinfo
-{
-	name			"handgunbullet"
-	gravity			0.0
-	damage			6
-	damagetype		DAMAGETYPE_IMPACT
-}
-
-weaponinfo
-{
-	name			"Trusty .44"
-	number			WEAPONINDEX_HANDGUN
-	projectile		"handgunbullet"
-	numprojectiles	1
-	hspread			1
-	vspread			1
-	speed			0
-}
-
-//===========================================================================
 // Machine Gun
 //===========================================================================
 projectileinfo
@@ -96,28 +74,6 @@ weaponinfo
 	name			"Machine Gun"
 	number			WEAPONINDEX_MACHINEGUN
 	projectile		"machinegunbullet"
-	numprojectiles	1
-	hspread			1
-	vspread			1
-	speed			0
-}
-
-//===========================================================================
-// Heavy Machine Gun
-//===========================================================================
-projectileinfo
-{
-	name			"hmgbullet"
-	gravity			0.0
-	damage			5
-	damagetype		DAMAGETYPE_IMPACT
-}
-
-weaponinfo
-{
-	name			"Heavy Machine Gun"
-	number			WEAPONINDEX_HEAVY_MACHINEGUN
-	projectile		"hmgbullet"
 	numprojectiles	1
 	hspread			1
 	vspread			1
@@ -188,28 +144,6 @@ weaponinfo
 	hspread			1
 	vspread			1
 	speed			1500
-}
-
-//===========================================================================
-// Phosphor Gun
-//===========================================================================
-projectileinfo
-{
-	name			"capsule"
-	gravity			0.0
-	damage			20
-	damagetype		DAMAGETYPE_IMPACT
-}
-
-weaponinfo
-{
-	name			"Phosphor Gun"
-	number			WEAPONINDEX_PHOSPHORGUN
-	projectile		"capsule"
-	numprojectiles	1
-	hspread			1
-	vspread			1
-	speed			0
 }
 
 //===========================================================================
@@ -391,27 +325,4 @@ weaponinfo
 	hspread			0
 	vspread			0
 	speed			2000
-}
-
-//===========================================================================
-// Missile Launcher
-//===========================================================================
-projectileinfo
-{
-	name			"missile"
-	gravity			0.0
-	damage			1000
-	radius			1000
-	damagetype		$evalint(DAMAGETYPE_IMPACT|DAMAGETYPE_RADIAL)
-}
-
-weaponinfo
-{
-	name			"Missile Launcher"
-	number			WEAPONINDEX_MISSILELAUNCHER
-	projectile		"missile"
-	numprojectiles	1
-	hspread			0
-	vspread			0
-	speed			10000
 }

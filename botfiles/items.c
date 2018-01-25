@@ -151,18 +151,6 @@ iteminfo "weapon_gauntlet"
 	maxs		{15,15,15}
 }
 
-iteminfo "weapon_handgun"
-{
-	name		"Trusty .44"
-	model		"models/weapons2/handgun/handgun.md3"
-	modelindex	MODELINDEX_HANDGUN
-	type		ITEM_WEAPON
-	index		INVENTORY_HANDGUN
-	respawntime	10
-	mins		{-15,-15,-15}
-	maxs		{15,15,15}
-}
-
 iteminfo "weapon_machinegun"
 {
 	name		"Machine Gun"
@@ -170,18 +158,6 @@ iteminfo "weapon_machinegun"
 	modelindex	MODELINDEX_MACHINEGUN
 	type		ITEM_WEAPON
 	index		INVENTORY_MACHINEGUN
-	respawntime	10
-	mins		{-15,-15,-15}
-	maxs		{15,15,15}
-}
-
-iteminfo "weapon_heavy_machinegun"
-{
-	name		"Heavy Machine Gun"
-	model		"models/weapons2/heavy_machinegun/heavymgun.md3"
-	modelindex	MODELINDEX_HEAVY_MACHINEGUN
-	type		ITEM_WEAPON
-	index		INVENTORY_HEAVY_MACHINEGUN
 	respawntime	10
 	mins		{-15,-15,-15}
 	maxs		{15,15,15}
@@ -218,18 +194,6 @@ iteminfo "weapon_nailgun"
 	modelindex	MODELINDEX_NAILGUN
 	type		ITEM_WEAPON
 	index		INVENTORY_NAILGUN
-	respawntime	10
-	mins		{-15,-15,-15}
-	maxs		{15,15,15}
-}
-
-iteminfo "weapon_phosphorgun"
-{
-	name		"Phosphor Gun"
-	model		"models/weapons/phosphorgun/phosphorgun.md3"
-	modelindex	MODELINDEX_PHOSPHORGUN
-	type		ITEM_WEAPON
-	index		INVENTORY_PHOSPHORGUN
 	respawntime	10
 	mins		{-15,-15,-15}
 	maxs		{15,15,15}
@@ -331,32 +295,9 @@ iteminfo "weapon_bfg"
 	maxs		{15,15,15}
 }
 
-iteminfo "weapon_missilelauncher"
-{
-	name		"Missile Launcher"
-	model		"models/weapons2/missile/missilel.md3"
-	modelindex	MODELINDEX_MISSILELAUNCHER
-	type		ITEM_WEAPON
-	index		INVENTORY_MISSILELAUNCHER
-	respawntime	10
-	mins		{-15,-15,-15}
-	maxs		{15,15,15}
-}
-
 //===================================
 // AMMO
 //===================================
-iteminfo "ammo_clip"
-{
-	name		"Trusty .44 Ammo"
-	model		"models/powerups/ammo/handgunam.md3"
-	modelindex	MODELINDEX_HANDGUN_AMMO
-	type		ITEM_AMMO
-	index		INVENTORY_HANDGUN_AMMO
-	respawntime	40
-	mins		{-15,-15,-15}
-	maxs		{15,15,15}
-}
 
 iteminfo "ammo_bullets"
 {
@@ -365,18 +306,6 @@ iteminfo "ammo_bullets"
 	modelindex	MODELINDEX_BULLETS
 	type		ITEM_AMMO
 	index		INVENTORY_BULLETS
-	respawntime	40
-	mins		{-15,-15,-15}
-	maxs		{15,15,15}
-}
-
-iteminfo "ammo_hmg_bullets"
-{
-	name		"HMG Bullets"
-	model		"models/powerups/ammo/hmgunam.md3"
-	modelindex	MODELINDEX_HMG_BULLETS
-	type		ITEM_AMMO
-	index		INVENTORY_HMG_BULLETS
 	respawntime	40
 	mins		{-15,-15,-15}
 	maxs		{15,15,15}
@@ -413,18 +342,6 @@ iteminfo "ammo_nails"
 	modelindex	MODELINDEX_NAILS
 	type		ITEM_AMMO
 	index		INVENTORY_NAILS
-	respawntime	40
-	mins		{-15,-15,-15}
-	maxs		{15,15,15}
-}
-
-iteminfo "ammo_capsules"
-{
-	name		"Capsules"
-	model		"models/powerups/ammo/phosphorgunam.md3"
-	modelindex	MODELINDEX_CAPSULES
-	type		ITEM_AMMO
-	index		INVENTORY_CAPSULES
 	respawntime	40
 	mins		{-15,-15,-15}
 	maxs		{15,15,15}
@@ -521,18 +438,6 @@ iteminfo "ammo_bfg"
 	modelindex	MODELINDEX_BFG_AMMO
 	type		ITEM_AMMO
 	index		INVENTORY_BFG_AMMO
-	respawntime	40
-	mins		{-15,-15,-15}
-	maxs		{15,15,15}
-}
-
-iteminfo "ammo_missiles"
-{
-	name		"Missiles"
-	model		"models/powerups/ammo/missileam.md3"
-	modelindex	MODELINDEX_MISSILES
-	type		ITEM_AMMO
-	index		INVENTORY_MISSILES
 	respawntime	40
 	mins		{-15,-15,-15}
 	maxs		{15,15,15}

@@ -2221,6 +2221,7 @@ void BotTeamAI(bot_state_t *bs) {
 	// give orders
 	switch (gametype) {
 		case GT_TEAM:
+		{
 			// if someone wants to know what to do or if the number of teammates changed
 			if (bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
@@ -2235,7 +2236,9 @@ void BotTeamAI(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		case GT_CTF:
+		{
 			// if the flag status changed or someone wants to know what to do or if the number of teammates changed
 			if (bs->flagstatuschanged || bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
@@ -2259,7 +2262,9 @@ void BotTeamAI(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		case GT_1FCTF:
+		{
 			// if the flag status changed or someone wants to know what to do or if the number of teammates changed
 			if (bs->flagstatuschanged || bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
@@ -2283,7 +2288,9 @@ void BotTeamAI(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		case GT_OBELISK:
+		{
 			// if someone wants to know what to do or if the number of teammates changed
 			if (bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
@@ -2298,7 +2305,9 @@ void BotTeamAI(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		case GT_HARVESTER:
+		{
 			// if someone wants to know what to do or if the number of teammates changed
 			if (bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
@@ -2313,5 +2322,6 @@ void BotTeamAI(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
