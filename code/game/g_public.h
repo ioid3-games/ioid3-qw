@@ -84,59 +84,68 @@ typedef struct {
 
 **************************************************************************************************************************************/
 
+	// See sharedTraps_t in qcommon.h for TRAP_MEMSET = 0, etc.
+
 typedef enum {
 	//============== general Quake services ==================
-	G_PRINT,					// (const char *string);
+	G_PRINT = 20,				// (const char *string);
 	// print message on the local console
 	G_ERROR,					// (const char *string);
 	// abort the game
 	G_MILLISECONDS,				// (void);
 	// get current time for profiling reasons
 	// this should NOT be used for any game related tasks, because it is not journaled
+	G_REAL_TIME,				// (qtime_t *qtime);
+	G_SNAPVECTOR,				// (float *v);
+	// ClientCommand and ServerCommand parameter access
+	G_ARGC,						// (void);
+	G_ARGV,						// (int n, char *buffer, int bufferLength);
+	G_SEND_CONSOLE_COMMAND,		// (const char *text);
+	// add commands to the console as if they were typed in for map changing, etc.
 	// console variable interaction
 	G_CVAR_REGISTER,			// (vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags);
 	G_CVAR_UPDATE,				// (vmCvar_t *vmCvar);
 	G_CVAR_SET,					// (const char *var_name, const char *value);
 	G_CVAR_VARIABLE_INTEGER_VALUE, // (const char *var_name);
 	G_CVAR_VARIABLE_STRING_BUFFER, // (const char *var_name, char *buffer, int bufsize);
-	G_ARGC,						// (void);
-	// ClientCommand and ServerCommand parameter access
-	G_ARGV,						// (int n, char *buffer, int bufferLength);
 	G_FS_FOPEN_FILE,			// (const char *qpath, fileHandle_t *file, fsMode_t mode);
 	G_FS_READ,					// (void *buffer, int len, fileHandle_t f);
 	G_FS_WRITE,					// (const void *buffer, int len, fileHandle_t f);
+	G_FS_SEEK,
 	G_FS_FCLOSE_FILE,			// (fileHandle_t f);
-	G_SEND_CONSOLE_COMMAND,		// (const char *text);
-	// add commands to the console as if they were typed in for map changing, etc
-
+	G_FS_GETFILELIST,
+	G_PC_ADD_GLOBAL_DEFINE,
+	G_PC_LOAD_SOURCE,
+	G_PC_FREE_SOURCE,
+	G_PC_READ_TOKEN,
+	G_PC_SOURCE_FILE_AND_LINE,
 	//=========== server specific functionality =============
-
-	G_LOCATE_GAME_DATA,			// (gentity_t *gEnts, int numGEntities, int sizeofGEntity_t, playerState_t *clients, int sizeofGameClient);
+	G_LOCATE_GAME_DATA = 100,	// (gentity_t *gEnts, int numGEntities, int sizeofGEntity_t, playerState_t *clients, int sizeofGameClient);
 	// the game needs to let the server system know where and how big the gentities are, so it can look at them directly without going through an interface
 	G_DROP_CLIENT,				// (int clientNum, const char *reason);
 	// kick a client off the server with a message
 	G_SEND_SERVER_COMMAND,		// (int clientNum, const char *fmt, ...);
 	// reliably sends a command string to be interpreted by the given client. If clientNum is -1, it will be sent to all clients
+	G_GET_USERCMD,				// (int clientNum, usercmd_t *cmd)
 	G_SET_CONFIGSTRING,			// (int num, const char *string);
 	// config strings hold all the index strings, and various other information that is reliably communicated to all clients
-	// All of the current configstrings are sent to clients when they connect, and changes are sent to all connected clients.
-	// All confgstrings are cleared at each level start.
+	// all of the current configstrings are sent to clients when they connect, and changes are sent to all connected clients.
+	// all confgstrings are cleared at each level start.
 	G_GET_CONFIGSTRING,			// (int num, char *buffer, int bufferSize);
+	G_SET_USERINFO,				// (int num, const char *buffer);
 	G_GET_USERINFO,				// (int num, char *buffer, int bufferSize);
 	// userinfo strings are maintained by the server system, so they are persistant across level loads, while all other game visible data is completely reset
-	G_SET_USERINFO,				// (int num, const char *buffer);
 	G_GET_SERVERINFO,			// (char *buffer, int bufferSize);
 	// the serverinfo info string has all the cvars visible to server browsers
 	G_SET_BRUSH_MODEL,			// (gentity_t *ent, const char *name);
 	// sets mins and maxs based on the brushmodel name
 	G_TRACE,					// (trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask);
+	G_TRACECAPSULE,				// (trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask);
 	// collision detection against all linked entities
 	G_POINT_CONTENTS,			// (const vec3_t point, int passEntityNum);
 	// point contents against all linked entities
 	G_IN_PVS,					// (const vec3_t p1, const vec3_t p2);
-	G_IN_PVS_IGNORE_PORTALS,	// (const vec3_t p1, const vec3_t p2);
 	G_ADJUST_AREA_PORTAL_STATE,	// (gentity_t *ent, qboolean open);
-	G_AREAS_CONNECTED,			// (int area1, int area2);
 	G_LINKENTITY,				// (gentity_t *ent);
 	// an entity will never be sent to a client or used for collision if it is not passed to linkentity. If the size, position, or solidity changes, it must be relinked.
 	G_UNLINKENTITY,				// (gentity_t *ent);
@@ -144,27 +153,22 @@ typedef enum {
 	G_ENTITIES_IN_BOX,			// (const vec3_t mins, const vec3_t maxs, gentity_t **list, int maxcount);
 	// EntitiesInBox will return brush models based on their bounding box, so exact determination must still be done with EntityContact
 	G_ENTITY_CONTACT,			// (const vec3_t mins, const vec3_t maxs, const gentity_t *ent);
+	G_ENTITY_CONTACTCAPSULE,	// (const vec3_t mins, const vec3_t maxs, const gentity_t *ent);
 	// perform an exact check against inline brush models of non-square shape
+	G_GET_ENTITY_TOKEN,			// qboolean (char *buffer, int bufferSize)
+	// retrieves the next string token from the entity spawn text, returning false when all tokens have been parsed. This should only be done at GAME_INIT time.
+	G_DEBUG_POLYGON_CREATE,
+	G_DEBUG_POLYGON_DELETE,
 	// access for bots to get and free a server client (FIXME?)
 	G_BOT_ALLOCATE_CLIENT,		// (void);
 	G_BOT_FREE_CLIENT,			// (int clientNum);
-	G_GET_USERCMD,				// (int clientNum, usercmd_t *cmd)
-	G_GET_ENTITY_TOKEN,			// qboolean (char *buffer, int bufferSize)
-	// Retrieves the next string token from the entity spawn text, returning false when all tokens have been parsed. This should only be done at GAME_INIT time.
-	G_FS_GETFILELIST,
-	G_DEBUG_POLYGON_CREATE,
-	G_DEBUG_POLYGON_DELETE,
-	G_REAL_TIME,
-	G_SNAPVECTOR,
-	G_TRACECAPSULE,				// (trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask);
-	G_ENTITY_CONTACTCAPSULE,	// (const vec3_t mins, const vec3_t maxs, const gentity_t *ent);
-	// 1.32
-	G_FS_SEEK,
+	G_IN_PVS_IGNORE_PORTALS,	// (const vec3_t p1, const vec3_t p2);
+	G_AREAS_CONNECTED,			// (int area1, int area2);
+
 	BOTLIB_SETUP = 200,			// (void);
 	BOTLIB_SHUTDOWN,			// (void);
 	BOTLIB_LIBVAR_SET,
 	BOTLIB_LIBVAR_GET,
-	BOTLIB_PC_ADD_GLOBAL_DEFINE,
 	BOTLIB_START_FRAME,
 	BOTLIB_LOAD_MAP,
 	BOTLIB_UPDATENTITY,
@@ -172,6 +176,7 @@ typedef enum {
 	BOTLIB_GET_SNAPSHOT_ENTITY,	// (int client, int ent);
 	BOTLIB_GET_CONSOLE_MESSAGE,	// (int client, char *message, int size);
 	BOTLIB_USER_COMMAND,		// (int client, usercmd_t *ucmd);
+
 	BOTLIB_AAS_ENABLE_ROUTING_AREA = 300,
 	BOTLIB_AAS_BBOX_AREAS,
 	BOTLIB_AAS_AREA_INFO,
@@ -191,6 +196,10 @@ typedef enum {
 	BOTLIB_AAS_AREA_TRAVEL_TIME_TO_GOAL_AREA,
 	BOTLIB_AAS_SWIMMING,
 	BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT,
+	BOTLIB_AAS_ALTERNATIVE_ROUTE_GOAL,
+	BOTLIB_AAS_PREDICT_ROUTE,
+	BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX,
+
 	BOTLIB_EA_SAY = 400,
 	BOTLIB_EA_SAY_TEAM,
 	BOTLIB_EA_COMMAND,
@@ -215,6 +224,7 @@ typedef enum {
 	BOTLIB_EA_END_REGULAR,
 	BOTLIB_EA_GET_INPUT,
 	BOTLIB_EA_RESET_INPUT,
+
 	BOTLIB_AI_LOAD_CHARACTER = 500,
 	BOTLIB_AI_FREE_CHARACTER,
 	BOTLIB_AI_CHARACTERISTIC_FLOAT,
@@ -289,14 +299,7 @@ typedef enum {
 	BOTLIB_AI_REMOVE_FROM_AVOID_GOALS,
 	BOTLIB_AI_PREDICT_VISIBLE_POSITION,
 	BOTLIB_AI_SET_AVOID_GOAL_TIME,
-	BOTLIB_AI_ADD_AVOID_SPOT,
-	BOTLIB_AAS_ALTERNATIVE_ROUTE_GOAL,
-	BOTLIB_AAS_PREDICT_ROUTE,
-	BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX,
-	BOTLIB_PC_LOAD_SOURCE,
-	BOTLIB_PC_FREE_SOURCE,
-	BOTLIB_PC_READ_TOKEN,
-	BOTLIB_PC_SOURCE_FILE_AND_LINE
+	BOTLIB_AI_ADD_AVOID_SPOT
 } gameImport_t;
 
 /*
