@@ -2661,7 +2661,7 @@ int BotHasPersistantPowerupAndWeapon(bot_state_t *bs) {
 	if (bs->inventory[INVENTORY_BEAMGUN] > 0 && bs->inventory[INVENTORY_BEAMGUN_AMMO] > 50) {
 		return qtrue;
 	}
-	// if the bot can use the rail gun
+	// if the bot can use the railgun
 	if (bs->inventory[INVENTORY_RAILGUN] > 0 && bs->inventory[INVENTORY_SLUGS] > 5) {
 		return qtrue;
 	}

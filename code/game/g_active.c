@@ -935,7 +935,7 @@ void ClientThink_Real(gentity_t *ent) {
 	ent->watertype = pm.watertype;
 	// execute client events
 	ClientEvents(ent, oldEventSequence);
-	// link entity now, after any personal teleporters have been used
+	// link entity now
 	trap_LinkEntity(ent);
 
 	if (!ent->client->noclip) {
