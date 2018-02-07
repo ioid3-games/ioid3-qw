@@ -5,7 +5,7 @@ Description=This service spawns a Quake Wars Internet server
 
 [Service]
 User=quakewars
-ExecStart=/usr/local/games/quakewars/quakewars-server.x86_64 +set dedicated 2
+ExecStart=/usr/local/games/Quake Wars/quakewars-server.x86_64 +set dedicated 2
 Restart=on-abort
 
 [Install]
