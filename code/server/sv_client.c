@@ -850,7 +850,7 @@ int SV_WriteDownloadToClient(client_t *cl, msg_t *msg) {
 	}
 
 	if (!cl->download) {
-		qboolean idPack = qfalse;
+		qboolean qwPack = qfalse;
 #ifndef STANDALONE
 		qboolean missionPack = qfalse;
 #endif
@@ -876,9 +876,9 @@ int SV_WriteDownloadToClient(client_t *cl, msg_t *msg) {
 						// now that we know the file is referenced, check whether it's legal to download it.
 #ifndef STANDALONE
 						missionPack = FS_idPak(pakbuf, BASETA, NUM_TA_PAKS);
-						idPack = missionPack;
+						qwPack = missionPack;
 #endif
-						idPack = idPack || FS_idPak(pakbuf, BASEGAME, NUM_ID_PAKS);
+						qwPack = qwPack || FS_idPak(pakbuf, BASEGAME, NUM_ID_PAKS);
 						break;
 					}
 				}
@@ -887,12 +887,12 @@ int SV_WriteDownloadToClient(client_t *cl, msg_t *msg) {
 
 		cl->download = 0;
 		// we open the file here
-		if (!(sv_allowDownload->integer & DLF_ENABLE) || (sv_allowDownload->integer & DLF_NO_UDP) || idPack || unreferenced || (cl->downloadSize = FS_SV_FOpenFileRead(cl->downloadName, &cl->download)) < 0) {
+		if (!(sv_allowDownload->integer & DLF_ENABLE) || (sv_allowDownload->integer & DLF_NO_UDP) || qwPack || unreferenced || (cl->downloadSize = FS_SV_FOpenFileRead(cl->downloadName, &cl->download)) < 0) {
 			// cannot auto-download file
 			if (unreferenced) {
 				Com_Printf("clientDownload: %d : \"%s\" is not referenced and cannot be downloaded.\n", (int)(cl - svs.clients), cl->downloadName);
 				Com_sprintf(errorMessage, sizeof(errorMessage), "File \"%s\" is not referenced and cannot be downloaded.", cl->downloadName);
-			} else if (idPack) {
+			} else if (qwPack) {
 				Com_Printf("clientDownload: %d : \"%s\" cannot download id pk3 files\n", (int)(cl - svs.clients), cl->downloadName);
 #ifndef STANDALONE
 				if (missionPack) {

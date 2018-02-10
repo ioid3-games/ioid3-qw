@@ -23,7 +23,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 */
 
 /**************************************************************************************************************************************
- Handle based filesystem for Quake III Arena.
+ Handle based filesystem for Quake Wars.
 **************************************************************************************************************************************/
 
 #include "q_shared.h"
@@ -33,7 +33,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 /*
 =======================================================================================================================================
 
-	QUAKE3 FILESYSTEM
+	QUAKE WARS FILESYSTEM
 
 All of Quake's data access is through a hierarchical file system, but the contents of the file system can be transparently merged from
 several sources.
@@ -52,7 +52,7 @@ base installation is usually readonly, and "home path" points to ~/.q3a or simil
 The user can also install custom mods and content in "home path", so it should be searched along with "home path" and "cd path" for
 game content.
 
-The "base game" is the directory under the paths where data comes from by default, and can be either "baseq3" or "demoq3".
+The "base game" is the directory under the paths where data comes from by default.
 
 The "current game" may be the same as the base game, or it may be the name of another directory under the paths that should be searched
 for files before looking in the base game. This is the basis for addons.
@@ -77,8 +77,8 @@ hit. fs_searchpaths is built with successive calls to FS_AddGameDirectory
 Additionally, we search in several subdirectories:
 current game is the current mode
 base game is a variable to allow mods based on other mods
-(such as baseq3 + missionpack content combination in a mod for instance)
-BASEGAME is the hardcoded base game("baseq3")
+(such as base game + missionpack content combination in a mod for instance)
+BASEGAME is the hardcoded base game("Data")
 
 e.g. the qpath "sound/newstuff/test.wav" would be searched for in the following places:
 
@@ -140,7 +140,7 @@ Read/write config to floppy option.
 
 Different version coexistence?
 
-When building a pak file, make sure a q3config.cfg isn't present in it, or configs will never get loaded from disk!
+When building a pak file, make sure a qwconfig.cfg isn't present in it, or configs will never get loaded from disk!
 
   todo:
 
@@ -150,7 +150,7 @@ When building a pak file, make sure a q3config.cfg isn't present in it, or confi
 =======================================================================================================================================
 */
 
-// every time a new demo pk3 file is built, this checksum must be updated.
+// every time a new pk3 file is built, this checksum must be updated.
 // the easiest way to get it is to just run the game and see what it spits out
 #ifndef STANDALONE
 #define DEMO_PAK0_CHECKSUM 2985612116u
@@ -191,10 +191,10 @@ typedef struct fileInPack_s {
 } fileInPack_t;
 
 typedef struct {
-	char pakPathname[MAX_OSPATH];	// c:\quake3\baseq3
-	char pakFilename[MAX_OSPATH];	// c:\quake3\baseq3\pak0.pk3
+	char pakPathname[MAX_OSPATH];	// c:\Quake Wars\Data
+	char pakFilename[MAX_OSPATH];	// c:\Quake Wars\Data\pak0.pk3
 	char pakBasename[MAX_OSPATH];	// pak0
-	char pakGamename[MAX_OSPATH];	// baseq3
+	char pakGamename[MAX_OSPATH];	// Data
 	unzFile handle;					// handle to zip file
 	int checksum;					// regular checksum
 	int pure_checksum;				// checksum for pure
@@ -206,9 +206,9 @@ typedef struct {
 } pack_t;
 
 typedef struct {
-	char path[MAX_OSPATH];		// c:\quake3
-	char fullpath[MAX_OSPATH];	// c:\quake3\baseq3
-	char gamedir[MAX_OSPATH];	// baseq3
+	char path[MAX_OSPATH];		// c:\Quake Wars
+	char fullpath[MAX_OSPATH];	// c:\Quake Wars\Data
+	char gamedir[MAX_OSPATH];	// Data
 } directory_t;
 
 typedef struct searchpath_s {
@@ -1292,10 +1292,10 @@ long FS_FOpenFileRead(const char *filename, fileHandle_t *file, qboolean uniqueF
 		Com_Error(ERR_FATAL, "Filesystem call made without initialization");
 	}
 
-	isLocalConfig = !strcmp(filename, "autoexec.cfg") || !strcmp(filename, Q3CONFIG_CFG);
+	isLocalConfig = !strcmp(filename, "autoexec.cfg") || !strcmp(filename, QWCONFIG_CFG);
 
 	for (search = fs_searchpaths; search; search = search->next) {
-		// autoexec.cfg and q3config.cfg can only be loaded outside of pk3 files.
+		// autoexec.cfg and qwconfig.cfg can only be loaded outside of pk3 files.
 		if (isLocalConfig && search->pack) {
 			continue;
 		}
@@ -2430,7 +2430,7 @@ void FS_GetModDescription(const char *modDir, char *description, int description
 FS_GetModList
 
 Returns a list of mod directory names.
-A mod directory is a peer to baseq3 with a pk3 or pk3dir in it.
+A mod directory is a peer to base game with a pk3 or pk3dir in it.
 =======================================================================================================================================
 */
 int FS_GetModList(char *listbuf, int bufsize) {
@@ -2473,7 +2473,7 @@ int FS_GetModList(char *listbuf, int bufsize) {
 				}
 			}
 		}
-		// we also drop "baseq3", "." and ".."
+		// we also drop "Data", "." and ".."
 		if (bDrop || Q_stricmp(name, com_basegame->string) == 0 || Q_stricmpn(name, ".", 1) == 0) {
 			continue;
 		}
@@ -2913,8 +2913,8 @@ void FS_AddGameDirectory(const char *path, const char *dir) {
 			search = Z_Malloc(sizeof(searchpath_t));
 			search->dir = Z_Malloc(sizeof(*search->dir));
 
-			Q_strncpyz(search->dir->path, curpath, sizeof(search->dir->path)); // c:\quake3\baseq3
-			Q_strncpyz(search->dir->fullpath, pakfile, sizeof(search->dir->fullpath)); // c:\quake3\baseq3\mypak.pk3dir
+			Q_strncpyz(search->dir->path, curpath, sizeof(search->dir->path)); // c:\Quake Wars\Data
+			Q_strncpyz(search->dir->fullpath, pakfile, sizeof(search->dir->fullpath)); // c:\Quake Wars\Data\mypak.pk3dir
 			Q_strncpyz(search->dir->gamedir, pakdirs[pakdirsi], sizeof(search->dir->gamedir)); // mypak.pk3dir
 
 			search->next = fs_searchpaths;
@@ -2939,13 +2939,13 @@ void FS_AddGameDirectory(const char *path, const char *dir) {
 
 /*
 =======================================================================================================================================
-FS_idPak
+FS_qwPak
 =======================================================================================================================================
 */
-qboolean FS_idPak(char *pak, char *base, int numPaks) {
+qboolean FS_qwPak(char *pak, char *base, int numPaks) {
 	int i;
 
-	for (i = 0; i < NUM_ID_PAKS; i++) {
+	for (i = 0; i < NUM_QW_PAKS; i++) {
 		if (!FS_FilenameCompare(pak, va("%s/pak%d", base, i))) {
 			break;
 		}
@@ -3031,14 +3031,14 @@ qboolean FS_ComparePaks(char *neededpaks, int len, qboolean dlstring) {
 		// ok, see if we have this pak file
 		havepak = qfalse;
 		// never autodownload any of the id paks
-		if (FS_idPak(fs_serverReferencedPakNames[i], BASEGAME, NUM_ID_PAKS)
+		if (FS_idPak(fs_serverReferencedPakNames[i], BASEGAME, NUM_QW_PAKS)
 #ifndef STANDALONE
 				|| FS_idPak(fs_serverReferencedPakNames[i], BASETA, NUM_TA_PAKS)
 #endif
 			) {
 			continue;
 		}
-		// make sure the server cannot make us write to non-quake3 directories.
+		// make sure the server cannot make us write to non-quake wars directories.
 		if (FS_CheckDirTraversal(fs_serverReferencedPakNames[i])) {
 			Com_Printf("WARNING: Invalid download name %s\n", fs_serverReferencedPakNames[i]);
 			continue;
@@ -3642,7 +3642,7 @@ const char *FS_ReferencedPakNames(void) {
 	searchpath_t *search;
 
 	info[0] = 0;
-	// we want to return ALL pk3's from the fs_game path and referenced one's from baseq3
+	// we want to return ALL pk3's from the fs_game path and referenced one's from base game
 	for (search = fs_searchpaths; search; search = search->next) {
 		// is the element a pak file?
 		if (search->pack) {
@@ -3875,9 +3875,9 @@ void FS_Restart(int checksumFeed) {
 	if (Q_stricmp(FS_GetCurrentGameDir(), lastGameDir)) {
 		Sys_RemovePIDFile(lastGameDir);
 		Sys_InitPIDFile(FS_GetCurrentGameDir());
-		// skip the q3config.cfg if "safe" is on the command line
+		// skip the qwconfig.cfg if "safe" is on the command line
 		if (!Com_SafeMode()) {
-			Cbuf_AddText("exec " Q3CONFIG_CFG "\n");
+			Cbuf_AddText("exec " QWCONFIG_CFG "\n");
 		}
 	}
 

@@ -1,5 +1,5 @@
 #
-# ioq3 Makefile
+# Quake Wars Makefile
 #
 # GNU Make required
 #
@@ -27,7 +27,7 @@ ifndef BUILD_GAME_QVM
   BUILD_GAME_QVM   =
 endif
 ifndef BUILD_BASEGAME
-  BUILD_BASEGAME =
+  BUILD_BASEGAME = 0
 endif
 ifndef BUILD_MISSIONPACK
   BUILD_MISSIONPACK=
@@ -104,15 +104,20 @@ endif
 export CROSS_COMPILING
 
 ifndef VERSION
-VERSION=1.36
+VERSION=1.00
 endif
 
 ifndef CLIENTBIN
-CLIENTBIN=ioquake3
+CLIENTBIN=quakewars
 endif
 
 ifndef SERVERBIN
-SERVERBIN=ioq3ded
+SERVERBIN=quakewars-server
+endif
+
+ifndef APPBUNDLE
+# must manually change PRODUCT_NAME in make-macosx-app.sh
+APPBUNDLE=quakewars.app
 endif
 
 ifndef BASEGAME
@@ -124,7 +129,7 @@ BASEGAME_CFLAGS=
 endif
 
 ifndef MISSIONPACK
-MISSIONPACK=missionpack
+MISSIONPACK=Data
 endif
 
 ifndef MISSIONPACK_CFLAGS
@@ -132,7 +137,7 @@ MISSIONPACK_CFLAGS=-DMISSIONPACK
 endif
 
 ifndef COPYDIR
-COPYDIR="/usr/local/games/quake3"
+COPYDIR="/usr/local/games/quakewars"
 endif
 
 ifndef COPYBINDIR
@@ -871,7 +876,7 @@ ifeq ($(PLATFORM),sunos)
   CC=gcc
   INSTALL=ginstall
   MKDIR=gmkdir -p
-  COPYDIR="/usr/local/share/games/quake3"
+  COPYDIR="/usr/local/share/games/quakewars"
 
   ifneq ($(ARCH),x86)
     ifneq ($(ARCH),sparc)
@@ -1373,7 +1378,7 @@ endif
 $(B).zip: $(TARGETS)
 ifeq ($(PLATFORM),darwin)
   ifdef ARCHIVE
-	@("./make-macosx-app.sh" release $(ARCH); if [ "$$?" -eq 0 ] && [ -d "$(B)/ioquake3.app" ]; then rm -f $@; cd $(B) && zip --symlinks -r9 ../../$@ `find "ioquake3.app" -print | sed -e "s!$(B)/!!g"`; else rm -f $@; cd $(B) && zip -r9 ../../$@ $(NAKED_TARGETS); fi)
+	@("./make-macosx-app.sh" release $(ARCH); if [ "$$?" -eq 0 ] && [ -d "$(B)/$(APPBUNDLE)" ]; then rm -f $@; cd $(B) && zip --symlinks -r9 ../../$@ `find "$(APPBUNDLE)" -print | sed -e "s!$(B)/!!g"`; else rm -f $@; cd $(B) && zip -r9 ../../$@ $(NAKED_TARGETS); fi)
   endif
 endif
 ifneq ($(PLATFORM),darwin)
@@ -2827,7 +2832,7 @@ STRINGOBJ = $(Q3R2STRINGOBJ)
 
 
 copyfiles: release
-	@if [ ! -d $(COPYDIR)/$(BASEGAME) ]; then echo "You need to set COPYDIR to where your Quake3 data is!"; fi
+	@if [ ! -d $(COPYDIR)/$(BASEGAME) ]; then echo "You need to set COPYDIR to where your Quake Wars data is!"; fi
 ifneq ($(BUILD_GAME_SO),0)
   ifneq ($(BUILD_BASEGAME),0)
 	-$(MKDIR) -m 0755 $(COPYDIR)/$(BASEGAME)

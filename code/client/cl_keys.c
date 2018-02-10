@@ -1388,7 +1388,7 @@ void Key_SetCatcher(int catcher) {
 
 // this must not exceed MAX_CMD_LINE
 #define MAX_CONSOLE_SAVE_BUFFER 1024
-#define CONSOLE_HISTORY_FILE "q3history"
+#define CONSOLE_HISTORY_FILE "history"
 static char consoleSaveBuffer[MAX_CONSOLE_SAVE_BUFFER];
 static int consoleSaveBufferSize = 0;
 
@@ -1464,7 +1464,7 @@ void CL_LoadConsoleHistory(void) {
 =======================================================================================================================================
 CL_SaveConsoleHistory
 
-Save the console history into the cvar cl_consoleHistory so that it persists across invocations of q3.
+Save the console history into the cvar cl_consoleHistory so that it persists across invocations of qw.
 =======================================================================================================================================
 */
 void CL_SaveConsoleHistory(void) {

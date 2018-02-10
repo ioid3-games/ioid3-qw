@@ -404,9 +404,9 @@ void Com_Quit_f(void) {
 
 	All of these are valid:
 
-	quake3 +set test blah +map test
-	quake3 set test blah+map test
-	quake3 set test blah + map test
+	quakewars +set test blah +map test
+	quakewars set test blah+map test
+	quakewars set test blah + map test
 
 =======================================================================================================================================
 */
@@ -452,7 +452,7 @@ void Com_ParseCommandLine(char *commandLine) {
 =======================================================================================================================================
 Com_SafeMode
 
-Check for "safe" on the command line, which will skip loading of q3config.cfg.
+Check for "safe" on the command line, which will skip loading of qwconfig.cfg.
 =======================================================================================================================================
 */
 qboolean Com_SafeMode(void) {
@@ -1482,7 +1482,7 @@ Com_InitZoneMemory
 void Com_InitZoneMemory(void) {
 	cvar_t *cv;
 
-	// Please note: com_zoneMegs can only be set on the command line, and not in q3config.cfg or Com_StartupVariable, as they haven't
+	// Please note: com_zoneMegs can only be set on the command line, and not in qwconfig.cfg or Com_StartupVariable, as they haven't
 	// been executed by this point. It's a chicken and egg problem. We need the memory manager configured to handle those places where
 	// you would configure the memory manager.
 
@@ -2407,8 +2407,8 @@ void Com_ExecuteCfg(void) {
 	Cbuf_Execute(); // always execute after exec to prevent text buffer overflowing
 
 	if (!Com_SafeMode()) {
-		// skip the q3config.cfg and autoexec.cfg if "safe" is on the command line
-		Cbuf_ExecuteText(EXEC_NOW, "exec " Q3CONFIG_CFG "\n");
+		// skip the qwconfig.cfg and autoexec.cfg if "safe" is on the command line
+		Cbuf_ExecuteText(EXEC_NOW, "exec " QWCONFIG_CFG "\n");
 		Cbuf_Execute();
 		Cbuf_ExecuteText(EXEC_NOW, "exec autoexec.cfg\n");
 		Cbuf_Execute();
@@ -2678,7 +2678,7 @@ void Com_Init(char *commandLine) {
 	char *s;
 	int qport;
 
-	Com_Printf("%s %s %s\n", Q3_VERSION, PLATFORM_STRING, PRODUCT_DATE);
+	Com_Printf("%s %s %s\n", QW_VERSION, PLATFORM_STRING, PRODUCT_DATE);
 
 	if (setjmp(abortframe)) {
 		Sys_Error("Error during initialization");
@@ -2769,7 +2769,7 @@ void Com_Init(char *commandLine) {
 #ifdef CINEMATICS_INTRO
 	com_introPlayed = Cvar_Get("com_introplayed", "0", CVAR_ARCHIVE);
 #endif
-	s = va("%s %s %s", Q3_VERSION, PLATFORM_STRING, PRODUCT_DATE);
+	s = va("%s %s %s", QW_VERSION, PLATFORM_STRING, PRODUCT_DATE);
 	com_version = Cvar_Get("version", s, CVAR_ROM|CVAR_SERVERINFO);
 	com_gamename = Cvar_Get("com_gamename", GAMENAME_FOR_MASTER, CVAR_SERVERINFO|CVAR_INIT);
 	com_protocol = Cvar_Get("com_protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO|CVAR_INIT);
@@ -2923,7 +2923,7 @@ void Com_WriteConfiguration(void) {
 
 	cvar_modifiedFlags &= ~CVAR_ARCHIVE;
 
-	Com_WriteConfigToFile(Q3CONFIG_CFG);
+	Com_WriteConfigToFile(QWCONFIG_CFG);
 	// not needed for dedicated or standalone
 #if !defined(DEDICATED) && !defined(STANDALONE)
 	if (!com_standalone->integer) {

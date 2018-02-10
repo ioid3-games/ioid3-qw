@@ -677,10 +677,10 @@ void Con_DrawSolidConsole(float frac) {
 	// draw the version number
 	re.SetColor(g_color_table[ColorIndex(COLOR_RED)]);
 
-	i = strlen(Q3_VERSION);
+	i = strlen(QW_VERSION);
 
 	for (x = 0; x < i; x++) {
-		SCR_DrawSmallChar(cls.glconfig.vidWidth - (i - x + 1) * SMALLCHAR_WIDTH, lines - SMALLCHAR_HEIGHT, Q3_VERSION[x]);
+		SCR_DrawSmallChar(cls.glconfig.vidWidth - (i - x + 1) * SMALLCHAR_WIDTH, lines - SMALLCHAR_HEIGHT, QW_VERSION[x]);
 	}
 	// draw the text
 	con.vislines = lines;
