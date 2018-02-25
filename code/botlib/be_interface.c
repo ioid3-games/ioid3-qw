@@ -315,7 +315,7 @@ int AAS_PointLight(vec3_t origin, int *red, int *green, int *blue);
 int AAS_TraceAreas(vec3_t start, vec3_t end, int *areas, vec3_t *points, int maxareas);
 int AAS_Reachability_WeaponJump(int area1num, int area2num);
 int BotFuzzyPointReachabilityArea(vec3_t origin);
-float BotGapDistance(vec3_t origin, vec3_t hordir, int checkdist, int entnum);
+int BotGapDistance(vec3_t origin, vec3_t hordir, int checkdist, int entnum);
 void AAS_FloodAreas(vec3_t origin);
 
 /*
