@@ -1079,9 +1079,8 @@ qboolean MoverBottomCenter(aas_reachability_t *reach, vec3_t bottomcenter) {
 BotGapDistance
 =======================================================================================================================================
 */
-float BotGapDistance(vec3_t origin, vec3_t hordir, int checkdist, int entnum) {
-	int gapdist;
-	float startz;
+int BotGapDistance(vec3_t origin, vec3_t hordir, int checkdist, int entnum) {
+	int gapdist, startz;
 	vec3_t start, end;
 	aas_trace_t trace;
 
@@ -1177,7 +1176,7 @@ int BotCheckBarrierJump(bot_movestate_t *ms, vec3_t dir, float speed) {
 	if (trace.endpos[2] - ms->origin[2] < sv_maxstep->value) {
 		return qfalse;
 	}
-
+	//elementary actions
 	EA_Jump(ms->client);
 	EA_Move(ms->client, hordir, speed);
 
@@ -1601,7 +1600,7 @@ bot_moveresult_t BotTravel_Swim(bot_movestate_t *ms, aas_reachability_t *reach) 
 	// elementary actions
 	EA_Move(ms->client, dir, 400);
 	// set the ideal view angles
-	Vector2Angles(dir, result.ideal_viewangles);
+	vectoangles(dir, result.ideal_viewangles);
 
 	result.flags |= MOVERESULT_SWIMVIEW;
 
@@ -1638,7 +1637,7 @@ bot_moveresult_t BotTravel_WaterJump(bot_movestate_t *ms, aas_reachability_t *re
 		EA_MoveUp(ms->client);
 	}
 	// set the ideal view angles
-	Vector2Angles(dir, result.ideal_viewangles);
+	vectoangles(dir, result.ideal_viewangles);
 
 	result.flags |= MOVERESULT_MOVEMENTVIEW;
 
@@ -1677,7 +1676,7 @@ bot_moveresult_t BotFinishTravel_WaterJump(bot_movestate_t *ms, aas_reachability
 	// elementary actions
 	EA_Move(ms->client, dir, 400);
 	// set the ideal view angles
-	Vector2Angles(dir, result.ideal_viewangles);
+	vectoangles(dir, result.ideal_viewangles);
 
 	result.flags |= MOVERESULT_MOVEMENTVIEW;
 
@@ -1807,7 +1806,7 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 	}
 
 	BotCheckBlocked(ms, hordir, qtrue, &result);
-	// elementary action
+	// elementary action move in direction
 	EA_Move(ms->client, hordir, speed);
 	VectorCopy(hordir, result.movedir);
 
@@ -1883,7 +1882,7 @@ bot_moveresult_t BotFinishTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachabil
 		hordir[2] = 0;
 		speed = 400;
 	}
-
+	// elementary action move in direction
 	EA_Move(ms->client, hordir, speed);
 	VectorCopy(hordir, result.movedir);
 
@@ -2151,7 +2150,7 @@ bot_moveresult_t BotFinishTravel_Jump(bot_movestate_t *ms, aas_reachability_t *r
 	}
 	// always use max speed when traveling through the air
 	speed = 800;
-
+	// elementary action move in direction
 	EA_Move(ms->client, hordir, speed);
 	VectorCopy(hordir, result.movedir);
 
@@ -2182,7 +2181,7 @@ bot_moveresult_t BotTravel_Ladder(bot_movestate_t *ms, aas_reachability_t *reach
 		viewdir[1] = dir[1];
 		viewdir[2] = 3 * dir[2];
 
-		Vector2Angles(viewdir, result.ideal_viewangles);
+		vectoangles(viewdir, result.ideal_viewangles);
 		// elementary action
 		EA_Move(ms->client, origin, 0);
 		EA_MoveForward(ms->client);
@@ -2793,7 +2792,7 @@ bot_moveresult_t BotTravel_RocketJump(bot_movestate_t *ms, aas_reachability_t *r
 
 	dist = VectorNormalize(hordir);
 	// look in the movement direction
-	Vector2Angles(hordir, result.ideal_viewangles);
+	vectoangles(hordir, result.ideal_viewangles);
 	// look straight down
 	result.ideal_viewangles[PITCH] = 90;
 
@@ -2820,7 +2819,7 @@ bot_moveresult_t BotTravel_RocketJump(bot_movestate_t *ms, aas_reachability_t *r
 		EA_Move(ms->client, hordir, speed);
 	}
 	// look in the movement direction
-	Vector2Angles(hordir, result.ideal_viewangles);
+	vectoangles(hordir, result.ideal_viewangles);
 	// look straight down
 	result.ideal_viewangles[PITCH] = 90;
 	// set the view angles directly
@@ -2855,7 +2854,7 @@ bot_moveresult_t BotTravel_BFGJump(bot_movestate_t *ms, aas_reachability_t *reac
 
 	dist = VectorNormalize(hordir);
 	// look in the movement direction
-	Vector2Angles(hordir, result.ideal_viewangles);
+	vectoangles(hordir, result.ideal_viewangles);
 	// look straight down
 	result.ideal_viewangles[PITCH] = 90;
 
@@ -2882,7 +2881,7 @@ bot_moveresult_t BotTravel_BFGJump(bot_movestate_t *ms, aas_reachability_t *reac
 		EA_Move(ms->client, hordir, speed);
 	}
 	// look in the movement direction
-	Vector2Angles(hordir, result.ideal_viewangles);
+	vectoangles(hordir, result.ideal_viewangles);
 	// look straight down
 	result.ideal_viewangles[PITCH] = 90;
 	// set the view angles directly
@@ -3079,7 +3078,7 @@ bot_moveresult_t BotMoveInGoalArea(bot_movestate_t *ms, bot_goal_t *goal) {
 	VectorCopy(dir, result.movedir);
 
 	if (ms->moveflags & MFL_SWIMMING) {
-		Vector2Angles(dir, result.ideal_viewangles);
+		vectoangles(dir, result.ideal_viewangles);
 		result.flags |= MOVERESULT_SWIMVIEW;
 	}
 	//if (!debugline) debugline = botimport.DebugLineCreate();
