@@ -1459,6 +1459,7 @@ void CG_EntityEvent(centity_t *cent, vec3_t position) {
 		// other events
 		case EV_ITEM_POP:
 			DEBUGNAME("EV_ITEM_POP");
+			CG_SpawnEffectSmall(position);
 			trap_S_StartSound(NULL, es->number, CHAN_AUTO, cgs.media.teleOutSound, 32, 255);
 			break;
 		case EV_ITEM_RESPAWN:

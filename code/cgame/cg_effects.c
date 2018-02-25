@@ -227,7 +227,7 @@ localEntity_t *CG_SmokePuff(const vec3_t p, const vec3_t vel, float radius, floa
 =======================================================================================================================================
 CG_SpawnEffectSmall
 
-Player teleporting in or out.
+Small teleportation effect.
 =======================================================================================================================================
 */
 void CG_SpawnEffectSmall(vec3_t org) {
