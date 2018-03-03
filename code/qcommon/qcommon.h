@@ -461,14 +461,14 @@ extern int cvar_modifiedFlags;
 #define FS_GENERAL_REF	0x01
 #define FS_UI_REF		0x02
 #define FS_CGAME_REF	0x04
-// number of id paks that will never be autodownloaded from base game
+// number of qw paks that will never be autodownloaded from base game
 #define NUM_QW_PAKS 4
 
 #define MAX_FILE_HANDLES 64
 #ifdef DEDICATED
-#define QWCONFIG_CFG "qwconfig_server.cfg"
+#define QWCONFIG_CFG "config_server.cfg"
 #else
-#define QWCONFIG_CFG "qwconfig.cfg"
+#define QWCONFIG_CFG "config.cfg"
 #endif
 qboolean FS_Initialized(void);
 void FS_InitFilesystem(void);

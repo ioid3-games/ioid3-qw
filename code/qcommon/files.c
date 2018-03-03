@@ -140,7 +140,7 @@ Read/write config to floppy option.
 
 Different version coexistence?
 
-When building a pak file, make sure a qwconfig.cfg isn't present in it, or configs will never get loaded from disk!
+When building a pak file, make sure a config.cfg isn't present in it, or configs will never get loaded from disk!
 
   todo:
 
@@ -182,7 +182,7 @@ typedef struct {
 	char pakBasename[MAX_OSPATH];	// pak0
 	char pakGamename[MAX_OSPATH];	// Data
 	unzFile handle;					// handle to zip file
-	int checksum;					// regular checksum
+	int checksum;					// checksum of the zip
 	int pure_checksum;				// checksum for pure
 	int numfiles;					// number of files in pk3
 	int referenced;					// referenced file flags
@@ -1271,7 +1271,7 @@ long FS_FOpenFileRead(const char *filename, fileHandle_t *file, qboolean uniqueF
 	isLocalConfig = !strcmp(filename, "autoexec.cfg") || !strcmp(filename, QWCONFIG_CFG);
 
 	for (search = fs_searchpaths; search; search = search->next) {
-		// autoexec.cfg and qwconfig.cfg can only be loaded outside of pk3 files.
+		// autoexec.cfg and config.cfg can only be loaded outside of pk3 files.
 		if (isLocalConfig && search->pack) {
 			continue;
 		}
@@ -3738,7 +3738,7 @@ void FS_Restart(int checksumFeed) {
 	if (Q_stricmp(FS_GetCurrentGameDir(), lastGameDir)) {
 		Sys_RemovePIDFile(lastGameDir);
 		Sys_InitPIDFile(FS_GetCurrentGameDir());
-		// skip the qwconfig.cfg if "safe" is on the command line
+		// skip the config.cfg if "safe" is on the command line
 		if (!Com_SafeMode()) {
 			Cbuf_AddText("exec " QWCONFIG_CFG "\n");
 		}

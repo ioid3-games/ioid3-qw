@@ -2035,7 +2035,7 @@ CG_AssetCache
 void CG_AssetCache(void) {
 
 	//if (Assets.textFont == NULL) {
-	//	trap_R_RegisterFont("fonts/arial.ttf", 72, &Assets.textFont);
+	//	trap_R_RegisterFont("fonts/arial.ttf", 72, 0, qfalse, &Assets.textFont);
 	//}
 
 	//Assets.background = trap_R_RegisterShaderNoMip(ASSET_BACKGROUND);

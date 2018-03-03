@@ -667,6 +667,7 @@ void trap_Args(char *buffer, int bufferLength);
 void trap_AddCommand(const char *cmdName);
 void trap_RemoveCommand(const char *cmdName);
 void trap_Cmd_ExecuteText(int exec_when, const char *text); // ui: don't use EXEC_NOW!
+void trap_R_RegisterFont(const char *fontName, int pointSize, float borderWidth, qboolean forceAutoHint, fontInfo_t *font);
 // console variable interaction
 void trap_Cvar_Register(vmCvar_t *cvar, const char *var_name, const char *value, int flags);
 void trap_Cvar_Update(vmCvar_t *cvar);

@@ -1003,9 +1003,9 @@ static srcHandle_t S_AL_SrcAlloc(alSrcPriority_t priority, int entnum, int chann
 				weakest = i;
 			}
 		}
-		// the channel system is not actually adhered to by base game, and not
+		// the channel system is not actually adhered to by the base game, and not
 		// implemented in snd_dma.c, so while the following is strictly correct, it
-		// causes incorrect behaviour versus defacto base game
+		// causes incorrect behaviour versus defacto base game behaviour
 #if 0
 		// is it an exact match, and not on channel 0?
 		if ((curSource->entity == entnum) && (curSource->channel == channel) && (channel != 0)) {

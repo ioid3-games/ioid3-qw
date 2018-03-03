@@ -1113,7 +1113,7 @@ void R_Register( void )
 	r_printShaders = ri.Cvar_Get( "r_printShaders", "0", 0 );
 	r_saveFontData = ri.Cvar_Get( "r_saveFontData", "0", 0 );
 	r_fontBorderWidth = ri.Cvar_Get( "r_fontBorderWidth", "1", 0 );
-	r_fontForceAutoHint = ri.Cvar_Get( "r_fontForceAutoHint", "1", 0 );
+	r_fontForceAutoHint = ri.Cvar_Get( "r_fontForceAutoHint", "0", 0 );
 
 	r_nocurves = ri.Cvar_Get ("r_nocurves", "0", CVAR_CHEAT );
 	r_drawworld = ri.Cvar_Get ("r_drawworld", "1", CVAR_CHEAT );
