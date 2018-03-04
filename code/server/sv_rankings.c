@@ -449,7 +449,7 @@ qboolean SV_RankUserValidate(int index, const char *player_id, const char *key, 
 
 		Com_DPrintf("SV_RankUserValidate(); s_rankings_contexts = %d\n", s_rankings_contexts);
 		Com_DPrintf("SV_RankUserValidate(); s_ranked_players[%d].context = %d\n", index, init.context);
-		// uudecode player id and player token
+		// decode player id and player token
 		ranked_player->player_id = SV_RankDecodePlayerID(player_id);
 
 		Com_DPrintf("SV_RankUserValidate(); ranked_player->player_id = %u\n", (uint32_t)ranked_player->player_id);
