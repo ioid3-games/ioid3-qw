@@ -303,16 +303,26 @@ static void CG_Item(centity_t *cent) {
 	if ((item->giType == IT_WEAPON) || (item->giType == IT_ARMOR)) {
 		ent.renderfx |= RF_MINLIGHT;
 	}
-	// add the weapon ready sound
-	if (item->giType == IT_WEAPON) {
-		ent.nonNormalizedAxes = qtrue;
-
-		if (wi->readySound) {
-			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, wi->readySound);
-		}
+// Tobias HACK: decrease the size of some models until we have new models...
+	if (item->giType == IT_AMMO) {
+		VectorScale(ent.axis[0], 0.35, ent.axis[0]);
+		VectorScale(ent.axis[1], 0.35, ent.axis[1]);
+		VectorScale(ent.axis[2], 0.35, ent.axis[2]);
+	}
+  
+	if (item->giType == IT_ARMOR) {
+		VectorScale(ent.axis[0], 0.6, ent.axis[0]);
+		VectorScale(ent.axis[1], 0.6, ent.axis[1]);
+		VectorScale(ent.axis[2], 0.6, ent.axis[2]);
 	}
 
-	if (item->giType == IT_HOLDABLE && item->giTag == HI_KAMIKAZE) {
+	if (item->giType == IT_HEALTH) {
+		VectorScale(ent.axis[0], 0.5, ent.axis[0]);
+		VectorScale(ent.axis[1], 0.5, ent.axis[1]);
+		VectorScale(ent.axis[2], 0.5, ent.axis[2]);
+	}
+// Tobias END
+	if (item->giType == IT_WEAPON || item->giType == IT_HOLDABLE && item->giTag == HI_KAMIKAZE) {
 		ent.nonNormalizedAxes = qtrue;
 	}
 	// add to refresh list
@@ -363,9 +373,21 @@ static void CG_Item(centity_t *cent) {
 					VectorScale(ent.axis[2], frac, ent.axis[2]);
 					ent.nonNormalizedAxes = qtrue;
 				}
-
+// Tobias HACK: also decrease the size of the health spheres until we have new models...
+				if (item->giType == IT_HEALTH) {
+					VectorScale(ent.axis[0], 0.45, ent.axis[0]);
+					VectorScale(ent.axis[1], 0.45, ent.axis[1]);
+					VectorScale(ent.axis[2], 0.45, ent.axis[2]);
+				}
+// Tobias END
 				trap_R_AddRefEntityToScene(&ent);
 			}
+		}
+	}
+	// add the weapon ready sound
+	if (item->giType == IT_WEAPON) {
+		if (wi->readySound) {
+			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, wi->readySound);
 		}
 	}
 }
@@ -439,10 +461,7 @@ static void CG_Missile(centity_t *cent) {
 
 	if (cent->currentState.weapon == WP_PROXLAUNCHER) {
 		if (s1->team == TEAM_BLUE) {
-			trap_R_AddLightToScene(cent->lerpOrigin, 25, 0.5f, 0.7f, 1.0f);
 			ent.hModel = cgs.media.blueProxMine;
-		} else {
-			trap_R_AddLightToScene(cent->lerpOrigin, 25, 1.0f, 0, 0);
 		}
 	}
 	// convert direction of travel into axis
@@ -459,6 +478,11 @@ static void CG_Missile(centity_t *cent) {
 			RotateAroundDirection(ent.axis, s1->time);
 		}
 	}
+// Tobias HACK: decrease the size of the missiles until we have new models...
+	VectorScale(ent.axis[0], 0.45, ent.axis[0]);
+	VectorScale(ent.axis[1], 0.45, ent.axis[1]);
+	VectorScale(ent.axis[2], 0.45, ent.axis[2]);
+// Tobias END
 	// add to refresh list, possibly with quad glow
 	CG_AddRefEntityWithPowerups(&ent, s1);
 }

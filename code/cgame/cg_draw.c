@@ -27,21 +27,18 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 **************************************************************************************************************************************/
 
 #include "cg_local.h"
-#ifdef MISSIONPACK
 #include "../ui/ui_shared.h"
 // used for scoreboard
 extern displayContextDef_t cgDC;
 menuDef_t *menuScoreboard = NULL;
-#else
-int drawTeamOverlayModificationCount = -1;
-#endif
+
 int sortedTeamPlayers[TEAM_MAXOVERLAY];
 int numSortedTeamPlayers;
 
 char systemChat[256];
 char teamChat1[256];
 char teamChat2[256];
-#ifdef MISSIONPACK
+
 /*
 =======================================================================================================================================
 CG_Text_Width
@@ -226,7 +223,7 @@ void CG_Text_Paint(float x, float y, float scale, vec4_t color, const char *text
 		trap_R_SetColor(NULL);
 	}
 }
-#endif
+
 #ifndef MISSIONPACK
 /*
 =======================================================================================================================================
