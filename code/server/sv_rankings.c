@@ -447,12 +447,12 @@ qboolean SV_RankUserValidate(int index, const char *player_id, const char *key, 
 		ranked_player->context = init.context;
 		s_rankings_contexts++;
 
-		Com_DPrintf("SV_RankUserValidate(); s_rankings_contexts = %d\n", s_rankings_contexts);
-		Com_DPrintf("SV_RankUserValidate(); s_ranked_players[%d].context = %d\n", index, init.context);
-		// uudecode player id and player token
+		Com_DPrintf("SV_RankUserValidate(); s_rankings_contexts=%d\n", s_rankings_contexts);
+		Com_DPrintf("SV_RankUserValidate(); s_ranked_players[%d].context=%d\n", index, init.context);
+		// decode player id and player token
 		ranked_player->player_id = SV_RankDecodePlayerID(player_id);
 
-		Com_DPrintf("SV_RankUserValidate(); ranked_player->player_id = %u\n", (uint32_t)ranked_player->player_id);
+		Com_DPrintf("SV_RankUserValidate(); ranked_player->player_id =%u\n", (uint32_t)ranked_player->player_id);
 		SV_RankDecodePlayerKey(key, ranked_player->token);
 		// save name and check for duplicates
 		Q_strncpyz(ranked_player->name, name, sizeof(ranked_player->name));
