@@ -38,7 +38,7 @@ void AAS_PrintFreeBSPLinks(char *str);
 #endif // AASINTERN
 // trace through the world
 bsp_trace_t AAS_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask);
-//trace through the world (but exclude world)
+// trace through the world (but exclude world)
 bsp_trace_t AAS_TraceEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask);
 // returns the contents at the given point
 int AAS_PointContents(vec3_t point);

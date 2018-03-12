@@ -1997,6 +1997,7 @@ bot_replychat_t *BotLoadReplyChat(char *filename) {
 				}
 			} else if (PC_CheckTokenString(source, "<")) { // bot names
 				key->flags |= RCKFL_BOTNAMES;
+
 				strcpy(namebuffer, "");
 
 				do {
@@ -2110,7 +2111,7 @@ void BotDumpInitialChat(bot_chat_t *chat) {
 	for (t = chat->types; t; t = t->next) {
 		Log_Write(" type \"%s\"", t->name);
 		Log_Write(" {");
-		Log_Write("  numchatmessages = %d", t->numchatmessages);
+		Log_Write(" numchatmessages = %d", t->numchatmessages);
 
 		for (m = t->firstchatmessage; m; m = m->next) {
 			Log_Write(" \"%s\"", m->chatmessage);
@@ -2440,6 +2441,7 @@ int BotExpandChatMessage(char *outmessage, char *message, unsigned long mcontext
 						}
 
 						strcpy(&outputbuf[len], temp);
+
 						len += strlen(temp);
 					}
 
@@ -2473,6 +2475,7 @@ int BotExpandChatMessage(char *outmessage, char *message, unsigned long mcontext
 					}
 
 					strcpy(&outputbuf[len], ptr);
+
 					len += strlen(ptr);
 					expansion = qtrue;
 					break;

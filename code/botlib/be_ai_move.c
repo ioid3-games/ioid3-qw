@@ -842,7 +842,9 @@ int BotGetReachabilityToGoal(vec3_t origin, int areanum, int lastgoalareanum, in
 		if (lastgoalareanum == goal->areanum && reach.areanum == lastareanum) {
 			continue;
 		}
-		//if (AAS_AreaContentsTravelFlags(reach.areanum) & ~travelflags) continue;
+		//if (AAS_AreaContentsTravelFlags(reach.areanum) & ~travelflags) {
+		//	continue;
+		//}
 		// if the travel isn't valid
 		if (!BotValidTravel(origin, &reach, travelflags)) {
 			continue;
@@ -862,7 +864,7 @@ int BotGetReachabilityToGoal(vec3_t origin, int areanum, int lastgoalareanum, in
 			continue;
 		}
 		// add the travel time towards the area
-		t += reach.traveltime; // + AAS_AreaTravelTime(areanum, origin, reach.start);
+		t += reach.traveltime; //+ AAS_AreaTravelTime(areanum, origin, reach.start);
 		// if the travel time is better than the ones already found
 		if (!besttime || t < besttime) {
 			besttime = t;
@@ -1176,7 +1178,7 @@ int BotCheckBarrierJump(bot_movestate_t *ms, vec3_t dir, float speed) {
 	if (trace.endpos[2] - ms->origin[2] < sv_maxstep->value) {
 		return qfalse;
 	}
-	//elementary actions
+	// elementary actions
 	EA_Jump(ms->client);
 	EA_Move(ms->client, hordir, speed);
 
@@ -1342,28 +1344,28 @@ void BotCheckBlocked(bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_mover
 	}
 	// get the current speed (keep some minimum speed for calculations?)
 	currentspeed = DotProduct(ms->velocity, dir) + 10;
-	// 1st: check for distant obstacles to avoid, depending on current speed
+	// do a full trace to check for distant obstacles to avoid, depending on current speed
 	VectorMA(ms->origin, currentspeed * 1.25, dir, end);
 	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY);
 	// if not started in solid and NOT hitting the world entity
 	if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE && trace.entityNum != ENTITYNUM_WORLD) {
 		result->blocked = qtrue;
 		result->blockentity = trace.entityNum;
-	// 2nd: check if the bot is standing on something and if not in an area with reachability
+	// if the bot is standing on something and not in an area with reachability
 	} else if (checkbottom && !AAS_AreaReachability(ms->areanum)) {
 		VectorMA(ms->origin, -4, up, end);
 		trace = AAS_TraceEntities(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY);
-		// if not started in solid and NOT hitting the world entity
+		// if not started in solid and hitting an entity
 		if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE) {
 			result->blocked = qtrue;
 			result->blockentity = trace.entityNum;
 			result->flags |= MOVERESULT_ONTOPOFOBSTACLE;
 		}
-	// 3rd: check for world entity hit before hitting nearby entities (... can cause entities to go unnoticed).
+	// check for world entity hit before hitting nearby entities (... can cause entities to go unnoticed).
 	} else {
 		VectorMA(ms->origin, 4, dir, end);
 		trace = AAS_TraceEntities(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY);
-		// if not started in solid
+		// if not started in solid and hitting an entity
 		if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE) {
 			result->blocked = qtrue;
 			result->blockentity = trace.entityNum;
@@ -1717,7 +1719,7 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 		VectorScale(hordir, 400, cmdmove);
 		VectorCopy(ms->velocity, velocity);
 
-		AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE|SE_TOUCHJUMPPAD, 0, qfalse); // qtrue
+		AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE|SE_TOUCHJUMPPAD, 0, qfalse); //qtrue
 		// check for nearby gap
 		gapdist = BotGapDistance(reach->end, hordir, 400, ms->entitynum);
 		// if there is no gap under the ledge and the bot wants to walk or if the bot will fall into slime, lava or onto a jumppad
@@ -1906,7 +1908,7 @@ bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) 
 	hordir[2] = 0;
 	dist = VectorNormalize(hordir);
 	speed = 350;
-	gapdist = BotGapDistance(ms, hordir, ms->entitynum);
+	gapdist = BotGapDistance(ms, hordir, 100, ms->entitynum);
 	// if pretty close to the start focus on the reachability end
 	if (dist < 50 || (gapdist && gapdist < 50)) {
 		// NOTE: using max speed (400) works best
@@ -1973,7 +1975,7 @@ bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) 
 		VectorMA(reach->start, gapdist, hordir, trace.endpos);
 	}
 
-//	dist1 = BotGapDistance(start, hordir, ms->entitynum);
+//	dist1 = BotGapDistance(start, hordir, 100, ms->entitynum);
 
 //	if (dist1 && dist1 <= trace.fraction * 80) {
 //		VectorMA(reach->start, dist1 - 20, hordir, trace.endpos);
@@ -2163,7 +2165,7 @@ BotTravel_Ladder
 */
 bot_moveresult_t BotTravel_Ladder(bot_movestate_t *ms, aas_reachability_t *reach) {
 	//float dist, speed;
-	vec3_t dir, viewdir; // hordir;
+	vec3_t dir, viewdir; //hordir
 	vec3_t origin = {0, 0, 0};
 //	vec3_t up = {0, 0, 1};
 	bot_moveresult_t_cleared(result);
@@ -2530,7 +2532,6 @@ bot_moveresult_t BotTravel_FuncBobbing(bot_movestate_t *ms, aas_reachability_t *
 	float dist, dist1, dist2, speed;
 	bot_moveresult_t_cleared(result);
 
-
 	if (!BotFuncBobStartEnd(reach, bob_start, bob_end, bob_origin)) {
 		// stop using this reachability
 		ms->reachability_time = 0;
@@ -2623,7 +2624,7 @@ bot_moveresult_t BotTravel_FuncBobbing(bot_movestate_t *ms, aas_reachability_t *
 		}
 
 		dist1 = VectorNormalize(dir1);
-		// if func_bobbing is NOT in its start position
+		// if the func_bobbing is NOT in its start position
 		VectorSubtract(bob_origin, bob_start, dir);
 
 		if (VectorLength(dir) > 16) {
@@ -3082,6 +3083,7 @@ bot_moveresult_t BotMoveInGoalArea(bot_movestate_t *ms, bot_goal_t *goal) {
 	}
 	//if (!debugline) debugline = botimport.DebugLineCreate();
 	//botimport.DebugLineShow(debugline, ms->origin, goal->origin, LINECOLOR_BLUE);
+
 	ms->lastreachnum = 0;
 	ms->lastareanum = 0;
 	ms->lastgoalareanum = goal->areanum;

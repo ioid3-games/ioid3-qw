@@ -344,7 +344,7 @@ float AAS_WeaponJumpZVelocity(vec3_t origin, float radiusdamage) {
 	}
 	// the owner of the rocket gets half the damage
 	points *= 0.5;
-	// mass of the bot (p_client.c: PutClientInServer)
+	// mass of the bot (g_client.c: PutClientInServer)
 	mass = 200;
 	// knockback is the same as the damage points
 	knockback = points;
@@ -363,7 +363,7 @@ AAS_RocketJumpZVelocity
 =======================================================================================================================================
 */
 float AAS_RocketJumpZVelocity(vec3_t origin) {
-	// rocket radius damage is 120 (p_weapon.c: Weapon_RocketLauncher_Fire)
+	// rocket radius damage is 120 (g_weapon.c: Weapon_RocketLauncherFire)
 	return AAS_WeaponJumpZVelocity(origin, 120);
 }
 
@@ -373,7 +373,7 @@ AAS_BFGJumpZVelocity
 =======================================================================================================================================
 */
 float AAS_BFGJumpZVelocity(vec3_t origin) {
-	// bfg radius damage is 1000 (p_weapon.c: weapon_bfg_fire)
+	// bfg radius damage is 120 (g_weapon.c: weapon_bfg_fire)
 	return AAS_WeaponJumpZVelocity(origin, 120);
 }
 
@@ -566,9 +566,9 @@ int AAS_ClientMovementPrediction(struct aas_clientmove_s *move, int entnum, vec3
 	phys_gravity = aassettings.phys_gravity;
 	phys_waterfriction = aassettings.phys_waterfriction;
 	phys_watergravity = aassettings.phys_watergravity;
-	phys_maxwalkvelocity = aassettings.phys_maxwalkvelocity; // * frametime;
-	phys_maxcrouchvelocity = aassettings.phys_maxcrouchvelocity; // * frametime;
-	phys_maxswimvelocity = aassettings.phys_maxswimvelocity; // * frametime;
+	phys_maxwalkvelocity = aassettings.phys_maxwalkvelocity; //* frametime;
+	phys_maxcrouchvelocity = aassettings.phys_maxcrouchvelocity; //* frametime;
+	phys_maxswimvelocity = aassettings.phys_maxswimvelocity; //* frametime;
 	phys_walkaccelerate = aassettings.phys_walkaccelerate;
 	phys_airaccelerate = aassettings.phys_airaccelerate;
 	phys_swimaccelerate = aassettings.phys_swimaccelerate;
@@ -1091,7 +1091,7 @@ void AAS_TestMovementPrediction(int entnum, vec3_t origin, vec3_t dir) {
 	cmdmove[2] = 224;
 
 	AAS_ClearShownDebugLines();
-	AAS_PredictClientMovement(&move, entnum, origin, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 13, 13, 0.1f, SE_HITGROUND, 0, qtrue); // SE_LEAVEGROUND
+	AAS_PredictClientMovement(&move, entnum, origin, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 13, 13, 0.1f, SE_HITGROUND, 0, qtrue); //SE_LEAVEGROUND
 
 	if (move.stopevent & SE_LEAVEGROUND) {
 		botimport.Print(PRT_MESSAGE, "leave ground\n");
