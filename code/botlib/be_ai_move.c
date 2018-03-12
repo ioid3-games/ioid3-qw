@@ -425,6 +425,7 @@ int BotReachabilityArea(vec3_t origin, int testground) {
 					for (j = 0; j < numareas; j++) {
 						if (AAS_AreaReachability(areas[j])) {
 							VectorSubtract(points[j], org, v);
+
 							dist = VectorLength(v);
 
 							if (dist < bestdist) {
@@ -885,6 +886,7 @@ int BotAddToTarget(vec3_t start, vec3_t end, float maxdist, float *dist, vec3_t 
 	float curdist;
 
 	VectorSubtract(end, start, dir);
+
 	curdist = VectorNormalize(dir);
 
 	if (*dist + curdist < maxdist) {
@@ -1436,6 +1438,10 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 	}
 	// get the current speed
 	currentspeed = DotProduct(ms->velocity, hordir);
+	// if using the scout powerup
+	if (ms->moveflags & MFL_SCOUT) {
+		currentspeed *= SCOUT_SPEED_SCALE;
+	}
 	// if going towards a crouch area
 	if (!(AAS_AreaPresenceType(reach->areanum) & PRESENCE_NORMAL)) {
 		// if pretty close to the reachable area
@@ -1510,7 +1516,6 @@ bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *
 	hordir[0] = reach->start[0] - ms->origin[0];
 	hordir[1] = reach->start[1] - ms->origin[1];
 	hordir[2] = 0;
-
 	dist = VectorNormalize(hordir);
 	speed = 400;
 	// get command movement

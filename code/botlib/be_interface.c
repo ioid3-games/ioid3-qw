@@ -527,6 +527,7 @@ int BotExportTest(int parm0, char *parm1, vec3_t parm2, vec3_t parm3) {
 		aas_reachability_t reach;
 		/*
 		goal.areanum = botlibglobals.goalareanum;
+
 		VectorCopy(botlibglobals.goalorigin, goal.origin);
 
 		reachnum = BotGetReachabilityToGoal(origin, newarea, lastgoalareanum, lastareanum, avoidreach, avoidreachtimes, avoidreachtries, &goal, TFL_DEFAULT|TFL_FUNCBOB|TFL_ROCKETJUMP, NULL, 0, &resultFlags);
@@ -561,7 +562,7 @@ int BotExportTest(int parm0, char *parm1, vec3_t parm2, vec3_t parm3) {
 	}
 
 	VectorClear(forward);
-	//BotGapDistance(origin, forward, 400, 0);
+	//BotGapDistance(origin, forward, 100, 0);
 	/*
 	if (parm0 & BUTTON_USE) {
 		botimport.Print(PRT_MESSAGE, "test rj from 703 to 716\n");
@@ -576,10 +577,10 @@ int BotExportTest(int parm0, char *parm1, vec3_t parm2, vec3_t parm3) {
 	// get the end point for the line to be traced
 //	VectorMA(eye, 800, forward, end);
 
-//	AAS_TestMovementPrediction(1, parm2, forward, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP);
+//	AAS_TestMovementPrediction(1, parm2, forward);
 /*
 	// trace the line to find the hit point
-	trace = AAS_TraceClientBBox(eye, end, PRESENCE_NORMAL, 1, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP);
+	trace = AAS_TraceClientBBox(eye, end, PRESENCE_NORMAL, 1);
 
 	if (!line[0]) {
 		line[0] = botimport.DebugLineCreate();
@@ -593,13 +594,12 @@ int BotExportTest(int parm0, char *parm1, vec3_t parm2, vec3_t parm3) {
 		ent = &aasworld.entities[trace.ent];
 		AAS_ShowBoundingBox(ent->origin, ent->mins, ent->maxs);
 	}
-*/
-/*
+
 	start_time = clock();
 
 	for (i = 0; i < 2000; i++) {
 		AAS_Trace2(eye, mins, maxs, end, 1, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP);
-//		AAS_TraceClientBBox(eye, end, PRESENCE_NORMAL, 1, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP);
+//		AAS_TraceClientBBox(eye, end, PRESENCE_NORMAL, 1);
 	}
 
 	end_time = clock();

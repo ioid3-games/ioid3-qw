@@ -119,12 +119,12 @@ typedef struct bot_entitystate_s {
 	int groundent;		// ground entity
 	int solid;			// solid type
 	int modelindex;		// model used
-	int modelindex2;	// weapons, CTF flags, etc
+	int modelindex2;	// weapons, CTF flags, etc.
 	int frame;			// model frame number
-	int event;			// impulse events -- muzzle flashes, footsteps, etc
+	int event;			// impulse events -- muzzle flashes, footsteps, etc.
 	int eventParm;		// even parameter
 	int powerups;		// bit flags
-	int weapon;			// determines weapon and flash model, etc
+	int weapon;			// determines weapon and flash model, etc.
 	int legsAnim;		// mask off ANIM_TOGGLEBIT
 	int torsoAnim;		// mask off ANIM_TOGGLEBIT
 } bot_entitystate_t;
@@ -138,7 +138,7 @@ typedef struct botlib_import_s {
 	void (*Trace)(bsp_trace_t *trace, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask);
 	// trace a bbox against a specific entity
 	void (*EntityTrace)(bsp_trace_t *trace, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int entnum, int contentmask);
-	//trace a bbox against entities
+	// trace a bbox against entities
 	void (*EntitiesTrace)(bsp_trace_t *trace, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask);
 	// retrieve the contents at the given point
 	int (*PointContents)(vec3_t point);
