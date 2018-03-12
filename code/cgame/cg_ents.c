@@ -309,7 +309,7 @@ static void CG_Item(centity_t *cent) {
 		VectorScale(ent.axis[1], 0.35, ent.axis[1]);
 		VectorScale(ent.axis[2], 0.35, ent.axis[2]);
 	}
-  
+
 	if (item->giType == IT_ARMOR) {
 		VectorScale(ent.axis[0], 0.6, ent.axis[0]);
 		VectorScale(ent.axis[1], 0.6, ent.axis[1]);
@@ -322,7 +322,7 @@ static void CG_Item(centity_t *cent) {
 		VectorScale(ent.axis[2], 0.5, ent.axis[2]);
 	}
 // Tobias END
-	if (item->giType == IT_WEAPON || item->giType == IT_HOLDABLE && item->giTag == HI_KAMIKAZE) {
+	if (item->giType == IT_WEAPON || (item->giType == IT_HOLDABLE && item->giTag == HI_KAMIKAZE)) {
 		ent.nonNormalizedAxes = qtrue;
 	}
 	// add to refresh list
@@ -564,7 +564,6 @@ static void CG_Portal(centity_t *cent) {
 
 	VectorCopy(cent->lerpOrigin, ent.origin);
 	VectorCopy(s1->origin2, ent.oldorigin);
-
 	ByteToDir(s1->eventParm, ent.axis[0]);
 	PerpendicularVector(ent.axis[1], ent.axis[0]);
 	// negating this tends to get the directions like they want
@@ -608,13 +607,11 @@ void CG_AdjustPositionForMover(const vec3_t in, int moverNum, int fromTime, int 
 
 	BG_EvaluateTrajectory(&cent->currentState.pos, fromTime, oldOrigin);
 	BG_EvaluateTrajectory(&cent->currentState.apos, fromTime, oldAngles);
-
 	BG_EvaluateTrajectory(&cent->currentState.pos, toTime, origin);
 	BG_EvaluateTrajectory(&cent->currentState.apos, toTime, angles);
 
 	VectorSubtract(origin, oldOrigin, deltaOrigin);
 	VectorSubtract(angles, oldAngles, deltaAngles);
-
 	VectorAdd(in, deltaOrigin, out);
 	VectorAdd(angles_in, deltaAngles, angles_out);
 	// FIXME: origin change when on a rotating object
@@ -704,7 +701,6 @@ static void CG_TeamBase(centity_t *cent) {
 
 		VectorCopy(cent->lerpOrigin, model.lightingOrigin);
 		VectorCopy(cent->lerpOrigin, model.origin);
-
 		AnglesToAxis(cent->currentState.angles, model.axis);
 
 		if (cent->currentState.modelindex == TEAM_RED) {
@@ -928,7 +924,6 @@ void CG_AddPacketEntities(void) {
 	cg.autoAngles[0] = 0;
 	cg.autoAngles[1] = (cg.time & 2047) * 360 / 2048.0;
 	cg.autoAngles[2] = 0;
-
 	cg.autoAnglesFast[0] = 0;
 	cg.autoAnglesFast[1] = (cg.time & 1023) * 360 / 1024.0f;
 	cg.autoAnglesFast[2] = 0;

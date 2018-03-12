@@ -196,7 +196,9 @@ void CG_Text_Paint(float x, float y, float scale, vec4_t color, const char *text
 				memcpy(newColor, g_color_table[ColorIndex(*(s + 1))], sizeof(newColor));
 
 				newColor[3] = color[3];
+
 				trap_R_SetColor(newColor);
+
 				s += 2;
 				continue;
 			} else {
@@ -206,9 +208,12 @@ void CG_Text_Paint(float x, float y, float scale, vec4_t color, const char *text
 					int ofs = style == ITEM_TEXTSTYLE_SHADOWED ? 1 : 2;
 
 					colorBlack[3] = newColor[3];
+
 					trap_R_SetColor(colorBlack);
 					CG_Text_PaintChar(x + ofs, y - yadj + ofs, glyph->imageWidth, glyph->imageHeight, useScale, glyph->s, glyph->t, glyph->s2, glyph->t2, glyph->glyph);
+
 					colorBlack[3] = 1.0;
+
 					trap_R_SetColor(newColor);
 				}
 
@@ -630,10 +635,10 @@ static void CG_DrawStatusBar(void) {
 		origin[2] = -5;
 		angles[YAW] = (cg.time & 2047) * 360 / 4096.0;
 
-		CG_DrawHealthModel(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 480 - iconSize, iconSize, iconSize, cg_items[6].models[0], 0, cg_items[6].models[1], origin, angles, 0);
+		CG_DrawHealthModel(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 480 - iconSize, iconSize, iconSize, cg_items[6/*item_health_large*/].models[0], 0, cg_items[6/*item_health_large*/].models[1], origin, angles, 0);
 		// if we didn't draw a 3D icon, draw a 2D icon for health
 		if (!cg_draw3dIcons.integer && cg_drawIcons.integer) {
-			CG_DrawPic(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 480 - iconSize, iconSize, iconSize, cg_items[6].icon);
+			CG_DrawPic(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 480 - iconSize, iconSize, iconSize, cg_items[6/*item_health_large*/].icon);
 		}
 	} else if (cg_drawStatusHead.integer == 1) {
 		CG_DrawStatusBarHead(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE);
@@ -995,7 +1000,6 @@ static float CG_DrawTeamOverlay(float y, qboolean right, qboolean upper) {
 			}
 
 			CG_GetColorForHealth(ci->health, ci->armor, hcolor);
-
 			Com_sprintf(st, sizeof(st), "%3i %3i", ci->health, ci->armor);
 
 			xx = x + TINYCHAR_WIDTH * 3 + TINYCHAR_WIDTH * pwidth + TINYCHAR_WIDTH * lwidth;
@@ -1629,13 +1633,10 @@ static void CG_DrawDisconnect(void) {
 	}
 
 	CG_SetScreenPlacement(PLACE_RIGHT, PLACE_BOTTOM);
-#ifdef MISSIONPACK
+
 	x = 640 - 48;
 	y = 480 - 144;
-#else
-	x = 640 - 48;
-	y = 480 - 48;
-#endif
+
 	CG_DrawPic(x, y, 48, 48, trap_R_RegisterShader("gfx/2d/net.tga"));
 }
 
@@ -1660,13 +1661,9 @@ static void CG_DrawLagometer(void) {
 
 	CG_SetScreenPlacement(PLACE_RIGHT, PLACE_BOTTOM);
 	// draw the graph
-#ifdef MISSIONPACK
 	x = 640 - 48;
 	y = 480 - 144;
-#else
-	x = 640 - 48;
-	y = 480 - 48;
-#endif
+
 	trap_R_SetColor(NULL);
 	CG_DrawPic(x, y, 48, 48, cgs.media.lagometerShader);
 
@@ -1805,9 +1802,7 @@ static void CG_DrawCenterString(void) {
 	char *start;
 	int l;
 	int x, y, w;
-#ifdef MISSIONPACK
 	int h;
-#endif
 	float *color;
 
 	if (!cg.centerPrintTime) {
@@ -1821,7 +1816,6 @@ static void CG_DrawCenterString(void) {
 	}
 
 	CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
-
 	trap_R_SetColor(color);
 
 	start = cg.centerPrint;
@@ -1839,7 +1833,6 @@ static void CG_DrawCenterString(void) {
 		}
 
 		linebuffer[l] = 0;
-#ifdef MISSIONPACK
 		w = CG_Text_Width(linebuffer, 0.5, 0);
 		h = CG_Text_Height(linebuffer, 0.5, 0);
 		x = (SCREEN_WIDTH - w) / 2;
@@ -1847,14 +1840,7 @@ static void CG_DrawCenterString(void) {
 		CG_Text_Paint(x, y + h, 0.5, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
 
 		y += h + 6;
-#else
-		w = cg.centerPrintCharWidth * CG_DrawStrlen(linebuffer);
-		x = (SCREEN_WIDTH - w) / 2;
 
-		CG_DrawStringExt(x, y, linebuffer, color, qfalse, qtrue, cg.centerPrintCharWidth, (int)(cg.centerPrintCharWidth * 1.5), 0);
-
-		y += cg.centerPrintCharWidth * 1.5;
-#endif
 		while (*start && (*start != '\n')) {
 			start++;
 		}
@@ -2346,11 +2332,7 @@ static void CG_DrawWarmup(void) {
 	int w;
 	int sec;
 	int i;
-#ifdef MISSIONPACK
 	float scale;
-#else
-	int cw;
-#endif
 	clientInfo_t *ci1, *ci2;
 	const char *s;
 
@@ -2387,20 +2369,9 @@ static void CG_DrawWarmup(void) {
 
 		if (ci1 && ci2) {
 			s = va("%s vs %s", ci1->name, ci2->name);
-#ifdef MISSIONPACK
 			w = CG_Text_Width(s, 0.6f, 0);
+
 			CG_Text_Paint(320 - w / 2, 60, 0.6f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
-#else
-			w = CG_DrawStrlen(s);
-
-			if (w > 640 / GIANT_WIDTH) {
-				cw = 640 / w;
-			} else {
-				cw = GIANT_WIDTH;
-			}
-
-			CG_DrawStringExt(320 - w * cw / 2, 20, s, colorWhite, qfalse, qtrue, cw, (int)(cw * 1.5f), 0);
-#endif
 		}
 	} else {
 		if (cgs.gametype == GT_FFA) {
@@ -2418,20 +2389,10 @@ static void CG_DrawWarmup(void) {
 		} else {
 			s = "";
 		}
-#ifdef MISSIONPACK
+
 		w = CG_Text_Width(s, 0.6f, 0);
+
 		CG_Text_Paint(320 - w / 2, 90, 0.6f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
-#else
-		w = CG_DrawStrlen(s);
-
-		if (w > 640 / GIANT_WIDTH) {
-			cw = 640 / w;
-		} else {
-			cw = GIANT_WIDTH;
-		}
-
-		CG_DrawStringExt(320 - w * cw / 2, 25, s, colorWhite, qfalse, qtrue, cw, (int)(cw * 1.1f), 0);
-#endif
 	}
 
 	sec = (sec - cg.time) / 1000;
@@ -2460,7 +2421,7 @@ static void CG_DrawWarmup(void) {
 				break;
 		}
 	}
-#ifdef MISSIONPACK
+
 	switch (cg.warmupCount) {
 		case 0:
 			scale = 0.54f;
@@ -2477,27 +2438,8 @@ static void CG_DrawWarmup(void) {
 	}
 
 	w = CG_Text_Width(s, scale, 0);
+
 	CG_Text_Paint(320 - w / 2, 125, scale, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
-#else
-	switch (cg.warmupCount) {
-		case 0:
-			cw = 28;
-			break;
-		case 1:
-			cw = 24;
-			break;
-		case 2:
-			cw = 20;
-			break;
-		default:
-			cw = 16;
-			break;
-	}
-
-	w = CG_DrawStrlen(s);
-
-	CG_DrawStringExt(320 - w * cw / 2, 70, s, colorWhite, qfalse, qtrue, cw, (int)(cw * 1.5), 0);
-#endif
 }
 
 /*
@@ -2524,11 +2466,10 @@ CG_Draw2D
 =======================================================================================================================================
 */
 static void CG_Draw2D(stereoFrame_t stereoFrame) {
-#ifdef MISSIONPACK
+
 	if (cgs.orderPending && cg.time > cgs.orderTime) {
 		CG_CheckOrderPending();
 	}
-#endif
 	// if we are taking a levelshot for the menu, don't draw anything
 	if (cg.levelShot) {
 		return;

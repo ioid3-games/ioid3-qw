@@ -494,7 +494,7 @@ typedef struct {
 	int timelimitWarnings;			// 5 min, 1 min, overtime
 	int fraglimitWarnings;
 	qboolean mapRestart;			// set on a map restart to set back the weapon
-	qboolean renderingThirdPerson;	// during deaths, chasecams, etc
+	qboolean renderingThirdPerson;	// during deaths, chasecams, etc.
 	// first person gun flash origin
 	vec3_t flashOrigin;
 	// prediction state
@@ -556,7 +556,7 @@ typedef struct {
 	char centerPrint[1024];
 	int centerPrintLines;
 	// low ammo warning state
-	int lowAmmoWarning; // 1 = low, 2 = empty
+	int lowAmmoWarning;						// 1 = low, 2 = empty
 	// crosshair client ID
 	int crosshairClientNum;
 	int crosshairClientTime;
@@ -602,7 +602,7 @@ typedef struct {
 	int bobcycle;
 	float xyspeed;
 	int nextOrbitTime;
-	//qboolean cameraMode;	// if rendering from a loaded camera
+	//qboolean cameraMode;					// if rendering from a loaded camera
 	// development tool
 	refEntity_t testModelEntity;
 	char testModelName[MAX_QPATH];
@@ -927,7 +927,7 @@ typedef struct {
 	qhandle_t inlineDrawModel[MAX_MODELS];
 	vec3_t inlineModelMidpoints[MAX_MODELS];
 	clientInfo_t clientinfo[MAX_CLIENTS];
-	// teamchat width is *3 because of embedded color codes
+	// teamchat width is * 3 because of embedded color codes
 	char teamChatMsgs[TEAMCHAT_HEIGHT][TEAMCHAT_WIDTH * 3 + 1];
 	int teamChatMsgTimes[TEAMCHAT_HEIGHT];
 	int teamChatPos;
@@ -1063,14 +1063,12 @@ extern vmCvar_t cg_oldPlasma;
 extern vmCvar_t cg_enableDust;
 extern vmCvar_t cg_enableBreath;
 extern vmCvar_t cg_obeliskRespawnDelay;
-#ifdef MISSIONPACK
 extern vmCvar_t cg_redTeamName;
 extern vmCvar_t cg_blueTeamName;
 extern vmCvar_t cg_currentSelectedPlayer;
 extern vmCvar_t cg_currentSelectedPlayerName;
 extern vmCvar_t cg_recordSPDemo;
 extern vmCvar_t cg_recordSPDemoName;
-#endif
 // cg_main.c
 const char *CG_ConfigString(int index);
 const char *CG_Argv(int arg);
@@ -1342,10 +1340,10 @@ int trap_CM_MarkFragments(int numPoints, const vec3_t *points, const vec3_t proj
 void trap_R_LoadWorldMap(const char *mapname);
 qboolean trap_GetEntityToken(char *buffer, int bufferSize);
 // all media should be registered during level startup to prevent hitches during gameplay
-qhandle_t trap_R_RegisterModel(const char *name);		// returns rgb axis if not found
-qhandle_t trap_R_RegisterSkin(const char *name);		// returns all white if not found
-qhandle_t trap_R_RegisterShader(const char *name);		// returns all white if not found
-qhandle_t trap_R_RegisterShaderNoMip(const char *name);	// returns all white if not found
+qhandle_t trap_R_RegisterModel(const char *name); // returns rgb axis if not found
+qhandle_t trap_R_RegisterSkin(const char *name); // returns all white if not found
+qhandle_t trap_R_RegisterShader(const char *name); // returns all white if not found
+qhandle_t trap_R_RegisterShaderNoMip(const char *name); // returns all white if not found
 // a scene is built up by calls to R_ClearScene and the various R_Add functions.
 // nothing is drawn until R_RenderScene is called.
 void trap_R_ClearScene(void);
