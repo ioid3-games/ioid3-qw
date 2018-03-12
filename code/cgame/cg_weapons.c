@@ -814,7 +814,9 @@ static void CG_ShotgunEjectBrass(centity_t *cent) {
 		float waterScale = 1.0f;
 
 		le = CG_AllocLocalEntity();
+
 		re = &le->refEntity;
+
 		velocity[0] = 60 + 60 * crandom();
 
 		if (i == 0) {
@@ -957,7 +959,6 @@ void CG_Tracer(vec3_t source, vec3_t dest) {
 	VectorScale(cg.refdef.viewaxis[1], line[1], right);
 	VectorMA(right, -line[0], cg.refdef.viewaxis[2], right);
 	VectorNormalize(right);
-
 	VectorMA(finish, cg_tracerWidth.value, right, verts[0].xyz);
 	verts[0].st[0] = 0;
 	verts[0].st[1] = 1;
@@ -1172,7 +1173,7 @@ CG_ShotgunFire
 =======================================================================================================================================
 */
 void CG_ShotgunFire(entityState_t *es) {
-	vec3_t v;
+	vec3_t v, up;
 	int contents;
 
 	VectorSubtract(es->origin2, es->pos.trBase, v);
@@ -1180,16 +1181,11 @@ void CG_ShotgunFire(entityState_t *es) {
 	VectorScale(v, 32, v);
 	VectorAdd(es->pos.trBase, v, v);
 
-	if (cgs.glconfig.hardwareType != GLHW_RAGEPRO) {
-		// ragepro can't alpha fade, so don't even bother with smoke
-		vec3_t up;
+	contents = CG_PointContents(es->pos.trBase, 0);
 
-		contents = CG_PointContents(es->pos.trBase, 0);
-
-		if (!(contents & CONTENTS_WATER)) {
-			VectorSet(up, 0, 0, 8);
-			CG_SmokePuff(v, up, 32, 1, 1, 1, 0.33f, 900, cg.time, 0, LEF_PUFF_DONT_SCALE, cgs.media.shotgunSmokePuffShader);
-		}
+	if (!(contents & CONTENTS_WATER)) {
+		VectorSet(up, 0, 0, 8);
+		CG_SmokePuff(v, up, 32, 1, 1, 1, 0.33f, 900, cg.time, 0, LEF_PUFF_DONT_SCALE, cgs.media.shotgunSmokePuffShader);
 	}
 
 	CG_ShotgunPattern(es->pos.trBase, es->origin2, es->eventParm, es->otherEntityNum);
@@ -1475,7 +1471,7 @@ void CG_RegisterItemVisuals(int itemNum) {
 	gitem_t *item;
 
 	if (itemNum < 0 || itemNum >= bg_numItems) {
-		CG_Error("CG_RegisterItemVisuals: itemNum %d out of range [0-%d]", itemNum, bg_numItems - 1);
+		CG_Error("CG_RegisterItemVisuals: itemNum %d out of range [0 - %d]", itemNum, bg_numItems - 1);
 	}
 
 	itemInfo = &cg_items[itemNum];

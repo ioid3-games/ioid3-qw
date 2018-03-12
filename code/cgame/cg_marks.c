@@ -109,6 +109,7 @@ markPoly_t *CG_AllocMark(void) {
 	}
 
 	le = cg_freeMarkPolys;
+
 	cg_freeMarkPolys = cg_freeMarkPolys->nextMark;
 
 	memset(le, 0, sizeof(*le));
