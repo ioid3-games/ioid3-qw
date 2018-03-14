@@ -523,7 +523,6 @@ void Weapon_Railgun_Fire(gentity_t *ent) {
 			}
 
 			G_Damage(traceEnt, ent, ent, forward, trace.endpos, damage, 0, MOD_RAILGUN);
-
 		}
 
 		if (trace.contents & CONTENTS_SOLID) {
@@ -571,7 +570,7 @@ void Weapon_Railgun_Fire(gentity_t *ent) {
 		if (ent->client->accurateCount >= 2) {
 			ent->client->accurateCount -= 2;
 			ent->client->ps.persistant[PERS_IMPRESSIVE_COUNT]++;
-			ent->client->rewardTime = level.time + REWARD_SPRITE_TIME;
+			ent->client->rewardTime = level.time + REWARD_TIME;
 		}
 
 		ent->client->accuracy_hits++;
@@ -884,6 +883,7 @@ static void KamikazeShockWave(vec3_t origin, gentity_t *attacker, float damage, 
 
 //		if (CanDamage(ent, origin)) {
 			VectorSubtract(ent->r.currentOrigin, origin, dir);
+
 			dir[2] += 24;
 
 			G_Damage(ent, NULL, attacker, dir, origin, damage, DAMAGE_RADIUS|DAMAGE_NO_TEAM_PROTECTION, MOD_KAMIKAZE);

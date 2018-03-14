@@ -208,7 +208,7 @@ void LocateMaster(gentity_t *ent) {
 	if (ent->target_ent) {
 		ent->r.visDummyNum = ent->target_ent->s.number;
 	} else {
-		G_Printf("Couldn't find target(%s) for misc_vis_dummy at %s\n", ent->target, vtos(ent->r.currentOrigin));
+		G_Printf("Couldn't find target (%s) for misc_vis_dummy at %s\n", ent->target, vtos(ent->r.currentOrigin));
 		G_FreeEntity(ent);
 	}
 }

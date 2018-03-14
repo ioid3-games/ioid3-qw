@@ -391,7 +391,7 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker
 
 		targ->client->pers.teamState.lasthurtcarrier = 0;
 		attacker->client->ps.persistant[PERS_DEFEND_COUNT]++;
-		attacker->client->rewardTime = level.time + REWARD_SPRITE_TIME;
+		attacker->client->rewardTime = level.time + REWARD_TIME;
 		return;
 	}
 	// flag and flag carrier area defense bonuses
@@ -458,7 +458,7 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker
 		AddScore(attacker, targ->r.currentOrigin, CTF_FLAG_DEFENSE_BONUS);
 
 		attacker->client->ps.persistant[PERS_DEFEND_COUNT]++;
-		attacker->client->rewardTime = level.time + REWARD_SPRITE_TIME;
+		attacker->client->rewardTime = level.time + REWARD_TIME;
 		return;
 	}
 
@@ -470,7 +470,7 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker
 			AddScore(attacker, targ->r.currentOrigin, CTF_CARRIER_PROTECT_BONUS);
 
 			attacker->client->ps.persistant[PERS_DEFEND_COUNT]++;
-			attacker->client->rewardTime = level.time + REWARD_SPRITE_TIME;
+			attacker->client->rewardTime = level.time + REWARD_TIME;
 			return;
 		}
 	}
@@ -755,7 +755,7 @@ int Team_TouchOurFlag(gentity_t *ent, gentity_t *other, int team) {
 
 	cl->ps.powerups[enemy_flag] = 0;
 
-	other->client->rewardTime = level.time + REWARD_SPRITE_TIME;
+	other->client->rewardTime = level.time + REWARD_TIME;
 	other->client->ps.persistant[PERS_CAPTURES]++;
 	// other gets another 10 frag bonus
 	AddScore(other, ent->r.currentOrigin, CTF_CAPTURE_BONUS);
@@ -776,14 +776,14 @@ int Team_TouchOurFlag(gentity_t *ent, gentity_t *other, int team) {
 				AddScore(player, ent->r.currentOrigin, CTF_RETURN_FLAG_ASSIST_BONUS);
 
 				player->client->ps.persistant[PERS_ASSIST_COUNT]++;
-				player->client->rewardTime = level.time + REWARD_SPRITE_TIME;
+				player->client->rewardTime = level.time + REWARD_TIME;
 			}
 
 			if (player->client->pers.teamState.lastfraggedcarrier + CTF_FRAG_CARRIER_ASSIST_TIMEOUT > level.time) {
 				AddScore(player, ent->r.currentOrigin, CTF_FRAG_CARRIER_ASSIST_BONUS);
 
 				player->client->ps.persistant[PERS_ASSIST_COUNT]++;
-				player->client->rewardTime = level.time + REWARD_SPRITE_TIME;
+				player->client->rewardTime = level.time + REWARD_TIME;
 			}
 		}
 	}
@@ -1184,12 +1184,14 @@ void CheckTeamStatus(void) {
 Only in CTF games. Red players spawn here at game start.
 */
 void SP_team_CTF_redplayer(gentity_t *ent) {
+
 }
 
 /*QUAKED team_CTF_blueplayer (0 0 1) (-16 -16 -16) (16 16 56)
 Only in CTF games. Blue players spawn here at game start.
 */
 void SP_team_CTF_blueplayer(gentity_t *ent) {
+
 }
 
 /*QUAKED team_CTF_redspawn (1 0 0) (-16 -16 -24) (16 16 56)
@@ -1197,6 +1199,7 @@ potential spawning position for red team in CTF games.
 Targets will be fired when someone spawns in on them.
 */
 void SP_team_CTF_redspawn(gentity_t *ent) {
+
 }
 
 /*QUAKED team_CTF_bluespawn (0 0 1) (-16 -16 -24) (16 16 56)
@@ -1204,6 +1207,7 @@ potential spawning position for blue team in CTF games.
 Targets will be fired when someone spawns in on them.
 */
 void SP_team_CTF_bluespawn(gentity_t *ent) {
+
 }
 
 /*
@@ -1268,7 +1272,7 @@ static void ObeliskDie(gentity_t *self, gentity_t *inflictor, gentity_t *attacke
 	} else {
 		AddScore(attacker, self->r.currentOrigin, CTF_CAPTURE_BONUS);
 
-		attacker->client->rewardTime = level.time + REWARD_SPRITE_TIME;
+		attacker->client->rewardTime = level.time + REWARD_TIME;
 		attacker->client->ps.persistant[PERS_CAPTURES]++;
 	}
 
@@ -1310,7 +1314,7 @@ static void ObeliskTouch(gentity_t *self, gentity_t *other, trace_t *trace) {
 
 	trap_SendServerCommand(-1, va("cp \"%s" S_COLOR_WHITE "\nbrought in %i %s %s!\n\"", other->client->pers.netname, tokens, TeamName(otherTeam), (tokens == 1) ? "skull" : "skulls"));
 
-	other->client->rewardTime = level.time + REWARD_SPRITE_TIME;
+	other->client->rewardTime = level.time + REWARD_TIME;
 	other->client->ps.persistant[PERS_CAPTURES] += tokens;
 	other->client->ps.tokens = 0;
 

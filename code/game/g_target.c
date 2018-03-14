@@ -355,6 +355,7 @@ Target_Laser_Off
 void Target_Laser_Off(gentity_t *self) {
 
 	trap_UnlinkEntity(self);
+
 	self->nextthink = 0;
 }
 

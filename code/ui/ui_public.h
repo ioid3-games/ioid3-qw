@@ -169,7 +169,7 @@ typedef enum {
 //	qboolean UI_ConsoleCommand(int realTime);
 	UI_DRAW_CONNECT_SCREEN
 //	void UI_DrawConnectScreen(qboolean overlay);
-// if !overlay, the background will be drawn, otherwise it will be overlayed over whatever the cgame has drawn.
+// if !overlay, the background will be drawn, otherwise it will be overlayed over whatever the cgame has drawn
 // a GetClientState syscall will be made to get the current strings
 } uiExport_t;
 #endif

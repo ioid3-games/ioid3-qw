@@ -711,6 +711,7 @@ static void PM_WalkMove(void) {
 	}
 	// when going up or down slopes the wish velocity should Not be zero
 //	wishvel[2] = 0;
+
 	VectorCopy(wishvel, wishdir);
 
 	wishspeed = VectorNormalize(wishdir);
@@ -740,7 +741,6 @@ static void PM_WalkMove(void) {
 	}
 
 	PM_Accelerate(wishdir, wishspeed, accelerate);
-
 	//Com_Printf("velocity = %1.1f %1.1f %1.1f\n", pm->ps->velocity[0], pm->ps->velocity[1], pm->ps->velocity[2]);
 	//Com_Printf("velocity1 = %1.1f\n", VectorLength(pm->ps->velocity));
 
@@ -1694,7 +1694,7 @@ static void PM_Weapon(void) {
 	// check for item using
 	if (pm->cmd.buttons & BUTTON_USE_HOLDABLE) {
 		if (!(pm->ps->pm_flags & PMF_USE_ITEM_HELD)) {
-			if (bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag == HI_MEDKIT && pm->ps->stats[STAT_HEALTH] >= (pm->ps->stats[STAT_MAX_HEALTH] + 25)) {
+			if (bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag == HI_MEDKIT && pm->ps->stats[STAT_HEALTH] >= 100) {
 				// don't use medkit if at max health
 			} else {
 				pm->ps->pm_flags |= PMF_USE_ITEM_HELD;
@@ -1942,8 +1942,8 @@ PmoveSingle
 =======================================================================================================================================
 */
 void PmoveSingle(pmove_t *pmove) {
-	pm = pmove;
 
+	pm = pmove;
 	// this counter lets us debug movement problems with a journal by setting a conditional breakpoint fot the previous frame
 	c_pmove++;
 	// clear results

@@ -6044,6 +6044,7 @@ void _UI_Init(qboolean inGameLoad) {
 	const char *menuSet;
 
 	//uiInfo.inGameLoad = inGameLoad;
+
 	UI_RegisterCvars();
 	UI_InitMemory();
 	// cache redundant calulations

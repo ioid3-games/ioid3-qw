@@ -34,6 +34,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 input: origin, velocity, bounds, groundPlane, trace function
 output: origin, velocity, impacts, stairup boolean
 */
+#define MAX_CLIP_PLANES 5
 
 /*
 =======================================================================================================================================
@@ -42,7 +43,6 @@ PM_SlideMove
 Returns qtrue if the velocity was clipped in some way.
 =======================================================================================================================================
 */
-#define MAX_CLIP_PLANES 5
 qboolean PM_SlideMove(qboolean gravity) {
 	int bumpcount, numbumps;
 	vec3_t dir;
@@ -246,6 +246,7 @@ void PM_StepSlideMove(qboolean gravity) {
 	VectorCopy(start_o, down);
 
 	down[2] -= STEPSIZE;
+
 	pm->trace(&trace, start_o, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
 
 	VectorSet(up, 0, 0, 1);
