@@ -734,7 +734,7 @@ void ClientUserinfoChanged(int clientNum) {
 		Q_strncpyz(model, Info_ValueForKey(userinfo, "model"), sizeof(model));
 		Q_strncpyz(headModel, Info_ValueForKey(userinfo, "headmodel"), sizeof(headModel));
 	}
-#ifdef MISSIONPACK
+	// teamInfo
 	if (g_gametype.integer > GT_TOURNAMENT && !(ent->r.svFlags & SVF_BOT)) {
 		client->pers.teamInfo = qtrue;
 	} else {
@@ -746,16 +746,6 @@ void ClientUserinfoChanged(int clientNum) {
 			client->pers.teamInfo = qfalse;
 		}
 	}
-#else
-	// teamInfo
-	s = Info_ValueForKey(userinfo, "teamoverlay");
-
-	if (!*s || atoi(s) != 0) {
-		client->pers.teamInfo = qtrue;
-	} else {
-		client->pers.teamInfo = qfalse;
-	}
-#endif
 	/*
 	s = Info_ValueForKey(userinfo, "cg_pmove_fixed");
 
@@ -1165,7 +1155,7 @@ void ClientDisconnect(int clientNum) {
 	if (ent->client->pers.connected == CON_CONNECTED && ent->client->sess.sessionTeam != TEAM_SPECTATOR) {
 		tent = G_TempEntity(ent->client->ps.origin, EV_PLAYER_TELEPORT_OUT);
 		tent->s.clientNum = ent->s.clientNum;
-		// They don't get to take powerups with them! Especially important for stuff like CTF flags
+		// they don't get to take powerups with them! Especially important for stuff like CTF flags
 		TossClientItems(ent);
 		TossClientPersistantPowerups(ent);
 

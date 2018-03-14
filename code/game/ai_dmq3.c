@@ -325,7 +325,7 @@ qboolean EntityCarriesCubes(aas_entityinfo_t *entinfo) {
 	if (gametype != GT_HARVESTER) {
 		return qfalse;
 	}
-	// FIXME: get this info from the aas_entityinfo_t ?
+	// FIXME: get this info from the aas_entityinfo_t?
 	BotAI_GetEntityState(entinfo->number, &state);
 
 	if (state.tokens > 0) {
@@ -356,7 +356,7 @@ qboolean EntityIsInvisible(aas_entityinfo_t *entinfo) {
 		if (EntityCarriesCubes(entinfo)) {
 			return qfalse;
 		}
-		// kamikaze is always visible
+		// the kamikaze is always visible
 		if (EntityHasKamikaze(entinfo)) {
 			return qfalse;
 		}
@@ -861,11 +861,13 @@ void BotCTFRetreatGoals(bot_state_t *bs) {
 		// if not already rushing to the base
 		if (bs->ltgtype != LTG_RUSHBASE) {
 			BotRefuseOrder(bs);
+
 			bs->ltgtype = LTG_RUSHBASE;
 			bs->teamgoal_time = FloatTime() + CTF_RUSHBASE_TIME;
 			bs->rushbaseaway_time = 0;
 			bs->decisionmaker = bs->client;
 			bs->ordered = qfalse;
+
 			BotSetTeamStatus(bs);
 		}
 	}
@@ -886,6 +888,7 @@ void Bot1FCTFSeekGoals(bot_state_t *bs) {
 		// if not already rushing to the base
 		if (bs->ltgtype != LTG_RUSHBASE) {
 			BotRefuseOrder(bs);
+
 			bs->ltgtype = LTG_RUSHBASE;
 			bs->teamgoal_time = FloatTime() + CTF_RUSHBASE_TIME;
 			bs->rushbaseaway_time = 0;
@@ -1108,6 +1111,7 @@ void Bot1FCTFRetreatGoals(bot_state_t *bs) {
 		// if not already rushing to the base
 		if (bs->ltgtype != LTG_RUSHBASE) {
 			BotRefuseOrder(bs);
+
 			bs->ltgtype = LTG_RUSHBASE;
 			bs->teamgoal_time = FloatTime() + CTF_RUSHBASE_TIME;
 			bs->rushbaseaway_time = 0;
@@ -1256,6 +1260,7 @@ void BotHarvesterSeekGoals(bot_state_t *bs) {
 		// if not already rushing to the base
 		if (bs->ltgtype != LTG_RUSHBASE) {
 			BotRefuseOrder(bs);
+
 			bs->ltgtype = LTG_RUSHBASE;
 			bs->teamgoal_time = FloatTime() + CTF_RUSHBASE_TIME;
 			bs->rushbaseaway_time = 0;
@@ -1355,6 +1360,7 @@ void BotHarvesterSeekGoals(bot_state_t *bs) {
 	if (rnd < l1 && redobelisk.areanum && blueobelisk.areanum) {
 		bs->decisionmaker = bs->client;
 		bs->ordered = qfalse;
+
 		BotGoHarvest(bs);
 	} else if (rnd < l2 && redobelisk.areanum && blueobelisk.areanum) {
 		bs->decisionmaker = bs->client;
@@ -1923,7 +1929,7 @@ void BotUpdateBattleInventory(bot_state_t *bs, int enemy) {
 	bs->inventory[ENEMY_HEIGHT] = (int)dir[2];
 	dir[2] = 0;
 	bs->inventory[ENEMY_HORIZONTAL_DIST] = (int)VectorLength(dir);
-	bs->inventory[ENTITY_IS_AN_OBELISK] = (int)EntityIsAnObelisk(bs);
+	bs->inventory[ENTITY_IS_AN_OBELISK] = EntityIsAnObelisk(bs);
 	// FIXME: add num visible enemies and num visible team mates to the inventory
 }
 
@@ -2152,6 +2158,7 @@ qboolean BotInLavaOrSlime(bot_state_t *bs) {
 	vec3_t feet;
 
 	VectorCopy(bs->origin, feet);
+
 	feet[2] -= 23;
 	return (trap_AAS_PointContents(feet) & (CONTENTS_LAVA|CONTENTS_SLIME));
 }
@@ -3395,6 +3402,7 @@ float BotEntityVisible(int viewer, vec3_t eye, vec3_t viewangles, int fov, int e
 	for (i = 0; i < 3; i++) {
 		// if the point is not in potential visible sight
 		//if (!AAS_inPVS(eye, middle)) continue;
+
 		contents_mask = CONTENTS_SOLID;
 		passent = viewer;
 		hitent = ent;
@@ -3410,6 +3418,7 @@ float BotEntityVisible(int viewer, vec3_t eye, vec3_t viewangles, int fov, int e
 			if (!(contents_mask & (CONTENTS_LAVA|CONTENTS_SLIME|CONTENTS_WATER))) {
 				passent = ent;
 				hitent = viewer;
+
 				VectorCopy(middle, start);
 				VectorCopy(eye, end);
 			}
@@ -3484,8 +3493,7 @@ BotFindEnemy
 */
 int BotFindEnemy(bot_state_t *bs, int curenemy) {
 	int i, f, healthdecrease;
-	float /*alertness, */aggression, easyfragger, vis;
-	float squaredist, cursquaredist;
+	float /*alertness, */aggression, easyfragger, squaredist, cursquaredist, vis;
 	aas_entityinfo_t entinfo, curenemyinfo, curbotinfo;
 	vec3_t dir, angles;
 
@@ -4116,7 +4124,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	}
 
 	aim_accuracy += 0.2 * (0.5 - (f / 200.0));
-	// if the bot needs some time to react on the enemy, aiming gets better with time.
+	// if the bot needs some time to react on the enemy, aiming gets better with time
 	if (reactiontime > 1.75) {
 		f = FloatTime() - bs->enemysight_time;
 
@@ -4126,7 +4134,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 
 		aim_accuracy += 0.2 * f / 2.0;
 	}
-	// set some maximum accuracy
+	// maximum accuracy
 	if (aim_accuracy > 1.0) {
 		aim_accuracy = 1.0;
 	}
@@ -4221,6 +4229,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 						if (VectorLengthSquared(dir) > Square(100)) {
 							// check if the bot is visible from the ground target
 							trace.endpos[2] += 1;
+
 							BotAI_Trace(&trace, trace.endpos, NULL, NULL, entinfo.origin, entinfo.number, MASK_SHOT);
 
 							if (trace.fraction >= 1) {
@@ -4520,7 +4529,9 @@ void BotCheckAttack(bot_state_t *bs) {
 	}
 	// get the start point shooting from
 	VectorCopy(bs->origin, start);
+
 	start[2] += bs->cur_ps.viewheight;
+
 	AngleVectors(bs->viewangles, forward, right, NULL);
 
 	start[0] += forward[0] * wi.offset[0] + right[0] * wi.offset[1];
@@ -4745,6 +4756,7 @@ int BotFuncButtonActivateGoal(bot_state_t *bs, int bspent, bot_activategoal_t *a
 	bsp_trace_t bsptrace;
 
 	activategoal->shoot = qfalse;
+
 	VectorClear(activategoal->target);
 	// create a bot goal towards the button
 	trap_AAS_ValueForBSPEpairKey(bspent, "model", model, sizeof(model));
@@ -4940,7 +4952,9 @@ int BotFuncDoorActivateGoal(bot_state_t *bs, int bspent, bot_activategoal_t *act
 	activategoal->goal.flags = 0;
 
 	VectorCopy(bs->origin, activategoal->goal.origin);
+
 	activategoal->goal.areanum = bs->areanum;
+
 	VectorSet(activategoal->goal.mins, -8, -8, -8);
 	VectorSet(activategoal->goal.maxs, 8, 8, 8);
 	return qtrue;
@@ -6416,10 +6430,10 @@ void BotDeathmatchAI(bot_state_t *bs, float thinktime) {
 	bs->flags &= ~BFL_IDEALVIEWSET;
 
 	if (!BotIntermission(bs)) {
-		// update some inventory values
-		BotUpdateInventory(bs);
 		// check out the snapshot
 		BotCheckSnapshot(bs);
+		// update some inventory values
+		BotUpdateInventory(bs);
 		// set the teleport time
 		BotSetTeleportTime(bs);
 		// check for air

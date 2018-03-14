@@ -253,7 +253,7 @@ void Cmd_Give_f(gentity_t *ent) {
 	}
 
 	if (give_all || Q_stricmp(name, "health") == 0) {
-		ent->health = ent->client->ps.stats[STAT_MAX_HEALTH];
+		ent->health = 200;
 
 		if (!give_all) {
 			return;
@@ -1215,7 +1215,7 @@ void Cmd_GameCommand_f(gentity_t *ent) {
 	char arg[MAX_TOKEN_CHARS];
 
 	if (trap_Argc() != 3) {
-		trap_SendServerCommand(ent - g_entities, va("print \"Usage: gc <player id> <order 0-%d>\n\"", numgc_orders - 1));
+		trap_SendServerCommand(ent - g_entities, va("print \"Usage: gc <player id> <order 0 - %d>\n\"", numgc_orders - 1));
 		return;
 	}
 

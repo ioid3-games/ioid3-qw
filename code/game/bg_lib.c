@@ -693,7 +693,7 @@ void create_acostable(void) {
 
 		a = acos((float) - 1 + i / 512);
 
-		fprintf(fp, "%1.8f,", a);
+		fprintf(fp, "%1.8f, ", a);
 	}
 
 	fprintf(fp, "\n}\n");
@@ -1612,13 +1612,13 @@ double fabs(double x) {
 // BDR 2002-01-13 %e and %g were being ignored. Now do something, if not necessarily correctly
 
 #if (SIZEOF_LONG_DOUBLE > 0)
-// #ifdef HAVE_LONG_DOUBLE
+//#ifdef HAVE_LONG_DOUBLE
 #define LDOUBLE long double
 #else
 #define LDOUBLE double
 #endif
 #if (SIZEOF_LONG_LONG > 0)
-// #ifdef HAVE_LONG_LONG
+//#ifdef HAVE_LONG_LONG
 #define LLONG long long
 #else
 #define LLONG long
@@ -2197,11 +2197,11 @@ static int fmtfp(char *buffer, size_t *currlen, size_t maxlen, LDOUBLE fvalue, i
 		fracpart -= powN(10, max);
 	}
 #ifdef DEBUG_SNPRINTF
-	dprint(1, (debugfile, "fmtfp: %f =? %d.%d\n", fvalue, intpart, fracpart));
+	dprint(1, (debugfile, "fmtfp: %f = ? %d.%d\n", fvalue, intpart, fracpart));
 #endif
 	// convert integer part
 	do {
-		iconvert[iplace++] = (caps ? "0123456789ABCDEF":"0123456789abcdef")[intpart % 10];
+		iconvert[iplace++] = (caps ? "0123456789ABCDEF" : "0123456789abcdef")[intpart % 10];
 		intpart = (intpart / 10);
 	} while (intpart && (iplace < 20));
 
@@ -2212,7 +2212,7 @@ static int fmtfp(char *buffer, size_t *currlen, size_t maxlen, LDOUBLE fvalue, i
 	iconvert[iplace] = 0;
 	// convert fractional part
 	do {
-		fconvert[fplace++] = (caps ? "0123456789ABCDEF":"0123456789abcdef")[fracpart % 10];
+		fconvert[fplace++] = (caps ? "0123456789ABCDEF" : "0123456789abcdef")[fracpart % 10];
 		fracpart = (fracpart / 10);
 	} while (fracpart && (fplace < 20));
 

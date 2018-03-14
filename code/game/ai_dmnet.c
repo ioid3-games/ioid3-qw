@@ -109,7 +109,9 @@ int BotGetAirGoal(bot_state_t *bs, bot_goal_t *goal) {
 
 	// trace up until we hit solid
 	VectorCopy(bs->origin, end);
+
 	end[2] += 1000;
+
 	BotAI_Trace(&bsptrace, bs->origin, mins, maxs, end, bs->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP);
 	// trace down until we hit water
 	VectorCopy(bsptrace.endpos, end);
@@ -2333,6 +2335,7 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 	// create the chase goal
 	goal.entitynum = bs->enemy;
 	goal.areanum = bs->lastenemyareanum;
+
 	VectorCopy(bs->lastenemyorigin, goal.origin);
 	VectorSet(goal.mins, -8, -8, -8);
 	VectorSet(goal.maxs, 8, 8, 8);

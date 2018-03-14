@@ -517,7 +517,7 @@ void PlayerDie(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int d
 			if (meansOfDeath == MOD_GAUNTLET) {
 				// play humiliation on player
 				attacker->client->ps.persistant[PERS_GAUNTLET_FRAG_COUNT]++;
-				attacker->client->rewardTime = level.time + REWARD_SPRITE_TIME;
+				attacker->client->rewardTime = level.time + REWARD_TIME;
 				// also play humiliation on target
 				self->client->ps.persistant[PERS_PLAYEREVENTS] ^= PLAYEREVENT_GAUNTLETREWARD;
 			}
@@ -525,7 +525,7 @@ void PlayerDie(gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int d
 			if (level.time - attacker->client->lastKillTime < CARNAGE_REWARD_TIME) {
 				// play excellent on player
 				attacker->client->ps.persistant[PERS_EXCELLENT_COUNT]++;
-				attacker->client->rewardTime = level.time + REWARD_SPRITE_TIME;
+				attacker->client->rewardTime = level.time + REWARD_TIME;
 			}
 
 			attacker->client->lastKillTime = level.time;
