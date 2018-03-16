@@ -223,6 +223,7 @@ qcurl_easy_setopt_warn
 CURLcode qcurl_easy_setopt_warn(CURL *curl, CURLoption option, ...) {
 	CURLcode result;
 	va_list argp;
+
 	va_start(argp, option);
 
 	if (option < CURLOPTTYPE_OBJECTPOINT) {

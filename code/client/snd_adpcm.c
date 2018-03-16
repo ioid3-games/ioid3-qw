@@ -159,7 +159,7 @@ void S_AdpcmEncode(short indata[], char outdata[], int len, struct adpcm_state *
 S_AdpcmDecode
 =======================================================================================================================================
 */
-/* static */ void S_AdpcmDecode(const char indata[], short *outdata, int len, struct adpcm_state *state) {
+/*static*/ void S_AdpcmDecode(const char indata[], short *outdata, int len, struct adpcm_state *state) {
 	signed char *inp;	// Input buffer pointer
 	int outp;			// output buffer pointer
 	int sign;			// Current adpcm sign bit
@@ -203,7 +203,7 @@ S_AdpcmDecode
 		sign = delta & 8;
 		delta = delta & 7;
 		// Step 4 - Compute difference and new predicted value
-		// Computes 'vpdiff = (delta + 0.5) * step / 4', but see comment in adpcm_coder.
+		// computes 'vpdiff = (delta + 0.5) * step / 4', but see comment in adpcm_coder
 		vpdiff = step >> 3;
 
 		if (delta & 4) {

@@ -1092,7 +1092,7 @@ void S_Base_RawSamples(int stream, int samples, int rate, int width, int s_chann
 		return;
 	}
 
-	if ((stream < 0) || (stream >= MAX_RAW_STREAMS)) {
+	if (stream < 0 || stream >= MAX_RAW_STREAMS) {
 		return;
 	}
 

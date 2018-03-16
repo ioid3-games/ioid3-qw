@@ -103,6 +103,7 @@ LAN_ResetPings
 static void LAN_ResetPings(int source) {
 	int count, i;
 	serverInfo_t *servers = NULL;
+
 	count = 0;
 
 	switch (source) {
@@ -1059,7 +1060,7 @@ void CL_InitUI(void) {
 	v = VM_Call(uivm, UI_GETAPIVERSION);
 
 	if (v != UI_API_VERSION) {
-		// Free uivm now, so UI_SHUTDOWN doesn't get called later.
+		// free uivm now, so UI_SHUTDOWN doesn't get called later
 		VM_Free(uivm);
 		uivm = NULL;
 
