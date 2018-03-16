@@ -222,7 +222,7 @@ void CL_ParseSnapshot(msg_t *msg) {
 	// we will have read any new server commands in this message before we got to svc_snapshot
 	newSnap.serverCommandNum = clc.serverCommandSequence;
 	newSnap.serverTime = MSG_ReadLong(msg);
-	// if we were just unpaused, we can only *now* really let the change come into effect or the client hangs.
+	// if we were just unpaused, we can only *now* really let the change come into effect or the client hangs
 	cl_paused->modified = 0;
 	newSnap.messageNum = clc.serverMessageSequence;
 	deltaNum = MSG_ReadByte(msg);
@@ -247,7 +247,7 @@ void CL_ParseSnapshot(msg_t *msg) {
 			// should never happen
 			Com_Printf("Delta from invalid frame (not supposed to happen!).\n");
 		} else if (old->messageNum != newSnap.deltaNum) {
-			// the frame that the server did the delta from is too old, so we can't reconstruct it properly.
+			// the frame that the server did the delta from is too old, so we can't reconstruct it properly
 			Com_Printf("Delta frame too old.\n");
 		} else if (cl.parseEntitiesNum - old->parseEntitiesNum > MAX_PARSE_ENTITIES - MAX_SNAPSHOT_ENTITIES) {
 			Com_Printf("Delta parseEntitiesNum too old.\n");
