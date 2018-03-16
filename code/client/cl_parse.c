@@ -609,13 +609,13 @@ static qboolean CL_ShouldIgnoreVoipSender(int sender) {
 	if (!cl_voip->integer) {
 		return qtrue; // VoIP is disabled.
 	} else if ((sender == clc.clientNum) && (!clc.demoplaying)) {
-		return qtrue; // ignore own voice (unless playing back a demo).
+		return qtrue; // ignore own voice (unless playing back a demo)
 	} else if (clc.voipMuteAll) {
-		return qtrue; // all channels are muted with extreme prejudice.
+		return qtrue; // all channels are muted with extreme prejudice
 	} else if (clc.voipIgnore[sender]) {
-		return qtrue; // just ignoring this guy.
+		return qtrue; // just ignoring this guy
 	} else if (clc.voipGain[sender] == 0.0f) {
-		return qtrue; // too quiet to play.
+		return qtrue; // too quiet to play
 	}
 
 	return qfalse;
@@ -663,15 +663,15 @@ static void CL_ParseVoip(msg_t *msg, qboolean ignoreData) {
 	Com_DPrintf("VoIP: %d-byte packet from client %d\n", packetsize, sender);
 
 	if (sender < 0) {
-		return; // short/invalid packet, bail.
+		return; // short/invalid packet, bail
 	} else if (generation < 0) {
-		return; // short/invalid packet, bail.
+		return; // short/invalid packet, bail
 	} else if (sequence < 0) {
-		return; // short/invalid packet, bail.
+		return; // short/invalid packet, bail
 	} else if (frames < 0) {
-		return; // short/invalid packet, bail.
+		return; // short/invalid packet, bail
 	} else if (packetsize < 0) {
-		return; // short/invalid packet, bail.
+		return; // short/invalid packet, bail
 	}
 
 	if (packetsize > sizeof(encoded)) { // overlarge packet?
@@ -688,7 +688,7 @@ static void CL_ParseVoip(msg_t *msg, qboolean ignoreData) {
 			bytesleft -= br;
 		}
 
-		return; // overlarge packet, bail.
+		return; // overlarge packet, bail
 	}
 
 	MSG_ReadData(msg, encoded, packetsize);

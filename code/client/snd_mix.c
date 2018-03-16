@@ -362,7 +362,7 @@ static void S_PaintChannelFrom16_altivec(channel_t *ch, const sfx_t *sc, int cou
 					sampleData1 = vec_perm(s0, s1, loadPermute1);
 
 					merge0 = vec_mule(sampleData0, volume_vec);
-					merge0 = vec_sra(merge0, volume_shift); // Shift down to proper range
+					merge0 = vec_sra(merge0, volume_shift); // shift down to proper range
 
 					merge1 = vec_mulo(sampleData0, volume_vec);
 					merge1 = vec_sra(merge1, volume_shift);
@@ -371,7 +371,7 @@ static void S_PaintChannelFrom16_altivec(channel_t *ch, const sfx_t *sc, int cou
 					d1 = vec_add(merge1, d1);
 
 					merge0 = vec_mule(sampleData1, volume_vec);
-					merge0 = vec_sra(merge0, volume_shift); // Shift down to proper range
+					merge0 = vec_sra(merge0, volume_shift); // shift down to proper range
 
 					merge1 = vec_mulo(sampleData1, volume_vec);
 					merge1 = vec_sra(merge1, volume_shift);
@@ -400,7 +400,6 @@ static void S_PaintChannelFrom16_altivec(channel_t *ch, const sfx_t *sc, int cou
 	} else {
 		fleftvol = ch->leftvol * snd_vol;
 		frightvol = ch->rightvol * snd_vol;
-
 		ooff = sampleOffset;
 		samples = chunk->sndChunk;
 
@@ -505,7 +504,6 @@ static void S_PaintChannelFrom16_scalar(channel_t *ch, const sfx_t *sc, int coun
 	} else {
 		fleftvol = ch->leftvol * snd_vol;
 		frightvol = ch->rightvol * snd_vol;
-
 		ooff = sampleOffset;
 		samples = chunk->sndChunk;
 
@@ -845,6 +843,7 @@ void S_PaintChannels(int endtime) {
 		}
 		// transfer out according to DMA format
 		S_TransferPaintBuffer(end);
+
 		s_paintedtime = end;
 	}
 }

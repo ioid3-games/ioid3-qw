@@ -429,9 +429,9 @@ int SV_AreaEntities(const vec3_t mins, const vec3_t maxs, int *entityList, int m
 }
 
 typedef struct {
-	vec3_t boxmins, boxmaxs; // enclose the test object along entire move
+	vec3_t boxmins, boxmaxs;	// enclose the test object along entire move
 	const float *mins;
-	const float *maxs; // size of the moving object
+	const float *maxs;			// size of the moving object
 	const float *start;
 	vec3_t end;
 	trace_t trace;
@@ -597,9 +597,8 @@ void SV_Trace(trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, co
 	clip.passEntityNum = passEntityNum;
 	clip.capsule = capsule;
 	// create the bounding box of the entire move
-	// we can limit it to the part of the move not already clipped off by the world, which can be
-	// a significant savings for line of sight and shot traces
-	for (i = 0; i < 3; i++) {
+	// we can limit it to the part of the move not already clipped off by the world,
+	// which can be a significant savings for line of sight and shot tracesor (i = 0; i < 3; i++) {
 		if (end[i] > start[i]) {
 			clip.boxmins[i] = clip.start[i] + clip.mins[i] - 1;
 			clip.boxmaxs[i] = clip.end[i] + clip.maxs[i] + 1;

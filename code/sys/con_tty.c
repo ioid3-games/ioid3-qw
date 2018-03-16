@@ -204,6 +204,7 @@ field_t *Hist_Prev(void) {
 	assert(hist_count >= 0);
 	assert(hist_current >= -1);
 	assert(hist_current <= hist_count);
+
 	hist_prev = hist_current + 1;
 
 	if (hist_prev >= hist_count) {
