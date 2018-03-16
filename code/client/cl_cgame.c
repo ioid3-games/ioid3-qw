@@ -817,7 +817,7 @@ void CL_AdjustTimeDelta(void) {
 		// slow drift adjust, only move 1 or 2 msec
 
 		// if any of the frames between this and the previous snapshot had to be extrapolated, nudge our sense of time back a little
-		// the granularity of +1 / -2 is too high for timescale modified frametimes
+		// the granularity of +1/-2 is too high for timescale modified frametimes
 		if (com_timescale->value == 0 || com_timescale->value == 1) {
 			if (cl.extrapolatedSnapshot) {
 				cl.extrapolatedSnapshot = qfalse;

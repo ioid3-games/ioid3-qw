@@ -850,7 +850,7 @@ static void S_AL_NewLoopMaster(src_t *rmSource, qboolean iskilled) {
 					S_AL_SaveLoopPos(curSource, rmSource->alSource);
 				} else {
 					// second case: all loops using this sound have stopped due to listener being out of range, and now the inactive
-					// master gets deleted. Just move over the soundpos settings to the new master.
+					// master gets deleted. Just move over the soundpos settings to the new master
 					curSource->lastTimePos = rmSource->lastTimePos;
 					curSource->lastSampleTime = rmSource->lastSampleTime;
 				}
@@ -2410,7 +2410,9 @@ qboolean S_AL_Init(soundInterface_t *si) {
 			}
 
 			s_alAvailableInputDevices = Cvar_Get("s_alAvailableInputDevices", inputdevicenames, CVAR_ROM|CVAR_NORESTART);
+
 			Com_Printf("OpenAL default capture device is '%s'\n", defaultinputdevice ? defaultinputdevice : "none");
+
 			alCaptureDevice = qalcCaptureOpenDevice(inputdevice, 48000, AL_FORMAT_MONO16, VOIP_MAX_PACKET_SAMPLES * 4);
 
 			if (!alCaptureDevice && inputdevice) {

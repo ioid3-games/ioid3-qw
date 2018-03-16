@@ -138,7 +138,7 @@ typedef struct client_s {
 	int downloadXmitBlock;		// last block we xmited
 	unsigned char *downloadBlocks[MAX_DOWNLOAD_WINDOW]; // the buffers for the download blocks
 	int downloadBlockSize[MAX_DOWNLOAD_WINDOW];
-	qboolean downloadEOF;		// We have sent the EOF block
+	qboolean downloadEOF;		// we have sent the EOF block
 	int downloadSendTime;		// time we last got an ack from the client
 	int deltaMessage;			// frame last client usercmd message
 	int nextReliableTime;		// svs.time when another reliable command will be allowed
