@@ -65,7 +65,7 @@ typedef struct {
 } cbrush_t;
 
 typedef struct {
-	int checkcount;	// to avoid repeated testings
+	int checkcount; // to avoid repeated testings
 	int surfaceFlags;
 	int contents;
 	struct patchCollide_s *pc;

@@ -1288,6 +1288,7 @@ static void RoQShutdown(void) {
 	}
 
 	Com_DPrintf("finished cinematic\n");
+
 	cinTable[currentHandle].status = FMV_IDLE;
 
 	if (cinTable[currentHandle].iFile) {
@@ -1339,6 +1340,7 @@ e_status CIN_StopCinematic(int handle) {
 	}
 
 	cinTable[currentHandle].status = FMV_EOF;
+
 	RoQShutdown();
 
 	return FMV_EOF;
@@ -1489,9 +1491,10 @@ int CIN_PlayCinematic(const char *arg, int x, int y, int w, int h, int systemBit
 
 	if (RoQID == 0x1084) {
 		RoQ_init();
-//		FS_Read(cin.file, cinTable[currentHandle].RoQFrameSize + 8, cinTable[currentHandle].iFile);
+		//FS_Read(cin.file, cinTable[currentHandle].RoQFrameSize + 8, cinTable[currentHandle].iFile);
 
 		cinTable[currentHandle].status = FMV_PLAY;
+
 		Com_DPrintf("trFMV::play(), playing %s\n", arg);
 
 		if (cinTable[currentHandle].alterGameState) {
@@ -1508,7 +1511,6 @@ int CIN_PlayCinematic(const char *arg, int x, int y, int w, int h, int systemBit
 	}
 
 	Com_DPrintf("trFMV::play(), invalid RoQ ID\n");
-
 	RoQShutdown();
 	return -1;
 }
@@ -1761,6 +1763,7 @@ void CIN_UploadCinematic(int handle) {
 
 			re.UploadCinematic(cinTable[handle].CIN_WIDTH, cinTable[handle].CIN_HEIGHT, 256, 256, (byte *)buf2, handle, qtrue);
 			cinTable[handle].dirty = qfalse;
+
 			Hunk_FreeTempMemory(buf2);
 		} else {
 			// Upload video at normal resolution

@@ -143,7 +143,6 @@ void WindingPlane(winding_t *w, vec3_t normal, vec_t *dist) {
 	VectorNormalize2(normal, normal);
 
 	*dist = DotProduct(w->p[0], normal);
-
 }
 
 /*

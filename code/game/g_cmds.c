@@ -1215,7 +1215,7 @@ void Cmd_GameCommand_f(gentity_t *ent) {
 	char arg[MAX_TOKEN_CHARS];
 
 	if (trap_Argc() != 3) {
-		trap_SendServerCommand(ent - g_entities, va("print \"Usage: gc <player id> <order 0 - %d>\n\"", numgc_orders - 1));
+		trap_SendServerCommand(ent - g_entities, va("print \"Usage: gc <player id> <order 0-%d>\n\"", numgc_orders - 1));
 		return;
 	}
 

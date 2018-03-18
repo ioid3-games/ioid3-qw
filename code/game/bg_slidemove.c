@@ -246,7 +246,6 @@ void PM_StepSlideMove(qboolean gravity) {
 	VectorCopy(start_o, down);
 
 	down[2] -= STEPSIZE;
-
 	pm->trace(&trace, start_o, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
 
 	VectorSet(up, 0, 0, 1);
