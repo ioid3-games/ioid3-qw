@@ -148,6 +148,7 @@ int origin;
 	}
 
 	ret = 0;
+
 	fseek((FILE *)stream, offset, fseek_origin);
 	return ret;
 }

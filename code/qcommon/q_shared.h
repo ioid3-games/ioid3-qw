@@ -55,6 +55,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define PRODUCT_DATE __DATE__
 #endif
 #define QW_VERSION PRODUCT_NAME		" " PRODUCT_VERSION
+
 #define MAX_TEAMNAME 32
 #define MAX_MASTER_SERVERS 5	// number of supported master servers
 #define DEMOEXT "dm_"			// standard demo extension
@@ -102,6 +103,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #else
 #define Q_EXPORT
 #endif
+
 /**************************************************************************************************************************************
  VM Considerations
 
@@ -926,6 +928,7 @@ typedef struct {
 
 =======================================================================================================================================
 */
+
 #include "surfaceflags.h" // shared with the q3map utility
 // plane types are used to speed some tests
 // 0-2 are axial planes
@@ -1153,6 +1156,9 @@ typedef struct usercmd_s {
 	// this can be any entity, and it is used as an array index, so make sure it's unsigned
 	byte identClient;
 } usercmd_t;
+
+#define SCOUT_SPEED_SCALE 1.5
+
 // if entityState->solid == SOLID_BMODEL, modelindex is an inline model number
 #define SOLID_BMODEL 0xffffff
 
@@ -1189,8 +1195,8 @@ typedef struct {
 	vec3_t trDelta;		// velocity, etc.
 } trajectory_t;
 // entityState_t is the information conveyed from the server in an update message about entities that the client will need to render in some way
-// Different eTypes may use the information in different ways
-// The messages are delta compressed, so it doesn't really matter if the structure size is fairly large
+// different eTypes may use the information in different ways
+// the messages are delta compressed, so it doesn't really matter if the structure size is fairly large
 typedef struct entityState_s {
 	int number;			// entity index
 	int eType;			// entityType_t

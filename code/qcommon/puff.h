@@ -24,7 +24,7 @@ Mark Adler madler@alumni.caltech.edu.
 #define __PUFF_H
 
 #include "q_shared.h" // for definitions of the <stdint.h> types
-// See puff.c for purpose and usage.
+// see puff.c for purpose and usage
 // pointer to destination pointer | amount of output space | pointer to source data pointer | amount of input available
 int32_t puff(uint8_t *dest, uint32_t *destlen, uint8_t *source, uint32_t *sourcelen);
 #endif // __PUFF_H

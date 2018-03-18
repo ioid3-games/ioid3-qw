@@ -240,7 +240,6 @@ static void CM_TransposeGrid(cGrid_t *grid) {
 	l = grid->width;
 	grid->width = grid->height;
 	grid->height = l;
-
 	tempWrap = grid->wrapWidth;
 	grid->wrapWidth = grid->wrapHeight;
 	grid->wrapHeight = tempWrap;
@@ -431,6 +430,7 @@ int CM_PlaneEqual(patchPlane_t *p, float plane[4], int *flipped) {
 	}
 
 	VectorNegate(plane, invplane);
+
 	invplane[3] = -plane[3];
 
 	if (fabs(p->plane[0] - invplane[0]) < NORMAL_EPSILON && fabs(p->plane[1] - invplane[1]) < NORMAL_EPSILON && fabs(p->plane[2] - invplane[2]) < NORMAL_EPSILON && fabs(p->plane[3] - invplane[3]) < DIST_EPSILON) {
@@ -487,9 +487,7 @@ int CM_FindPlane2(float plane[4], int *flipped) {
 
 	planes[numPlanes].signbits = CM_SignbitsForNormal(plane);
 	numPlanes++;
-
 	*flipped = qfalse;
-
 	return numPlanes - 1;
 }
 
@@ -541,7 +539,6 @@ static int CM_FindPlane(float *p1, float *p2, float *p3) {
 
 	planes[numPlanes].signbits = CM_SignbitsForNormal(plane);
 	numPlanes++;
-
 	return numPlanes - 1;
 }
 
@@ -1266,11 +1263,9 @@ struct patchCollide_s *CM_GeneratePatchCollide(int width, int height, vec3_t *po
 	pf->bounds[0][0] -= 1;
 	pf->bounds[0][1] -= 1;
 	pf->bounds[0][2] -= 1;
-
 	pf->bounds[1][0] += 1;
 	pf->bounds[1][1] += 1;
 	pf->bounds[1][2] += 1;
-
 	return pf;
 }
 

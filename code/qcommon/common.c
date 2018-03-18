@@ -141,7 +141,6 @@ void Com_BeginRedirect(char *buffer, int buffersize, void (*flush)(char *)) {
 	rd_buffer = buffer;
 	rd_buffersize = buffersize;
 	rd_flush = flush;
-
 	*rd_buffer = 0;
 }
 
@@ -249,7 +248,6 @@ void QDECL Com_DPrintf(const char *fmt, ...) {
 	va_start(argptr, fmt);
 	Q_vsnprintf(msg, sizeof(msg), fmt, argptr);
 	va_end(argptr);
-
 	Com_Printf("%s", msg);
 }
 
@@ -319,6 +317,7 @@ void QDECL Com_Error(int code, const char *fmt, ...) {
 		FS_PureServerSetLoadedPaks("", "");
 
 		com_errorEntered = qfalse;
+
 		longjmp(abortframe, -1);
 	} else if (code == ERR_DROP) {
 		Com_Printf("********************\nERROR: %s\n********************\n", com_errorMessage);
@@ -335,6 +334,7 @@ void QDECL Com_Error(int code, const char *fmt, ...) {
 		FS_PureServerSetLoadedPaks("", "");
 
 		com_errorEntered = qfalse;
+
 		longjmp(abortframe, -1);
 	} else {
 		VM_Forced_Unload_Start();
@@ -793,19 +793,19 @@ typedef struct zonedebug_s {
 } zonedebug_t;
 
 typedef struct memblock_s {
-	int size; // including the header and possibly tiny fragments
-	int tag; // a tag of 0 is a free block
+	int size;	// including the header and possibly tiny fragments
+	int tag;	// a tag of 0 is a free block
 	struct memblock_s *next, *prev;
-	int id; // should be ZONEID
+	int id;		// should be ZONEID
 #ifdef ZONE_DEBUG
 	zonedebug_t d;
 #endif
 } memblock_t;
 
 typedef struct {
-	int size; // total bytes malloced, including header
-	int used; // total bytes used
-	memblock_t blocklist; // start/end cap for linked list
+	int size;				// total bytes malloced, including header
+	int used;				// total bytes used
+	memblock_t blocklist;	// start/end cap for linked list
 	memblock_t *rover;
 } memzone_t;
 // main zone for all "dynamic" memory allocation
@@ -1164,7 +1164,6 @@ void Z_LogZoneHeap(memzone_t *zone, char *name) {
 #endif
 	Com_sprintf(buf, sizeof(buf), "%d %s memory in %d blocks\r\n", size, name, numBlocks);
 	FS_Write(buf, strlen(buf), logfile);
-
 	Com_sprintf(buf, sizeof(buf), "%d %s memory overhead\r\n", size - allocSize, name);
 	FS_Write(buf, strlen(buf), logfile);
 }
@@ -2460,7 +2459,7 @@ Com_DetectAltivec
 */
 static void Com_DetectAltivec(void) {
 
-	// only detect if user hasn't forcibly disabled it.
+	// only detect if user hasn't forcibly disabled it
 	if (com_altivec->integer) {
 		static qboolean altivec = qfalse;
 		static qboolean detected = qfalse;
@@ -3244,6 +3243,7 @@ void Field_CompleteCommand(char *cmd, qboolean doCommands, qboolean doCvars) {
 	cmd = Com_SkipCharset(cmd, " \"");
 
 	Cmd_TokenizeStringIgnoreQuotes(cmd);
+
 	completionArgument = Cmd_Argc();
 	// if there is trailing whitespace on the cmd
 	if (*(cmd + strlen(cmd) - 1) == ' ') {

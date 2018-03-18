@@ -138,7 +138,7 @@ typedef struct {
 	byte ip[4];
 	byte ip6[16];
 	unsigned short port;
-	unsigned long scope_id; // Needed for IPv6 link-local addresses
+	unsigned long scope_id; // needed for IPv6 link-local addresses
 } netadr_t;
 
 void NET_Init(void);

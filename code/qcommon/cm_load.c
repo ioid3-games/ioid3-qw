@@ -128,7 +128,7 @@ void CMod_LoadSubmodels(lump_t *l) {
 	for (i = 0; i < count; i++, in++) {
 		out = &cm.cmodels[i];
 
-		for (j = 0; j < 3; j++) { // spread the mins / maxs by a pixel
+		for (j = 0; j < 3; j++) { // spread the mins/maxs by a pixel
 			out->mins[j] = LittleFloat(in->mins[j]) - 1;
 			out->maxs[j] = LittleFloat(in->maxs[j]) + 1;
 		}
