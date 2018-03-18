@@ -73,10 +73,7 @@
 #include "puff.h" // prototype for puff()
 
 #define local static // for local function definitions
-/*
- * Maximums for allocations and loops. It is not useful to change these --
- * they are fixed by the deflate format.
- */
+// maximums for allocations and loops. It is not useful to change these -- they are fixed by the deflate format.
 #define MAXBITS 15 // maximum bits in a code
 #define MAXLCODES 286 // maximum number of literal/length codes
 #define MAXDCODES 30 // maximum number of distance codes
@@ -85,15 +82,15 @@
 // input and output state
 struct state {
 	// output state
-	uint8_t *out; // output buffer
-	uint32_t outlen; // available space at out
-	uint32_t outcnt; // bytes written to out so far
+	uint8_t *out;		// output buffer
+	uint32_t outlen;	// available space at out
+	uint32_t outcnt;	// bytes written to out so far
 	// input state
-	uint8_t *in; // input buffer
-	uint32_t inlen; // available input at in
-	uint32_t incnt; // bytes read so far
-	int32_t bitbuf; // bit buffer
-	int32_t bitcnt; // number of bits in bit buffer
+	uint8_t *in;		// input buffer
+	uint32_t inlen;		// available input at in
+	uint32_t incnt;		// bytes read so far
+	int32_t bitbuf;		// bit buffer
+	int32_t bitcnt;		// number of bits in bit buffer
 	// input limit error return state for bits() and decode()
 	jmp_buf env;
 };
@@ -221,14 +218,14 @@ struct huffman {
  *  in the deflate format. See the format notes for fixed() and dynamic().
  */
 local int32_t decode(struct state *s, struct huffman *h) {
-	int32_t len; // current number of bits in code
-	int32_t code; // len bits being decoded
-	int32_t first; // first code of length len
-	int32_t count; // number of codes of length len
-	int32_t index; // index of first code of length len in symbol table
-	int32_t bitbuf; // bits from stream
-	int32_t left; // bits left in next or left to process
-	int16_t *next; // next number of codes
+	int32_t len;	// current number of bits in code
+	int32_t code;	// len bits being decoded
+	int32_t first;	// first code of length len
+	int32_t count;	// number of codes of length len
+	int32_t index;	// index of first code of length len in symbol table
+	int32_t bitbuf;	// bits from stream
+	int32_t left;	// bits left in next or left to process
+	int16_t *next;	// next number of codes
 
 	bitbuf = s->bitbuf;
 	left = s->bitcnt;
@@ -333,7 +330,7 @@ local int32_t construct(struct huffman *h, int16_t *length, int32_t n) {
 		left -= h->count[len]; // deduct count from possible codes
 
 		if (left < 0) {
-			return left; // over-subscribed--return negative
+			return left; // over-subscribed -- return negative
 		}
 	} // left > 0 means incomplete
 	// generate offsets into symbol table for each length for sorting

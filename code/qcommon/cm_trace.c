@@ -799,6 +799,7 @@ void CM_TraceThroughSphere(traceWork_t *tw, vec3_t origin, float radius, vec3_t 
 
 		if (fraction < tw->trace.fraction) {
 			tw->trace.fraction = fraction;
+
 			VectorSubtract(end, start, dir);
 			VectorMA(start, fraction, dir, intersection);
 			VectorSubtract(intersection, origin, dir);
@@ -810,9 +811,11 @@ void CM_TraceThroughSphere(traceWork_t *tw, vec3_t origin, float radius, vec3_t 
 			}
 #endif
 			scale = 1 / (radius + RADIUS_EPSILON);
+
 			VectorScale(dir, scale, dir);
 			VectorCopy(dir, tw->trace.plane.normal);
 			VectorAdd(tw->modelOrigin, intersection, intersection);
+
 			tw->trace.plane.dist = DotProduct(tw->trace.plane.normal, intersection);
 			tw->trace.contents = CONTENTS_BODY;
 		}
@@ -883,10 +886,10 @@ void CM_TraceThroughVerticalCylinder(traceWork_t *tw, vec3_t origin, float radiu
 
 	VectorSubtract(start, origin, v1);
 	// dir is normalized so we can use a = 1
-	//a = 1.0f; // * (dir[0] * dir[0] + dir[1] * dir[1]);
+	//a = 1.0f; //* (dir[0] * dir[0] + dir[1] * dir[1]);
 	b = 2.0f * (v1[0] * dir[0] + v1[1] * dir[1]);
 	c = v1[0] * v1[0] + v1[1] * v1[1] - (radius + RADIUS_EPSILON) * (radius + RADIUS_EPSILON);
-	d = b * b - 4.0f * c; // * a;
+	d = b * b - 4.0f * c; //* a;
 
 	if (d > 0) {
 		sqrtd = SquareRootFloat(d);
