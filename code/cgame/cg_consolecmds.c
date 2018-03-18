@@ -27,10 +27,10 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 **************************************************************************************************************************************/
 
 #include "cg_local.h"
-#ifdef MISSIONPACK
 #include "../ui/ui_shared.h"
+
 extern menuDef_t *menuScoreboard;
-#endif
+
 /*
 =======================================================================================================================================
 CG_TargetCommand_f
@@ -122,7 +122,7 @@ static void CG_ScoresUp_f(void) {
 		cg.scoreFadeTime = cg.time;
 	}
 }
-#ifdef MISSIONPACK
+
 extern menuDef_t *menuScoreboard;
 void Menu_Reset(void); // FIXME: add to right include file
 /*
@@ -214,7 +214,7 @@ static void CG_spLose_f(void) {
 	//trap_S_StartLocalSound(cgs.media.loserSound, CHAN_ANNOUNCER);
 	CG_CenterPrint("YOU LOSE...", CENTERPRINT_HEIGHT, UI_CENTER|UI_VA_CENTER|UI_DROPSHADOW|UI_TITANFONT, 99999);
 }
-#endif
+
 /*
 =======================================================================================================================================
 CG_TellTarget_f
@@ -277,7 +277,7 @@ static void CG_VoiceTellTarget_f(void) {
 	Com_sprintf(command, 128, "vtell %i %s", clientNum, message);
 	trap_SendClientCommand(command);
 }
-#ifdef MISSIONPACK
+
 /*
 =======================================================================================================================================
 CG_VoiceTellAttacker_f
@@ -408,6 +408,7 @@ CG_TaskDefense_f
 =======================================================================================================================================
 */
 static void CG_TaskDefense_f(void) {
+
 	trap_Cmd_ExecuteText(EXEC_NOW, va("cmd vsay_team %s\n", VOICECHAT_ONDEFENSE));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_DEFENSE));
 }
@@ -418,6 +419,7 @@ CG_TaskPatrol_f
 =======================================================================================================================================
 */
 static void CG_TaskPatrol_f(void) {
+
 	trap_Cmd_ExecuteText(EXEC_NOW, va("cmd vsay_team %s\n", VOICECHAT_ONPATROL));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_PATROL));
 }
@@ -428,6 +430,7 @@ CG_TaskCamp_f
 =======================================================================================================================================
 */
 static void CG_TaskCamp_f(void) {
+
 	trap_Cmd_ExecuteText(EXEC_NOW, va("cmd vsay_team %s\n", VOICECHAT_ONCAMPING));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_CAMP));
 }
@@ -438,6 +441,7 @@ CG_TaskFollow_f
 =======================================================================================================================================
 */
 static void CG_TaskFollow_f(void) {
+
 	trap_Cmd_ExecuteText(EXEC_NOW, va("cmd vsay_team %s\n", VOICECHAT_ONFOLLOW));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_FOLLOW));
 }
@@ -448,6 +452,7 @@ CG_TaskRetrieve_f
 =======================================================================================================================================
 */
 static void CG_TaskRetrieve_f(void) {
+
 	trap_Cmd_ExecuteText(EXEC_NOW, va("cmd vsay_team %s\n", VOICECHAT_ONRETURNFLAG));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_RETRIEVE));
 }
@@ -458,6 +463,7 @@ CG_TaskEscort_f
 =======================================================================================================================================
 */
 static void CG_TaskEscort_f(void) {
+
 	trap_Cmd_ExecuteText(EXEC_NOW, va("cmd vsay_team %s\n", VOICECHAT_ONFOLLOWCARRIER));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_ESCORT));
 }
@@ -561,10 +567,10 @@ CG_EditHud_f
 static void CG_EditHud_f(void) {
 
 	//cls.keyCatchers ^= KEYCATCH_CGAME;
+
 	//VM_Call(cgvm, CG_EVENT_HANDLING, (cls.keyCatchers & KEYCATCH_CGAME) ? CGAME_EVENT_EDITHUD : CGAME_EVENT_NONE);
 }
 */
-#endif
 /*
 =======================================================================================================================================
 CG_StartOrbit_f
@@ -654,7 +660,6 @@ static consoleCommand_t commands[] = {
 	{"tell_target", CG_TellTarget_f},
 	{"tell_attacker", CG_TellAttacker_f},
 	{"vtell_target", CG_VoiceTellTarget_f},
-#ifdef MISSIONPACK
 	{"vtell_attacker", CG_VoiceTellAttacker_f},
 	{"loadhud", CG_LoadHud_f},
 	{"nextTeamMember", CG_NextTeamMember_f},
@@ -680,7 +685,6 @@ static consoleCommand_t commands[] = {
 	{"spLose", CG_spLose_f},
 	{"scoresDown", CG_scrollScoresDown_f},
 	{"scoresUp", CG_scrollScoresUp_f},
-#endif
 	{"startOrbit", CG_StartOrbit_f},
 	{"loaddeferred", CG_LoadDeferredPlayers},
 	{"generateTracemap", CG_GenerateTracemap}

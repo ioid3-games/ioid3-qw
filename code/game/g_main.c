@@ -90,10 +90,8 @@ vmCvar_t g_obeliskRegenAmount;
 vmCvar_t g_obeliskRespawnDelay;
 vmCvar_t g_cubeTimeout;
 vmCvar_t g_proxMineTimeout;
-#ifdef MISSIONPACK
 vmCvar_t g_redteam;
 vmCvar_t g_blueteam;
-#endif
 
 static cvarTable_t gameCvarTable[] = {
 	// don't override the cheat state set by the system
@@ -149,10 +147,8 @@ static cvarTable_t gameCvarTable[] = {
 	{&g_obeliskRespawnDelay, "g_obeliskRespawnDelay", "10", CVAR_SYSTEMINFO, 0, qfalse},
 	{&g_cubeTimeout, "g_cubeTimeout", "30", 0, 0, qfalse},
 	{&g_proxMineTimeout, "g_proxMineTimeout", "20000", 0, 0, qfalse},
-#ifdef MISSIONPACK
 	{&g_redteam, "g_redteam", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE|CVAR_SYSTEMINFO, 0, qtrue, qtrue},
 	{&g_blueteam, "g_blueteam", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE|CVAR_SYSTEMINFO, 0, qtrue, qtrue},
-#endif
 	{&g_smoothClients, "g_smoothClients", "1", 0, 0, qfalse},
 	{&pmove_fixed, "pmove_fixed", "0", CVAR_SYSTEMINFO, 0, qfalse},
 	{&pmove_msec, "pmove_msec", "8", CVAR_SYSTEMINFO, 0, qfalse},
@@ -314,7 +310,6 @@ G_RemapTeamShaders
 =======================================================================================================================================
 */
 void G_RemapTeamShaders(void) {
-#ifdef MISSIONPACK
 	char string[1024];
 	float f = level.time * 0.001;
 
@@ -327,7 +322,6 @@ void G_RemapTeamShaders(void) {
 	AddRemap("textures/ctf2/blueteam02", string, f);
 
 	trap_SetConfigstring(CS_SHADERSTATE, BuildShaderStateConfig());
-#endif
 }
 
 /*

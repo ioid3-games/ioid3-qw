@@ -109,9 +109,8 @@ static void CG_ParseScores(void) {
 		cgs.clientinfo[cg.scores[i].client].powerups = powerups;
 		cg.scores[i].team = cgs.clientinfo[cg.scores[i].client].team;
 	}
-#ifdef MISSIONPACK
+
 	CG_SetScoreSelection(NULL);
-#endif
 }
 
 /*
@@ -395,7 +394,6 @@ static void CG_AddToTeamChat(const char *str) {
 
 			cgs.teamChatMsgTimes[cgs.teamChatPos % chatHeight] = cg.time;
 			cgs.teamChatPos++;
-
 			p = cgs.teamChatMsgs[cgs.teamChatPos % chatHeight];
 			*p = 0;
 			*p++ = Q_COLOR_ESCAPE;
@@ -458,11 +456,11 @@ static void CG_MapRestart(void) {
 	trap_S_ClearLoopingSounds(qtrue);
 	// we really should clear more parts of cg here and stop sounds
 	// play the "fight" sound if this is a restart without warmup
-	if (cg.warmup == 0 /* && cgs.gametype == GT_TOURNAMENT*/) {
+	if (cg.warmup == 0 /*&& cgs.gametype == GT_TOURNAMENT*/) {
 		trap_S_StartLocalSound(cgs.media.countFightSound, CHAN_ANNOUNCER);
 		CG_CenterPrint("FIGHT!", CENTERPRINT_HEIGHT, UI_CENTER|UI_VA_CENTER|UI_DROPSHADOW|UI_TITANFONT, 99999);
 	}
-#ifdef MISSIONPACK
+
 	if (cg_singlePlayer.integer) {
 		trap_Cvar_SetValue("ui_matchStartTime", cg.time);
 
@@ -470,7 +468,7 @@ static void CG_MapRestart(void) {
 			trap_Cmd_ExecuteText(EXEC_APPEND, va("set g_synchronousclients 1; record %s \n", cg_recordSPDemoName.string));
 		}
 	}
-#endif
+
 	trap_Cvar_SetValue("cg_thirdPerson", 0);
 }
 

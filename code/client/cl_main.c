@@ -1722,9 +1722,7 @@ void CL_Rcon_f(void) {
 		to = clc.netchan.remoteAddress;
 	} else {
 		if (!strlen(rconAddress->string)) {
-			Com_Printf("You must either be connected,\n"
-						"or set the 'rconAddress' cvar\n"
-						"to issue rcon commands\n");
+			Com_Printf("You must either be connected, or set the 'rconAddress' cvar to issue rcon commands.\n");
 
 			return;
 		}
@@ -2047,22 +2045,22 @@ void CL_NextDownload(void) {
 #ifdef USE_CURL
 		if (!(cl_allowDownload->integer & DLF_NO_REDIRECT)) {
 			if (clc.sv_allowDownload & DLF_NO_REDIRECT) {
-				Com_Printf("WARNING: server does not allow download redirection (sv_allowDownload is %d)\n", clc.sv_allowDownload);
+				Com_Printf("WARNING: Server does not allow download redirection (sv_allowDownload is %d).\n", clc.sv_allowDownload);
 			} else if (!*clc.sv_dlURL) {
-				Com_Printf("WARNING: server allows download redirection, but does not have sv_dlURL set\n");
+				Com_Printf("WARNING: Server allows download redirection, but does not have sv_dlURL set.\n");
 			} else if (!CL_cURL_Init()) {
-				Com_Printf("WARNING: could not load cURL library\n");
+				Com_Printf("WARNING: Could not load cURL library.\n");
 			} else {
 				CL_cURL_BeginDownload(localName, va("%s/%s", clc.sv_dlURL, remoteName));
 				useCURL = qtrue;
 			}
 		} else if (!(clc.sv_allowDownload & DLF_NO_REDIRECT)) {
-			Com_Printf("WARNING: server allows download redirection, but it disabled by client configuration (cl_allowDownload is %d)\n", cl_allowDownload->integer);
+			Com_Printf("WARNING: Server allows download redirection, but it disabled by client configuration (cl_allowDownload is %d).\n", cl_allowDownload->integer);
 		}
 #endif // USE_CURL
 		if (!useCURL) {
 			if ((cl_allowDownload->integer & DLF_NO_UDP)) {
-				Com_Error(ERR_DROP, "UDP Downloads are disabled on your client (cl_allowDownload is %d)", cl_allowDownload->integer);
+				Com_Error(ERR_DROP, "UDP Downloads are disabled on your client (cl_allowDownload is %d).", cl_allowDownload->integer);
 				return;
 			} else {
 				CL_BeginDownload(localName, remoteName);
@@ -2095,8 +2093,8 @@ void CL_InitDownloads(void) {
 			// NOTE TTimo I would rather have that printed as a modal message box
 			// but at this point while joining the game we don't know whether we will successfully join or not
 			Com_Printf("\nWARNING: You are missing some files referenced by the server:\n%s"
-					"You might not be able to join the game\n"
-					"Go to the setting menu to turn on autodownload, or get the file elsewhere\n\n", missingfiles);
+					"You might not be able to join the game.\n"
+					"Go to the setting menu to turn on autodownload, or get the file elsewhere.\n\n", missingfiles);
 		}
 	} else if (FS_ComparePaks(clc.downloadList, sizeof(clc.downloadList), qtrue)) {
 		Com_Printf("Need paks: %s\n", clc.downloadList);
@@ -2145,8 +2143,8 @@ void CL_CheckForResend(void) {
 
 	switch (clc.state) {
 		case CA_CONNECTING:
-			// the challenge request shall be followed by a client challenge so no malicious server can hijack this connection.
-			// add the gamename so the server knows we're running the correct game or can reject the client with a meaningful message.
+			// the challenge request shall be followed by a client challenge so no malicious server can hijack this connection
+			// add the gamename so the server knows we're running the correct game or can reject the client with a meaningful message
 			Com_sprintf(data, sizeof(data), "getchallenge %d %s", clc.challenge, com_gamename->string);
 			NET_OutOfBandPrint(NS_CLIENT, clc.serverAddress, "%s", data);
 			break;

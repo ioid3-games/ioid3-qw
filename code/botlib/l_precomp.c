@@ -1781,7 +1781,7 @@ int PC_EvaluateTokens(source_t *source, token_t *tokens, signed long int *intval
 				}
 
 				brace = qfalse;
-				// defined() creates a value
+				// defined () creates a value
 				lastwasvalue = 1;
 				break;
 			}
@@ -2196,12 +2196,14 @@ int PC_EvaluateTokens(source_t *source, token_t *tokens, signed long int *intval
 
 	for (o = firstoperator; o; o = lastoperator) {
 		lastoperator = o->next;
+
 		//FreeMemory(o);
 		FreeOperator(o);
 	}
 
 	for (v = firstvalue; v; v = lastvalue) {
 		lastvalue = v->next;
+
 		//FreeMemory(v);
 		FreeValue(v);
 	}

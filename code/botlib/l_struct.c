@@ -326,6 +326,7 @@ int ReadStructure(source_t *source, structdef_t *def, char *structure) {
 					}
 
 					ReadStructure(source, fd->substruct, (char *)p);
+
 					p = (char *)p + fd->substruct->size;
 					break;
 				}

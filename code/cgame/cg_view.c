@@ -611,10 +611,6 @@ static void CG_DamageBlendBlob(void) {
 	//if (cg.cameraMode) {
 	//	return;
 	//}
-	// ragePro systems can't fade blends, so don't obscure the screen
-	if (cgs.glconfig.hardwareType == GLHW_RAGEPRO) {
-		return;
-	}
 
 	maxTime = DAMAGE_TIME;
 	t = cg.time - cg.damageTime;
@@ -653,11 +649,9 @@ static int CG_CalcViewValues(void) {
 	playerState_t *ps;
 
 	memset(&cg.refdef, 0, sizeof(cg.refdef));
-
 	// strings for in game rendering
-	// Q_strncpyz(cg.refdef.text[0], "Park Ranger", sizeof(cg.refdef.text[0]));
-	// Q_strncpyz(cg.refdef.text[1], "19", sizeof(cg.refdef.text[1]));
-
+	//Q_strncpyz(cg.refdef.text[0], "Park Ranger", sizeof(cg.refdef.text[0]));
+	//Q_strncpyz(cg.refdef.text[1], "19", sizeof(cg.refdef.text[1]));
 	// calculate size of 3D view
 	CG_CalcVrect();
 

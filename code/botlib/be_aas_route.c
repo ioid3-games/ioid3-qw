@@ -1059,7 +1059,7 @@ AAS_ReadRouteCache
 =======================================================================================================================================
 */
 int AAS_ReadRouteCache(void) {
-	int i, clusterareanum; // size;
+	int i, clusterareanum; //size
 	fileHandle_t fp;
 	char filename[MAX_QPATH];
 	routecacheheader_t routecacheheader;

@@ -203,6 +203,12 @@ void BotInitMoveState(int handle, bot_initmove_t *initmove) {
 	if (initmove->or_moveflags & MFL_WALK) {
 		ms->moveflags |= MFL_WALK;
 	}
+
+	ms->moveflags &= ~MFL_SCOUT;
+
+	if (initmove->or_moveflags & MFL_SCOUT) {
+		ms->moveflags |= MFL_SCOUT;
+	}
 }
 
 /*
@@ -419,6 +425,7 @@ int BotReachabilityArea(vec3_t origin, int testground) {
 					for (j = 0; j < numareas; j++) {
 						if (AAS_AreaReachability(areas[j])) {
 							VectorSubtract(points[j], org, v);
+
 							dist = VectorLength(v);
 
 							if (dist < bestdist) {
@@ -572,8 +579,8 @@ int BotOnTopOfEntity(bot_movestate_t *ms) {
 	bsp_trace_t trace;
 
 	AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
-	VectorMA(ms->origin, -3, up, end);
-	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP);
+	VectorMA(ms->origin, -4, up, end);
+	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY);
 	// if not started in solid and NOT hitting the world entity
 	if (!trace.startsolid && (trace.entityNum != ENTITYNUM_WORLD && trace.entityNum != ENTITYNUM_NONE)) {
 		return trace.entityNum;
@@ -836,7 +843,9 @@ int BotGetReachabilityToGoal(vec3_t origin, int areanum, int lastgoalareanum, in
 		if (lastgoalareanum == goal->areanum && reach.areanum == lastareanum) {
 			continue;
 		}
-		//if (AAS_AreaContentsTravelFlags(reach.areanum) & ~travelflags) continue;
+		//if (AAS_AreaContentsTravelFlags(reach.areanum) & ~travelflags) {
+		//	continue;
+		//}
 		// if the travel isn't valid
 		if (!BotValidTravel(origin, &reach, travelflags)) {
 			continue;
@@ -856,7 +865,7 @@ int BotGetReachabilityToGoal(vec3_t origin, int areanum, int lastgoalareanum, in
 			continue;
 		}
 		// add the travel time towards the area
-		t += reach.traveltime; // + AAS_AreaTravelTime(areanum, origin, reach.start);
+		t += reach.traveltime; //+ AAS_AreaTravelTime(areanum, origin, reach.start);
 		// if the travel time is better than the ones already found
 		if (!besttime || t < besttime) {
 			besttime = t;
@@ -877,6 +886,7 @@ int BotAddToTarget(vec3_t start, vec3_t end, float maxdist, float *dist, vec3_t 
 	float curdist;
 
 	VectorSubtract(end, start, dir);
+
 	curdist = VectorNormalize(dir);
 
 	if (*dist + curdist < maxdist) {
@@ -1217,7 +1227,7 @@ int BotCheckBarrierJump(bot_movestate_t *ms, vec3_t dir, float speed) {
 	if (trace.endpos[2] - ms->origin[2] < sv_maxstep->value) {
 		return qfalse;
 	}
-	//elementary actions
+	// elementary actions
 	EA_Jump(ms->client);
 	EA_Move(ms->client, hordir, speed);
 
@@ -1845,7 +1855,7 @@ bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) 
 	hordir[2] = 0;
 	dist = VectorNormalize(hordir);
 	speed = 350;
-	gapdist = BotGapDistance(ms, hordir, ms->entitynum);
+	gapdist = BotGapDistance(ms, hordir, 100, ms->entitynum);
 	// if pretty close to the start focus on the reachability end
 	if (dist < 50 || (gapdist && gapdist < 50)) {
 		// NOTE: using max speed (400) works best
@@ -1912,7 +1922,7 @@ bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) 
 		VectorMA(reach->start, gapdist, hordir, trace.endpos);
 	}
 
-//	dist1 = BotGapDistance(start, hordir, ms->entitynum);
+//	dist1 = BotGapDistance(start, hordir, 100, ms->entitynum);
 
 //	if (dist1 && dist1 <= trace.fraction * 80) {
 //		VectorMA(reach->start, dist1 - 20, hordir, trace.endpos);
@@ -2102,7 +2112,7 @@ BotTravel_Ladder
 */
 bot_moveresult_t BotTravel_Ladder(bot_movestate_t *ms, aas_reachability_t *reach) {
 	//float dist, speed;
-	vec3_t dir, viewdir; // hordir;
+	vec3_t dir, viewdir; //hordir
 	vec3_t origin = {0, 0, 0};
 //	vec3_t up = {0, 0, 1};
 	bot_moveresult_t_cleared(result);
@@ -2123,7 +2133,7 @@ bot_moveresult_t BotTravel_Ladder(bot_movestate_t *ms, aas_reachability_t *reach
 		// elementary action
 		EA_Move(ms->client, origin, 0);
 		EA_MoveForward(ms->client);
-		// set movement view flag so the AI can see the view is focused
+		// set movement view flag so the AI can see the view is focussed
 		result.flags |= MOVERESULT_MOVEMENTVIEW;
 	}
 /*	else
@@ -2469,7 +2479,6 @@ bot_moveresult_t BotTravel_FuncBobbing(bot_movestate_t *ms, aas_reachability_t *
 	float dist, dist1, dist2, speed;
 	bot_moveresult_t_cleared(result);
 
-
 	if (!BotFuncBobStartEnd(reach, bob_start, bob_end, bob_origin)) {
 		// stop using this reachability
 		ms->reachability_time = 0;
@@ -2562,7 +2571,7 @@ bot_moveresult_t BotTravel_FuncBobbing(bot_movestate_t *ms, aas_reachability_t *
 		}
 
 		dist1 = VectorNormalize(dir1);
-		// if func_bobbing is NOT in its start position
+		// if the func_bobbing is NOT in its start position
 		VectorSubtract(bob_origin, bob_start, dir);
 
 		if (VectorLength(dir) > 16) {
@@ -3017,6 +3026,7 @@ bot_moveresult_t BotMoveInGoalArea(bot_movestate_t *ms, bot_goal_t *goal) {
 	}
 	//if (!debugline) debugline = botimport.DebugLineCreate();
 	//botimport.DebugLineShow(debugline, ms->origin, goal->origin, LINECOLOR_BLUE);
+
 	ms->lastreachnum = 0;
 	ms->lastareanum = 0;
 	ms->lastgoalareanum = goal->areanum;

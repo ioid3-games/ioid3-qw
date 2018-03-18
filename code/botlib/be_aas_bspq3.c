@@ -85,6 +85,20 @@ bsp_trace_t AAS_Trace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int pa
 
 /*
 =======================================================================================================================================
+AAS_TraceEntities
+
+Traces axial boxes of any size against entities.
+=======================================================================================================================================
+*/
+bsp_trace_t AAS_TraceEntities(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask) {
+	bsp_trace_t bsptrace;
+
+	botimport.EntitiesTrace(&bsptrace, start, mins, maxs, end, passent, contentmask);
+	return bsptrace;
+}
+
+/*
+=======================================================================================================================================
 AAS_PointContents
 
 Returns the contents at the given point.

@@ -203,20 +203,10 @@ localEntity_t *CG_SmokePuff(const vec3_t p, const vec3_t vel, float radius, floa
 	VectorCopy(p, re->origin);
 
 	re->customShader = hShader;
-	// rage pro can't alpha fade, so use a different shader
-	if (cgs.glconfig.hardwareType == GLHW_RAGEPRO) {
-		re->customShader = cgs.media.smokePuffRageProShader;
-		re->shaderRGBA[0] = 0xff;
-		re->shaderRGBA[1] = 0xff;
-		re->shaderRGBA[2] = 0xff;
-		re->shaderRGBA[3] = 0xff;
-	} else {
-		re->shaderRGBA[0] = le->color[0] * 0xff;
-		re->shaderRGBA[1] = le->color[1] * 0xff;
-		re->shaderRGBA[2] = le->color[2] * 0xff;
-		re->shaderRGBA[3] = 0xff;
-	}
-
+	re->shaderRGBA[0] = le->color[0] * 0xff;
+	re->shaderRGBA[1] = le->color[1] * 0xff;
+	re->shaderRGBA[2] = le->color[2] * 0xff;
+	re->shaderRGBA[3] = 0xff;
 	re->reType = RT_SPRITE;
 	re->radius = le->radius;
 
@@ -285,13 +275,13 @@ void CG_SpawnEffectDefault(vec3_t org) {
 
 	re->origin[2] -= 4;
 }
-#ifdef MISSIONPACK
+
 /*
 =======================================================================================================================================
-CG_LightningBoltBeam
+CG_LightningBolt
 =======================================================================================================================================
 */
-void CG_LightningBoltBeam(vec3_t start, vec3_t end) {
+void CG_LightningBolt(vec3_t start, vec3_t end) {
 	localEntity_t *le;
 	refEntity_t *beam;
 
@@ -310,7 +300,7 @@ void CG_LightningBoltBeam(vec3_t start, vec3_t end) {
 	beam->reType = RT_LIGHTNING;
 	beam->customShader = cgs.media.lightningShader;
 }
-#endif
+
 /*
 =======================================================================================================================================
 CG_KamikazeEffect
@@ -324,7 +314,7 @@ void CG_KamikazeEffect(vec3_t org) {
 	le->leFlags = 0;
 	le->leType = LE_KAMIKAZE;
 	le->startTime = cg.time;
-	le->endTime = cg.time + 3000; // 2250
+	le->endTime = cg.time + 3000; //2250
 	le->lifeRate = 1.0 / (le->endTime - le->startTime);
 	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
 

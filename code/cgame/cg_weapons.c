@@ -924,7 +924,9 @@ static void CG_ShotgunEjectBrass(centity_t *cent) {
 		float waterScale = 1.0f;
 
 		le = CG_AllocLocalEntity();
+
 		re = &le->refEntity;
+
 		velocity[0] = 60 + 60 * crandom();
 
 		if (i == 0) {

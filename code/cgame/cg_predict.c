@@ -114,7 +114,6 @@ static void CG_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const v
 			bmaxs[0] = bmaxs[1] = x;
 			bmins[2] = -zd;
 			bmaxs[2] = zu;
-
 			cmodel = trap_CM_TempBoxModel(bmins, bmaxs);
 
 			VectorCopy(vec3_origin, angles);

@@ -254,7 +254,9 @@ void CG_AddFragment(localEntity_t *le) {
 			le->refEntity.renderfx |= RF_LIGHTING_ORIGIN;
 			oldZ = le->refEntity.origin[2];
 			le->refEntity.origin[2] -= 16 * (1.0 - (float)t / SINK_TIME);
+
 			trap_R_AddRefEntityToScene(&le->refEntity);
+
 			le->refEntity.origin[2] = oldZ;
 		} else {
 			trap_R_AddRefEntityToScene(&le->refEntity);
@@ -445,7 +447,6 @@ static void CG_EmitPolyVerts(const refEntity_t *re) {
 
 		VectorScale(cg.refdef.viewaxis[1], cosR * re->radius, left);
 		VectorMA(left, -sinR * re->radius, cg.refdef.viewaxis[2], left);
-
 		VectorScale(cg.refdef.viewaxis[2], cosR * re->radius, up);
 		VectorMA(up, sinR * re->radius, cg.refdef.viewaxis[1], up);
 	} else {
@@ -648,6 +649,7 @@ void CG_AddKamikaze(localEntity_t *le) {
 		if (!(le->leFlags & LEF_SOUND1)) {
 			//trap_S_StartSound(re->origin, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.kamikazeExplodeSound);
 			trap_S_StartLocalSound(cgs.media.kamikazeExplodeSound, CHAN_AUTO);
+
 			le->leFlags |= LEF_SOUND1;
 		}
 		// 1st kamikaze shockwave
@@ -762,7 +764,7 @@ void CG_AddKamikaze(localEntity_t *le) {
 		trap_R_AddRefEntityToScene(&shockwave);
 	}
 }
-#ifdef MISSIONPACK
+
 /*
 =======================================================================================================================================
 CG_AddRefEntity
@@ -777,7 +779,7 @@ void CG_AddRefEntity(localEntity_t *le) {
 
 	trap_R_AddRefEntityToScene(&le->refEntity);
 }
-#endif
+
 #define NUMBER_SIZE 8
 /*
 =======================================================================================================================================
@@ -859,7 +861,9 @@ void CG_AddScorePlum(localEntity_t *le) {
 
 	for (i = 0; i < numdigits; i++) {
 		VectorMA(origin, (float)(((float)numdigits / 2) - i) * NUMBER_SIZE, vec, re->origin);
+
 		re->customShader = cgs.media.numberShaders[digits[numdigits - 1 - i]];
+
 		trap_R_AddRefEntityToScene(re);
 	}
 }
@@ -950,11 +954,9 @@ void CG_AddLocalEntities(void) {
 			case LE_SCOREPLUM:
 				CG_AddScorePlum(le);
 				break;
-#ifdef MISSIONPACK
 			case LE_SHOWREFENTITY:
 				CG_AddRefEntity(le);
 				break;
-#endif
 		}
 	}
 

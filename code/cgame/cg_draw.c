@@ -27,14 +27,11 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 **************************************************************************************************************************************/
 
 #include "cg_local.h"
-#ifdef MISSIONPACK
 #include "../ui/ui_shared.h"
 // used for scoreboard
 extern displayContextDef_t cgDC;
 menuDef_t *menuScoreboard = NULL;
-#else
-int drawTeamOverlayModificationCount = -1;
-#endif
+
 int sortedTeamPlayers[TEAM_MAXOVERLAY];
 int numSortedTeamPlayers;
 
@@ -1449,6 +1446,7 @@ static void CG_DrawHoldableItem(void) {
 CG_DrawPersistantPowerup
 =======================================================================================================================================
 */
+#if 0 // sos001208 - DEAD
 static void CG_DrawPersistantPowerup(void) {
 	int value;
 
@@ -1461,6 +1459,7 @@ static void CG_DrawPersistantPowerup(void) {
 		CG_DrawPic(640 - ICON_SIZE, (SCREEN_HEIGHT - ICON_SIZE) / 2 - ICON_SIZE, ICON_SIZE, ICON_SIZE, cg_items[value].icon);
 	}
 }
+#endif
 #endif // MISSIONPACK
 /*
 =======================================================================================================================================
@@ -1552,13 +1551,10 @@ static void CG_DrawDisconnect(void) {
 	}
 
 	CG_SetScreenPlacement(PLACE_RIGHT, PLACE_BOTTOM);
-#ifdef MISSIONPACK
+
 	x = 640 - 48;
 	y = 480 - 144;
-#else
-	x = 640 - 48;
-	y = 480 - 48;
-#endif
+
 	CG_DrawPic(x, y, 48, 48, trap_R_RegisterShader("gfx/2d/net.tga"));
 }
 
@@ -1583,13 +1579,9 @@ static void CG_DrawLagometer(void) {
 
 	CG_SetScreenPlacement(PLACE_RIGHT, PLACE_BOTTOM);
 	// draw the graph
-#ifdef MISSIONPACK
 	x = 640 - 48;
 	y = 480 - 144;
-#else
-	x = 640 - 48;
-	y = 480 - 48;
-#endif
+
 	CG_DrawPic(x, y, 48, 48, cgs.media.lagometerShader);
 
 	ax = x;
@@ -2313,11 +2305,10 @@ CG_Draw2D
 =======================================================================================================================================
 */
 static void CG_Draw2D(stereoFrame_t stereoFrame) {
-#ifdef MISSIONPACK
+
 	if (cgs.orderPending && cg.time > cgs.orderTime) {
 		CG_CheckOrderPending();
 	}
-#endif
 	// if we are taking a levelshot for the menu, don't draw anything
 	if (cg.levelShot) {
 		return;
@@ -2347,15 +2338,12 @@ static void CG_Draw2D(stereoFrame_t stereoFrame) {
 	} else {
 		// don't draw any status if dead or the scoreboard is being explicitly shown
 		if (!cg.showScores && cg.snap->ps.stats[STAT_HEALTH] > 0) {
-#ifdef MISSIONPACK
 			if (cg_drawStatus.integer) {
 				CG_SetScreenPlacement(PLACE_CENTER, PLACE_BOTTOM);
 				Menu_PaintAll();
 				CG_DrawTimedMenus();
 			}
-#else
-			CG_DrawStatusBar();
-#endif
+
 			CG_DrawAmmoWarning();
 			CG_DrawProxWarning();
 
@@ -2365,10 +2353,6 @@ static void CG_Draw2D(stereoFrame_t stereoFrame) {
 
 			CG_DrawCrosshairNames();
 			CG_DrawWeaponSelect();
-#ifndef MISSIONPACK
-			CG_DrawHoldableItem();
-			CG_DrawPersistantPowerup();
-#endif
 		}
 	}
 
@@ -2381,17 +2365,10 @@ static void CG_Draw2D(stereoFrame_t stereoFrame) {
 	CG_DrawVote();
 	CG_DrawTeamVote();
 	CG_DrawLagometer();
-#ifdef MISSIONPACK
+
 	if (!cg_paused.integer) {
 		CG_DrawUpperRight(stereoFrame);
 	}
-#else
-	CG_DrawUpperRight(stereoFrame);
-#endif
-#ifndef MISSIONPACK
-	CG_DrawLowerRight();
-	CG_DrawLowerLeft();
-#endif
 	// don't draw center string if scoreboard is up
 	cg.scoreBoardShowing = CG_DrawScoreboard();
 

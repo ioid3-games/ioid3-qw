@@ -27,14 +27,14 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 **************************************************************************************************************************************/
 
 #include "cg_local.h"
-#ifdef MISSIONPACK
 #include "../ui/ui_shared.h"
 // display context for new ui stuff
 displayContextDef_t cgDC;
-#endif
+
 int forceModelModificationCount = -1;
 int redTeamNameModificationCount = -1;
 int blueTeamNameModificationCount = -1;
+
 void CG_Init(int serverMessageNum, int serverCommandSequence, int clientNum);
 void CG_Shutdown(void);
 static char *CG_VoIPString(void);
@@ -70,10 +70,9 @@ Q_EXPORT intptr_t vmMain(int command, int arg0, int arg1, int arg2, int arg3, in
 			CG_KeyEvent(arg0, arg1);
 			return 0;
 		case CG_MOUSE_EVENT:
-#ifdef MISSIONPACK
 			cgDC.cursorx = cgs.cursorX;
 			cgDC.cursory = cgs.cursorY;
-#endif
+
 			CG_MouseEvent(arg0, arg1);
 			return 0;
 		case CG_EVENT_HANDLING:
@@ -198,14 +197,13 @@ vmCvar_t cg_oldPlasma;
 vmCvar_t cg_enableDust;
 vmCvar_t cg_enableBreath;
 vmCvar_t cg_obeliskRespawnDelay;
-#ifdef MISSIONPACK
 vmCvar_t cg_redTeamName;
 vmCvar_t cg_blueTeamName;
 vmCvar_t cg_currentSelectedPlayer;
 vmCvar_t cg_currentSelectedPlayerName;
 vmCvar_t cg_recordSPDemo;
 vmCvar_t cg_recordSPDemoName;
-#endif
+
 typedef struct {
 	vmCvar_t *vmCvar;
 	char *cvarName;
@@ -348,10 +346,9 @@ void CG_RegisterCvars(void) {
 	cgs.localServer = atoi(var);
 
 	forceModelModificationCount = cg_forceModel.modificationCount;
-#ifdef MISSIONPACK
 	redTeamNameModificationCount = cg_redTeamName.modificationCount;
 	blueTeamNameModificationCount = cg_blueTeamName.modificationCount;
-#endif
+
 	trap_Cvar_Register(NULL, "model", DEFAULT_MODEL, CVAR_USERINFO|CVAR_ARCHIVE);
 	trap_Cvar_Register(NULL, "headmodel", DEFAULT_MODEL, CVAR_USERINFO|CVAR_ARCHIVE);
 	trap_Cvar_Register(NULL, "team_model", DEFAULT_TEAM_MODEL, CVAR_USERINFO|CVAR_ARCHIVE);
@@ -1163,14 +1160,14 @@ static void CG_RegisterGraphics(void) {
 	cgs.media.teamLeaderShader = trap_R_RegisterShaderNoMip("ui/assets/statusbar/team_leader.tga");
 	cgs.media.retrieveShader = trap_R_RegisterShaderNoMip("ui/assets/statusbar/retrieve.tga");
 	cgs.media.escortShader = trap_R_RegisterShaderNoMip("ui/assets/statusbar/escort.tga");
-#ifdef MISSIONPACK
+
 	trap_R_RegisterModel("models/players/james/lower.md3");
 	trap_R_RegisterModel("models/players/james/upper.md3");
 	trap_R_RegisterModel("models/players/heads/james/james.md3");
 	trap_R_RegisterModel("models/players/janet/lower.md3");
 	trap_R_RegisterModel("models/players/janet/upper.md3");
 	trap_R_RegisterModel("models/players/heads/janet/janet.md3");
-#endif
+
 	CG_ClearParticles();
 /*
 	for (i = 1; i < MAX_PARTICLES_AREAS; i++) {
@@ -1261,10 +1258,9 @@ void CG_StartMusic(void) {
 
 	Q_strncpyz(parm1, COM_Parse(&s), sizeof(parm1));
 	Q_strncpyz(parm2, COM_Parse(&s), sizeof(parm2));
-
 	trap_S_StartBackgroundTrack(parm1, parm2);
 }
-#ifdef MISSIONPACK
+
 /*
 =======================================================================================================================================
 CG_GetMenuBuffer
@@ -1289,7 +1285,9 @@ char *CG_GetMenuBuffer(const char *filename) {
 	}
 
 	trap_FS_Read(buf, len, f);
+
 	buf[len] = 0;
+
 	trap_FS_FCloseFile(f);
 
 	return buf;
@@ -1935,6 +1933,7 @@ CG_DrawCinematic
 =======================================================================================================================================
 */
 static void CG_DrawCinematic(int handle, float x, float y, float w, float h) {
+
 	trap_CIN_SetExtents(handle, x, y, w, h);
 	trap_CIN_DrawCinematic(handle);
 }
@@ -2058,7 +2057,7 @@ void CG_AssetCache(void) {
 	cgDC.Assets.sliderBar = trap_R_RegisterShaderNoMip(ASSET_SLIDER_BAR);
 	cgDC.Assets.sliderThumb = trap_R_RegisterShaderNoMip(ASSET_SLIDER_THUMB);
 }
-#endif
+
 /*
 =======================================================================================================================================
 CG_Init
@@ -2141,9 +2140,8 @@ void CG_Init(int serverMessageNum, int serverCommandSequence, int clientNum) {
 	// load the new map
 	CG_LoadingString("collision map");
 	trap_CM_LoadMap(cgs.mapname);
-#ifdef MISSIONPACK
 	String_Init();
-#endif
+
 	cg.loading = qtrue; // force players to load instead of defer
 
 	CG_LoadingString("sounds");
@@ -2152,10 +2150,9 @@ void CG_Init(int serverMessageNum, int serverCommandSequence, int clientNum) {
 	CG_RegisterGraphics();
 	CG_LoadingString("clients");
 	CG_RegisterClients(); // if low on memory, some clients will be deferred
-#ifdef MISSIONPACK
 	CG_AssetCache();
 	CG_LoadHudMenu(); // load new hud stuff
-#endif
+
 	cg.loading = qfalse; // future players will be deferred
 
 	CG_InitLocalEntities();
