@@ -817,7 +817,7 @@ char *ClientConnect(int clientNum, qboolean firstTime, qboolean isBot) {
 	trap_GetUserinfo(clientNum, userinfo, sizeof(userinfo));
 	// IP filtering
 	// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=500
-	// recommending PB based IP / GUID banning, the builtin system is pretty limited
+	// recommending PB based IP/GUID banning, the builtin system is pretty limited
 	// check to see if they are on the banned IP list
 	value = Info_ValueForKey(userinfo, "ip");
 
@@ -1161,7 +1161,7 @@ void ClientDisconnect(int clientNum) {
 	if (ent->client->pers.connected == CON_CONNECTED && ent->client->sess.sessionTeam != TEAM_SPECTATOR) {
 		tent = G_TempEntity(ent->client->ps.origin, EV_PLAYER_TELEPORT_OUT);
 		tent->s.clientNum = ent->s.clientNum;
-		// They don't get to take powerups with them! Especially important for stuff like CTF flags
+		// they don't get to take powerups with them! Especially important for stuff like CTF flags
 		TossClientItems(ent);
 		TossClientPersistantPowerups(ent);
 

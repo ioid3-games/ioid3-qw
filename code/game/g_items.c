@@ -967,7 +967,7 @@ void G_RunItem(gentity_t *ent) {
 	if (ent->clipmask) {
 		mask = ent->clipmask;
 	} else {
-		mask = MASK_PLAYERSOLID & ~CONTENTS_BODY; // MASK_SOLID;
+		mask = MASK_PLAYERSOLID & ~CONTENTS_BODY; // MASK_SOLID
 	}
 
 	trap_Trace(&tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin, ent->r.ownerNum, mask);

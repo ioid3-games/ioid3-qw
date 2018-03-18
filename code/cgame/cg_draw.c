@@ -1978,7 +1978,6 @@ static void CG_DrawCenterString(void) {
 	}
 
 	CG_SetScreenPlacement(PLACE_CENTER, PLACE_CENTER);
-
 	trap_R_SetColor(color);
 
 	start = cg.centerPrint;

@@ -1111,7 +1111,7 @@ void ClientEndFrame(gentity_t *ent) {
 	if (level.intermissiontime) {
 		return;
 	}
-	// burn from lava, etc
+	// burn from lava, etc.
 	G_WorldEffects(ent);
 	// apply all the damage taken this frame
 	G_DamageFeedback(ent);
@@ -1134,6 +1134,6 @@ void ClientEndFrame(gentity_t *ent) {
 
 	SendPendingPredictableEvents(&ent->client->ps);
 	// set the bit for the reachability area the client is currently in
-//	i = trap_AAS_PointReachabilityAreaIndex(ent->client->ps.origin);
-//	ent->client->areabits[i >> 3] |= 1 << (i & 7);
+	//i = trap_AAS_PointReachabilityAreaIndex(ent->client->ps.origin);
+	//ent->client->areabits[i >> 3] |= 1 << (i & 7);
 }
