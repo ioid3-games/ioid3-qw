@@ -2139,7 +2139,7 @@ void CL_CheckForResend(void) {
 
 	switch (clc.state) {
 		case CA_CONNECTING:
-			// the challenge request shall be followed by a client challenge so no malicious server can hijack this connection.
+			// the challenge request shall be followed by a client challenge so no malicious server can hijack this connection
 			// add the gamename so the server knows we're running the correct game or can reject the client with a meaningful message
 			Com_sprintf(data, sizeof(data), "getchallenge %d %s", clc.challenge, com_gamename->string);
 			NET_OutOfBandPrint(NS_CLIENT, clc.serverAddress, "%s", data);
