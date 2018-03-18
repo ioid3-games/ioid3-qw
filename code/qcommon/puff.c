@@ -218,14 +218,14 @@ struct huffman {
  *  in the deflate format. See the format notes for fixed() and dynamic().
  */
 local int32_t decode(struct state *s, struct huffman *h) {
-	int32_t len;	// current number of bits in code
-	int32_t code;	// len bits being decoded
-	int32_t first;	// first code of length len
-	int32_t count;	// number of codes of length len
-	int32_t index;	// index of first code of length len in symbol table
-	int32_t bitbuf;	// bits from stream
-	int32_t left;	// bits left in next or left to process
-	int16_t *next;	// next number of codes
+	int32_t len; // current number of bits in code
+	int32_t code; // len bits being decoded
+	int32_t first; // first code of length len
+	int32_t count; // number of codes of length len
+	int32_t index; // index of first code of length len in symbol table
+	int32_t bitbuf; // bits from stream
+	int32_t left; // bits left in next or left to process
+	int16_t *next; // next number of codes
 
 	bitbuf = s->bitbuf;
 	left = s->bitcnt;

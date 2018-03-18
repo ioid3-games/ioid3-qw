@@ -959,6 +959,7 @@ void CG_Tracer(vec3_t source, vec3_t dest) {
 	VectorScale(cg.refdef.viewaxis[1], line[1], right);
 	VectorMA(right, -line[0], cg.refdef.viewaxis[2], right);
 	VectorNormalize(right);
+
 	VectorMA(finish, cg_tracerWidth.value, right, verts[0].xyz);
 	verts[0].st[0] = 0;
 	verts[0].st[1] = 1;
