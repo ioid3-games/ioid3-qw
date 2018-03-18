@@ -598,7 +598,8 @@ void SV_Trace(trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, co
 	clip.capsule = capsule;
 	// create the bounding box of the entire move
 	// we can limit it to the part of the move not already clipped off by the world,
-	// which can be a significant savings for line of sight and shot tracesor (i = 0; i < 3; i++) {
+	// which can be a significant savings for line of sight and shot traces
+	for (i = 0; i < 3; i++) {
 		if (end[i] > start[i]) {
 			clip.boxmins[i] = clip.start[i] + clip.mins[i] - 1;
 			clip.boxmaxs[i] = clip.end[i] + clip.maxs[i] + 1;
