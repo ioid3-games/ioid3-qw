@@ -375,7 +375,7 @@ void Cmd_Args_Sanitize(void);
 // if arg > argc, so string operations are always safe.
 void Cmd_TokenizeString(const char *text);
 void Cmd_TokenizeStringIgnoreQuotes(const char *text_in);
-// Takes a null terminated string. Does not need to be /n terminated. breaks the string up into arg tokens.
+// Takes a null terminated string. Does not need to be /n terminated. Breaks the string up into arg tokens.
 void Cmd_ExecuteString(const char *text);
 // Parses a single line of text into arguments and tries to execute it as if it was typed at the console
 
@@ -429,7 +429,7 @@ void Cvar_VariableStringBuffer(const char *var_name, char *buffer, int bufsize);
 void Cvar_LatchedVariableStringBuffer(const char *var_name, char *buffer, int bufsize);
 // returns the latched value if there is one, else the normal one, empty string if not defined
 int Cvar_Flags(const char *var_name);
-// returns CVAR_NONEXISTENT if cvar doesn't exist or the flags of that particular CVAR.
+// returns CVAR_NONEXISTENT if cvar doesn't exist or the flags of that particular CVAR
 void Cvar_CommandCompletion(void(*callback)(const char *s));
 // callback with each valid string
 void Cvar_Reset(const char *var_name);
@@ -438,9 +438,9 @@ void Cvar_SetCheatState(void);
 // reset all testing vars to a safe value
 qboolean Cvar_Command(void);
 // called by Cmd_ExecuteString when Cmd_Argv(0) doesn't match a known command. Returns true if the command was a variable reference that
-// was handled. (print or change)
+// was handled (print or change)
 void Cvar_WriteVariables(fileHandle_t f);
-// writes lines containing "set variable value" for all variables with the archive flag set to true.
+// writes lines containing "set variable value" for all variables with the archive flag set to true
 void Cvar_Init(void);
 char *Cvar_InfoString(int bit);
 char *Cvar_InfoString_Big(int bit);
@@ -453,7 +453,7 @@ void Cvar_Restart_f(void);
 void Cvar_CompleteCvarName(char *args, int argNum);
 extern int cvar_modifiedFlags;
 // whenever a cvar is modifed, its flags will be OR'd into this, so a single check can determine if any CVAR_USERINFO, CVAR_SERVERINFO,
-// etc. variables have been modified since the last check. The bit can then be cleared to allow another change detection.
+// etc., variables have been modified since the last check. The bit can then be cleared to allow another change detection.
 
 /*
 =======================================================================================================================================
@@ -615,7 +615,7 @@ typedef enum {
 	CF_SSE2 = 1 << 6,
 	CF_ALTIVEC = 1 << 7
 } cpuFeatures_t;
-// centralized and cleaned, that's the max string you can send to a Com_Printf / Com_DPrintf (above gets truncated)
+// centralized and cleaned, that's the max string you can send to a Com_Printf/Com_DPrintf (above gets truncated)
 #define MAXPRINTMSG 4096
 
 typedef enum {
@@ -744,13 +744,13 @@ temp file loading
 #define Z_TagMalloc(size, tag) Z_TagMallocDebug(size, tag, #size, __FILE__, __LINE__)
 #define Z_Malloc(size) Z_MallocDebug(size, #size, __FILE__, __LINE__)
 #define S_Malloc(size) S_MallocDebug(size, #size, __FILE__, __LINE__)
-void *Z_TagMallocDebug(int size, int tag, char *label, char *file, int line);	// NOT 0 filled memory
-void *Z_MallocDebug(int size, char *label, char *file, int line);				// returns 0 filled memory
-void *S_MallocDebug(int size, char *label, char *file, int line);				// returns 0 filled memory
+void *Z_TagMallocDebug(int size, int tag, char *label, char *file, int line); // NOT 0 filled memory
+void *Z_MallocDebug(int size, char *label, char *file, int line); // returns 0 filled memory
+void *S_MallocDebug(int size, char *label, char *file, int line); // returns 0 filled memory
 #else
-void *Z_TagMalloc(int size, int tag);	// NOT 0 filled memory
-void *Z_Malloc(int size);				// returns 0 filled memory
-void *S_Malloc(int size);				// NOT 0 filled memory only for small allocations
+void *Z_TagMalloc(int size, int tag); // NOT 0 filled memory
+void *Z_Malloc(int size); // returns 0 filled memory
+void *S_Malloc(int size); // NOT 0 filled memory only for small allocations
 #endif
 void Z_Free(void *ptr);
 void Z_FreeTags(int tag);

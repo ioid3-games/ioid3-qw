@@ -484,7 +484,7 @@ static ID_INLINE float Q_rsqrt(float number) {
 	float x = 0.5f * number;
 	float y;
 #ifdef __GNUC__
-	asm("frsqrte %0,%1" : "=f" (y) : "f" (number));
+	asm("frsqrte %0,%1" : "=f"(y) : "f"(number));
 #else
 	y = __frsqrte(number);
 #endif
@@ -499,7 +499,7 @@ Q_fabs
 static ID_INLINE float Q_fabs(float x) {
 	float abs_x;
 
-	asm("fabs %0,%1" : "=f" (abs_x) : "f" (x));
+	asm("fabs %0,%1" : "=f"(abs_x) : "f"(x));
 	return abs_x;
 }
 #else
