@@ -772,7 +772,7 @@ qboolean Sys_IsLANAddress(netadr_t adr) {
 			return qtrue;
 		}
 	}
-	// now compare against the networks this computer is member of.
+	// now compare against the networks this computer is member of
 	for (index = 0; index < numIP; index++) {
 		if (localIP[index].type == adr.type) {
 			if (adr.type == NA_IP) {
@@ -1008,7 +1008,7 @@ void NET_JoinMulticast6(void) {
 	}
 
 	if (IN6_IS_ADDR_MULTICAST(&boundto.sin6_addr) || IN6_IS_ADDR_UNSPECIFIED(&boundto.sin6_addr)) {
-		// the way the socket was bound does not prohibit receiving multi-cast packets. So we don't need to open a new one.
+		// the way the socket was bound does not prohibit receiving multi-cast packets. So we don't need to open a new one
 		multicast6_socket = ip6_socket;
 	} else {
 		if ((multicast6_socket = NET_IP6Socket(net_mcast6addr->string, ntohs(boundto.sin6_port), NULL, &err)) == INVALID_SOCKET) {
@@ -1327,7 +1327,8 @@ static void NET_GetLocalAddress(void) {
 		struct sockaddr_in mask4;
 		struct sockaddr_in6 mask6;
 		struct addrinfo *search;
-		// on operating systems where it's more difficult to find out the configured interfaces, we'll just assume a netmask with all bits set.
+
+		// on operating systems where it's more difficult to find out the configured interfaces, we'll just assume a netmask with all bits set
 		memset(&mask4, 0, sizeof(mask4));
 		memset(&mask6, 0, sizeof(mask6));
 
