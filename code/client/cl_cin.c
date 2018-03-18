@@ -31,6 +31,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
 #define MAXSIZE 8
 #define MINSIZE 4
+
 #define DEFAULT_CIN_WIDTH 512
 #define DEFAULT_CIN_HEIGHT 512
 
@@ -233,7 +234,7 @@ long RllDecodeMonoToStereo(unsigned char *from, short *to, unsigned int size, ch
 		to[z * 2 + 0] = to[z * 2 + 1] = (short)(prev);
 	}
 
-	return size; // * 2 * sizeof(short));
+	return size; //* 2 * sizeof(short));
 }
 
 /*
@@ -1052,6 +1053,7 @@ static void initRoQ(void) {
 	cinTable[currentHandle].VQNormal = (void (*)(byte *, void *))blitVQQuad32fs;
 	cinTable[currentHandle].VQBuffer = (void (*)(byte *, void *))blitVQQuad32fs;
 	cinTable[currentHandle].samplesPerPixel = 4;
+
 	ROQ_GenYUVTables();
 	RllSetupTable();
 }
@@ -1096,6 +1098,7 @@ static void RoQReset(void) {
 	// let the background thread start reading ahead
 	FS_Read(cin.file, 16, cinTable[currentHandle].iFile);
 	RoQ_init();
+
 	cinTable[currentHandle].status = FMV_LOOPED;
 }
 
@@ -1240,8 +1243,8 @@ redump:
 		goto redump;
 	}
 	// one more frame hits the dust
-//	assert(cinTable[currentHandle].RoQFrameSize <= 65536);
-//	r = FS_Read(cin.file, cinTable[currentHandle].RoQFrameSize + 8, cinTable[currentHandle].iFile);
+	//assert(cinTable[currentHandle].RoQFrameSize <= 65536);
+	//r = FS_Read(cin.file, cinTable[currentHandle].RoQFrameSize + 8, cinTable[currentHandle].iFile);
 	cinTable[currentHandle].RoQPlayed += cinTable[currentHandle].RoQFrameSize + 8;
 }
 
@@ -1482,14 +1485,13 @@ int CIN_PlayCinematic(const char *arg, int x, int y, int w, int h, int systemBit
 	}
 
 	initRoQ();
-
 	FS_Read(cin.file, 16, cinTable[currentHandle].iFile);
 
 	RoQID = (unsigned short)(cin.file[0]) + (unsigned short)(cin.file[1]) * 256;
 
 	if (RoQID == 0x1084) {
 		RoQ_init();
-//		FS_Read(cin.file, cinTable[currentHandle].RoQFrameSize + 8, cinTable[currentHandle].iFile);
+		//FS_Read(cin.file, cinTable[currentHandle].RoQFrameSize + 8, cinTable[currentHandle].iFile);
 
 		cinTable[currentHandle].status = FMV_PLAY;
 		Com_DPrintf("trFMV::play(), playing %s\n", arg);

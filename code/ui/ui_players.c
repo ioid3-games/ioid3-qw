@@ -633,7 +633,7 @@ static void UI_PlayerAngles(playerInfo_t *pi, vec3_t legs[3], vec3_t torso[3], v
 		legsAngles[PITCH] = 0.0f;
 		legsAngles[ROLL] = 0.0f;
 	}
-	// pull the angles back out of the hierarchial chain
+	// pull the angles back out of the hierarchical chain
 	AnglesSubtract(headAngles, torsoAngles, headAngles);
 	AnglesSubtract(torsoAngles, legsAngles, torsoAngles);
 	AnglesToAxis(legsAngles, legs);
