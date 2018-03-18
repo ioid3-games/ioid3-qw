@@ -258,6 +258,7 @@ void CG_DrawInformation(void) {
 	}
 
 	UI_DrawProportionalString(320, y, s, UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite);
+
 	y += PROP_HEIGHT;
 	value = atoi(Info_ValueForKey(info, "timelimit"));
 

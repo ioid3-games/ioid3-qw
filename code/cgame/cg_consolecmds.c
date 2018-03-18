@@ -29,6 +29,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #include "cg_local.h"
 #ifdef MISSIONPACK
 #include "../ui/ui_shared.h"
+
 extern menuDef_t *menuScoreboard;
 #endif
 /*
@@ -406,6 +407,7 @@ CG_TaskDefense_f
 =======================================================================================================================================
 */
 static void CG_TaskDefense_f(void) {
+
 	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONDEFENSE));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_DEFENSE));
 }
@@ -416,6 +418,7 @@ CG_TaskPatrol_f
 =======================================================================================================================================
 */
 static void CG_TaskPatrol_f(void) {
+
 	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONPATROL));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_PATROL));
 }
@@ -426,6 +429,7 @@ CG_TaskCamp_f
 =======================================================================================================================================
 */
 static void CG_TaskCamp_f(void) {
+
 	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONCAMPING));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_CAMP));
 }
@@ -436,6 +440,7 @@ CG_TaskFollow_f
 =======================================================================================================================================
 */
 static void CG_TaskFollow_f(void) {
+
 	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONFOLLOW));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_FOLLOW));
 }
@@ -446,6 +451,7 @@ CG_TaskRetrieve_f
 =======================================================================================================================================
 */
 static void CG_TaskRetrieve_f(void) {
+
 	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONRETURNFLAG));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_RETRIEVE));
 }
@@ -456,6 +462,7 @@ CG_TaskEscort_f
 =======================================================================================================================================
 */
 static void CG_TaskEscort_f(void) {
+
 	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONFOLLOWCARRIER));
 	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_ESCORT));
 }
@@ -559,6 +566,7 @@ CG_EditHud_f
 static void CG_EditHud_f(void) {
 
 	//cls.keyCatchers ^= KEYCATCH_CGAME;
+
 	//VM_Call(cgvm, CG_EVENT_HANDLING, (cls.keyCatchers & KEYCATCH_CGAME) ? CGAME_EVENT_EDITHUD : CGAME_EVENT_NONE);
 }
 */

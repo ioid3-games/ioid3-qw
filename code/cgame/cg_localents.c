@@ -239,10 +239,13 @@ void CG_AddFragment(localEntity_t *le) {
 		if (t < SINK_TIME) {
 			// we must use an explicit lighting origin, otherwise the lighting would be lost as soon as the origin went into the ground
 			VectorCopy(le->refEntity.origin, le->refEntity.lightingOrigin);
+
 			le->refEntity.renderfx |= RF_LIGHTING_ORIGIN;
 			oldZ = le->refEntity.origin[2];
 			le->refEntity.origin[2] -= 16 * (1.0 - (float)t / SINK_TIME);
+
 			trap_R_AddRefEntityToScene(&le->refEntity);
+
 			le->refEntity.origin[2] = oldZ;
 		} else {
 			trap_R_AddRefEntityToScene(&le->refEntity);
@@ -523,6 +526,7 @@ void CG_AddKamikaze(localEntity_t *le) {
 		if (!(le->leFlags & LEF_SOUND1)) {
 			//trap_S_StartSound(re->origin, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.kamikazeExplodeSound);
 			trap_S_StartLocalSound(cgs.media.kamikazeExplodeSound, CHAN_AUTO);
+
 			le->leFlags |= LEF_SOUND1;
 		}
 		// 1st kamikaze shockwave
@@ -767,7 +771,9 @@ void CG_AddScorePlum(localEntity_t *le) {
 
 	for (i = 0; i < numdigits; i++) {
 		VectorMA(origin, (float)(((float)numdigits / 2) - i) * NUMBER_SIZE, vec, re->origin);
+
 		re->customShader = cgs.media.numberShaders[digits[numdigits - 1 - i]];
+
 		trap_R_AddRefEntityToScene(re);
 	}
 }

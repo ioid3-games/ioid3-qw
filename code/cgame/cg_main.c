@@ -400,6 +400,7 @@ void CG_UpdateCvars(void) {
 	// if force model changed
 	if (forceModelModificationCount != cg_forceModel.modificationCount) {
 		forceModelModificationCount = cg_forceModel.modificationCount;
+
 		CG_ForceModelChange();
 	}
 }
@@ -770,7 +771,6 @@ static void CG_RegisterSounds(void) {
 	trap_S_RegisterSound("sound/player/james/drown.wav", qfalse);
 	trap_S_RegisterSound("sound/player/james/fall1.wav", qfalse);
 	trap_S_RegisterSound("sound/player/james/taunt.wav", qfalse);
-
 	trap_S_RegisterSound("sound/player/janet/death1.wav", qfalse);
 	trap_S_RegisterSound("sound/player/janet/death2.wav", qfalse);
 	trap_S_RegisterSound("sound/player/janet/death3.wav", qfalse);
@@ -1138,7 +1138,6 @@ void CG_StartMusic(void) {
 
 	Q_strncpyz(parm1, COM_Parse(&s), sizeof(parm1));
 	Q_strncpyz(parm2, COM_Parse(&s), sizeof(parm2));
-
 	trap_S_StartBackgroundTrack(parm1, parm2);
 }
 #ifdef MISSIONPACK
@@ -1166,7 +1165,9 @@ char *CG_GetMenuBuffer(const char *filename) {
 	}
 
 	trap_FS_Read(buf, len, f);
+
 	buf[len] = 0;
+
 	trap_FS_FCloseFile(f);
 
 	return buf;
@@ -1821,6 +1822,7 @@ CG_DrawCinematic
 =======================================================================================================================================
 */
 static void CG_DrawCinematic(int handle, float x, float y, float w, float h) {
+
 	trap_CIN_SetExtents(handle, x, y, w, h);
 	trap_CIN_DrawCinematic(handle);
 }

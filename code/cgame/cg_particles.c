@@ -316,7 +316,6 @@ void CG_AddParticleToScene(cparticle_t *p, vec3_t org, float alpha) {
 		time = cg.time - p->time;
 		time2 = p->endtime - p->time;
 		ratio = time / time2;
-
 		width = p->width + (ratio * (p->endwidth - p->width));
 		height = p->height + (ratio * (p->endheight - p->height));
 
@@ -1100,7 +1099,7 @@ CG_ParticleSmoke
 void CG_ParticleSmoke(qhandle_t pshader, centity_t *cent) {
 
 	// using cent->density = enttime
-	// cent->frame = startfade
+	//cent->frame = startfade
 	cparticle_t *p;
 
 	if (!pshader) {

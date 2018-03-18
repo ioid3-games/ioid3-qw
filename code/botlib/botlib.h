@@ -138,12 +138,12 @@ typedef struct bot_entitystate_s {
 	int groundent;		// ground entity
 	int solid;			// solid type
 	int modelindex;		// model used
-	int modelindex2;	// weapons, CTF flags, etc
+	int modelindex2;	// weapons, CTF flags, etc.
 	int frame;			// model frame number
-	int event;			// impulse events -- muzzle flashes, footsteps, etc
+	int event;			// impulse events -- muzzle flashes, footsteps, etc.
 	int eventParm;		// even parameter
 	int powerups;		// bit flags
-	int weapon;			// determines weapon and flash model, etc
+	int weapon;			// determines weapon and flash model, etc.
 	int legsAnim;		// mask off ANIM_TOGGLEBIT
 	int torsoAnim;		// mask off ANIM_TOGGLEBIT
 } bot_entitystate_t;

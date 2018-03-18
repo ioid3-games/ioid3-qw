@@ -501,7 +501,7 @@ CG_EntityEvent
 An entity has an event value. Also called by CG_CheckPlayerstateEvents.
 =======================================================================================================================================
 */
-#define DEBUGNAME(x) if (cg_debugEvents.integer){CG_Printf(x"\n");}
+#define DEBUGNAME(x) if (cg_debugEvents.integer) {CG_Printf(x"\n");}
 void CG_EntityEvent(centity_t *cent, vec3_t position) {
 	entityState_t *es;
 	int event;

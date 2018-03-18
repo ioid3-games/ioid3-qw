@@ -63,21 +63,18 @@ static void MD5Init(struct MD5Context *ctx) {
 	ctx->bits[1] = 0;
 }
 
-// The four core functions - F1 is optimized somewhat
+// the four core functions - F1 is optimized somewhat
 //#define F1(x, y, z) (x & y|~x & z)
 #define F1(x, y, z) (z ^ (x & (y ^ z)))
 #define F2(x, y, z) F1(z, x, y)
 #define F3(x, y, z) (x ^ y ^ z)
 #define F4(x, y, z) (y ^ (x|~z))
-// This is the central step in the MD5 algorithm
-#define MD5STEP(f, w, x, y, z, data, s)\
+// this is the central step in the MD5 algorithm
+#define MD5STEP(f, w, x, y, z, data, s) \
 	(w += f(x, y, z) + data, w = w << s|w >> (32 - s), w += x)
 
-/*
- * The core of the MD5 algorithm, this alters an existing MD5 hash to
- * reflect the addition of 16 longwords of new data. MD5Update blocks
- * the data and converts bytes into longwords for this routine.
-*/
+// The core of the MD5 algorithm, this alters an existing MD5 hash to reflect the addition of 16 longwords of new data.
+// MD5Update blocks the data and converts bytes into longwords for this routine.
 
 /*
 =======================================================================================================================================

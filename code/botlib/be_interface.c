@@ -536,6 +536,7 @@ int BotExportTest(int parm0, char *parm1, vec3_t parm2, vec3_t parm3) {
 		aas_reachability_t reach;
 		/*
 		goal.areanum = botlibglobals.goalareanum;
+
 		VectorCopy(botlibglobals.goalorigin, goal.origin);
 
 		reachnum = BotGetReachabilityToGoal(origin, newarea, lastgoalareanum, lastareanum, avoidreach, avoidreachtimes, avoidreachtries, &goal, TFL_DEFAULT|TFL_FUNCBOB|TFL_ROCKETJUMP, NULL, 0, &resultFlags);
@@ -602,8 +603,7 @@ int BotExportTest(int parm0, char *parm1, vec3_t parm2, vec3_t parm3) {
 		ent = &aasworld.entities[trace.ent];
 		AAS_ShowBoundingBox(ent->origin, ent->mins, ent->maxs);
 	}
-*/
-/*
+
 	start_time = clock();
 
 	for (i = 0; i < 2000; i++) {

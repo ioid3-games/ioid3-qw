@@ -279,7 +279,9 @@ void CG_DrawStringExt(int x, int y, const char *string, const float *setColor, q
 		if (Q_IsColorString(s)) {
 			if (!forceColor) {
 				memcpy(color, g_color_table[ColorIndex(*(s + 1))], sizeof(color));
+
 				color[3] = setColor[3];
+
 				trap_R_SetColor(color);
 			}
 
@@ -307,6 +309,7 @@ void CG_DrawBigString(int x, int y, const char *s, float alpha) {
 
 	color[0] = color[1] = color[2] = 1.0;
 	color[3] = alpha;
+
 	CG_DrawStringExt(x, y, s, color, qfalse, qtrue, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0);
 }
 
@@ -694,7 +697,9 @@ static void UI_DrawBannerString2(int x, int y, const char *str, vec4_t color) {
 			fheight = (float)PROPB_HEIGHT / 256.0f;
 			aw = (float)propMapB[ch][2] * cgs.screenXScale;
 			ah = (float)PROPB_HEIGHT * cgs.screenYScale;
+
 			trap_R_DrawStretchPic(ax, ay, aw, ah, fcol, frow, fcol + fwidth, frow + fheight, cgs.media.charsetPropB);
+
 			ax += (aw + (float)PROPB_GAP_WIDTH * cgs.screenXScale);
 		}
 
@@ -748,6 +753,7 @@ void UI_DrawBannerString(int x, int y, const char *str, int style, vec4_t color)
 	if (style & UI_DROPSHADOW) {
 		drawcolor[0] = drawcolor[1] = drawcolor[2] = 0;
 		drawcolor[3] = color[3];
+
 		UI_DrawBannerString2(x + 2, y + 2, str, drawcolor);
 	}
 
@@ -820,6 +826,7 @@ static void UI_DrawProportionalString2(int x, int y, const char *str, vec4_t col
 			fheight = (float)PROP_HEIGHT / 256.0f;
 			aw = (float)propMap[ch][2] * cgs.screenXScale * sizeScale;
 			ah = (float)PROP_HEIGHT * cgs.screenYScale * sizeScale;
+
 			trap_R_DrawStretchPic(ax, ay, aw, ah, fcol, frow, fcol + fwidth, frow + fheight, charset);
 		} else {
 			aw = 0;

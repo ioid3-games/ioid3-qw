@@ -2248,7 +2248,7 @@ void CL_CheckForResend(void) {
 			}
 #endif
 			// the challenge request shall be followed by a client challenge so no malicious server can hijack this connection.
-			// add the gamename so the server knows we're running the correct game or can reject the client with a meaningful message.
+			// add the gamename so the server knows we're running the correct game or can reject the client with a meaningful message
 			Com_sprintf(data, sizeof(data), "getchallenge %d %s", clc.challenge, com_gamename->string);
 			NET_OutOfBandPrint(NS_CLIENT, clc.serverAddress, "%s", data);
 			break;
@@ -3325,7 +3325,7 @@ void CL_Init(void) {
 	cl_inGameVideo = Cvar_Get("r_inGameVideo", "1", CVAR_ARCHIVE);
 #endif
 	cl_serverStatusResendTime = Cvar_Get("cl_serverStatusResendTime", "750", 0);
-	// init autoswitch so the ui will have it correctly even if the cgame hasn't been started
+	// init cg_autoswitch so the ui will have it correctly even if the cgame hasn't been started
 	Cvar_Get("cg_autoswitch", "1", CVAR_ARCHIVE);
 	m_pitch = Cvar_Get("m_pitch", "0.022", CVAR_ARCHIVE);
 	m_yaw = Cvar_Get("m_yaw", "0.022", CVAR_ARCHIVE);

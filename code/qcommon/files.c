@@ -704,7 +704,7 @@ long FS_SV_FOpenFileRead(const char *filename, fileHandle_t *fp) {
 	ospath[strlen(ospath) - 1] = '\0';
 
 	if (fs_debug->integer) {
-		Com_Printf("FS_SV_FOpenFileRead (fs_homepath): %s\n", ospath);
+		Com_Printf("FS_SV_FOpenFileRead(fs_homepath): %s\n", ospath);
 	}
 
 	fsh[f].handleFiles.file.o = Sys_FOpen(ospath, "rb");
@@ -718,7 +718,7 @@ long FS_SV_FOpenFileRead(const char *filename, fileHandle_t *fp) {
 			ospath[strlen(ospath) - 1] = '\0';
 
 			if (fs_debug->integer) {
-				Com_Printf("FS_SV_FOpenFileRead (fs_basepath): %s\n", ospath);
+				Com_Printf("FS_SV_FOpenFileRead(fs_basepath): %s\n", ospath);
 			}
 
 			fsh[f].handleFiles.file.o = Sys_FOpen(ospath, "rb");
@@ -730,7 +730,7 @@ long FS_SV_FOpenFileRead(const char *filename, fileHandle_t *fp) {
 			ospath[strlen(ospath) - 1] = '\0';
 
 			if (fs_debug->integer) {
-				Com_Printf("FS_SV_FOpenFileRead (fs_steampath): %s\n", ospath);
+				Com_Printf("FS_SV_FOpenFileRead(fs_steampath): %s\n", ospath);
 			}
 
 			fsh[f].handleFiles.file.o = Sys_FOpen(ospath, "rb");
@@ -742,7 +742,7 @@ long FS_SV_FOpenFileRead(const char *filename, fileHandle_t *fp) {
 			ospath[strlen(ospath) - 1] = '\0';
 
 			if (fs_debug->integer) {
-				Com_Printf("FS_SV_FOpenFileRead (fs_gogpath): %s\n", ospath);
+				Com_Printf("FS_SV_FOpenFileRead(fs_gogpath): %s\n", ospath);
 			}
 
 			fsh[f].handleFiles.file.o = Sys_FOpen(ospath, "rb");
@@ -1531,7 +1531,6 @@ void QDECL FS_Printf(fileHandle_t h, const char *fmt, ...) {
 	va_start(argptr, fmt);
 	Q_vsnprintf(msg, sizeof(msg), fmt, argptr);
 	va_end(argptr);
-
 	FS_Write(msg, strlen(msg), h);
 }
 
@@ -2333,11 +2332,6 @@ int FS_GetFileList(const char *path, const char *extension, char *listbuf, int b
 /*
 =======================================================================================================================================
 Sys_CountFileList
-
-NOTE: naive implementation.
-Concatenates three lists into a new list, and frees the old lists from the heap. bk001129 - from cvs1.17 (mkv).
-
-FIXME: those two should move to common.c next to Sys_ListFiles.
 =======================================================================================================================================
 */
 static unsigned int Sys_CountFileList(char **list) {
@@ -2356,6 +2350,11 @@ static unsigned int Sys_CountFileList(char **list) {
 /*
 =======================================================================================================================================
 Sys_ConcatenateFileLists
+
+NOTE: naive implementation.
+Concatenates three lists into a new list, and frees the old lists from the heap. bk001129 - from cvs1.17 (mkv).
+
+FIXME: those two should move to common.c next to Sys_ListFiles.
 =======================================================================================================================================
 */
 static char **Sys_ConcatenateFileLists(char **list0, char **list1) {
@@ -2429,8 +2428,7 @@ void FS_GetModDescription(const char *modDir, char *description, int description
 =======================================================================================================================================
 FS_GetModList
 
-Returns a list of mod directory names.
-A mod directory is a peer to base game with a pk3 or pk3dir in it.
+Returns a list of mod directory names. A mod directory is a peer to base game with a pk3 or pk3dir in it.
 =======================================================================================================================================
 */
 int FS_GetModList(char *listbuf, int bufsize) {
@@ -3858,10 +3856,12 @@ void FS_Restart(int checksumFeed) {
 			Cvar_Set("com_basegame", lastValidComBaseGame);
 			Cvar_Set("fs_basegame", lastValidFsBaseGame);
 			Cvar_Set("fs_game", lastValidGame);
+
 			lastValidBase[0] = '\0';
 			lastValidComBaseGame[0] = '\0';
 			lastValidFsBaseGame[0] = '\0';
 			lastValidGame[0] = '\0';
+
 			FS_Restart(checksumFeed);
 			Com_Error(ERR_DROP, "Invalid game folder");
 			return;

@@ -395,7 +395,7 @@ float NormalizeColor(const vec3_t in, vec3_t out) {
 =======================================================================================================================================
 PlaneFromPoints
 
-Returns false if the triangle is degenerate. The normal will point out of the clock for clockwise ordered points.
+Returns false if the triangle is degenerated. The normal will point out of the clock for clockwise ordered points.
 =======================================================================================================================================
 */
 qboolean PlaneFromPoints(vec4_t plane, const vec3_t a, const vec3_t b, const vec3_t c) {
@@ -648,7 +648,7 @@ void VectorRotate(vec3_t in, vec3_t matrix[3], vec3_t out) {
 =======================================================================================================================================
 Q_rsqrt
 
-float q_rsqrt(float number)
+float q_rsqrt (float number).
 =======================================================================================================================================
 */
 float Q_rsqrt(float number) {

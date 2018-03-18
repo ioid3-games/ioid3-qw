@@ -127,7 +127,7 @@ typedef enum {
 	WEAPON_DROPPING,
 	WEAPON_FIRING
 } weaponstate_t;
-// pmove->pm_flags
+// pmove->pm_flags (sent as max 16 bits in msg.c)
 #define PMF_DUCKED				1
 #define PMF_JUMP_HELD			2
 #define PMF_BACKWARDS_JUMP		8 // go into backwards land
@@ -473,9 +473,9 @@ typedef enum {
 	TEAM_SPECTATOR,
 	TEAM_NUM_TEAMS
 } team_t;
-// Time between location updates
+// time between location updates
 #define TEAM_LOCATION_UPDATE_TIME 1000
-// How many players on the overlay
+// how many players on the overlay
 #define TEAM_MAXOVERLAY 32
 // team task
 typedef enum {

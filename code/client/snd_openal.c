@@ -49,6 +49,7 @@ static qboolean enumeration_all_ext = qfalse;
 #ifdef USE_VOIP
 static qboolean capture_ext = qfalse;
 #endif
+
 /*
 =======================================================================================================================================
 S_AL_Format
@@ -1963,6 +1964,7 @@ static cvar_t *s_alCapture;
 #else
 #define ALDRIVER_DEFAULT "libopenal.so.1"
 #endif
+
 /*
 =======================================================================================================================================
 S_AL_StopAllSounds

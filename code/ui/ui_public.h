@@ -175,7 +175,7 @@ typedef enum {
 	UI_DRAW_CONNECT_SCREEN,
 //	void UI_DrawConnectScreen(qboolean overlay);
 	UI_HASUNIQUECDKEY
-// if !overlay, the background will be drawn, otherwise it will be overlayed over whatever the cgame has drawn.
+// if !overlay, the background will be drawn, otherwise it will be overlayed over whatever the cgame has drawn
 // a GetClientState syscall will be made to get the current strings
 } uiExport_t;
 #endif

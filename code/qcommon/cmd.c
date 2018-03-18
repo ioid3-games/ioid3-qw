@@ -46,8 +46,8 @@ byte cmd_text_buf[MAX_CMD_BUFFER];
 =======================================================================================================================================
 Cmd_Wait_f
 
-Causes execution of the remainder of the command buffer to be delayed until next frame. This allows commands like:
-bind g "cmd use rocket; +attack; wait; -attack; cmd use blaster".
+Causes execution of the remainder of the command buffer to be delayed until next frame.
+This allows commands like: bind g "cmd use rocket; +attack; wait; -attack; cmd use blaster".
 =======================================================================================================================================
 */
 void Cmd_Wait_f(void) {

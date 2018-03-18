@@ -281,8 +281,8 @@ typedef enum {
 	MAX_KEYS
 } keyNum_t;
 // MAX_KEYS replaces K_LAST_KEY, however some mods may have used K_LAST_KEY in detecting binds, so we leave it defined
-// to the old hardcoded value of maximum keys to prevent mods from crashing older versions of the engine.
+// to the old hardcoded value of maximum keys to prevent mods from crashing older versions of the engine
 #define K_LAST_KEY 256
-// the menu code needs to get both key and char events, but to avoid duplicating the paths, the char events are just distinguished by or'ing in K_CHAR_FLAG (ugly).
+// the menu code needs to get both key and char events, but to avoid duplicating the paths, the char events are just distinguished by or'ing in K_CHAR_FLAG (ugly)
 #define K_CHAR_FLAG 1024
 #endif

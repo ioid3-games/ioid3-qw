@@ -267,8 +267,8 @@ char *BotMapTitle(void) {
 	static char mapname[128];
 
 	trap_GetServerinfo(info, sizeof(info));
-
 	strncpy(mapname, Info_ValueForKey(info, "mapname"), sizeof(mapname) - 1);
+
 	mapname[sizeof(mapname) - 1] = '\0';
 	return mapname;
 }
@@ -424,6 +424,7 @@ int BotValidChatPosition(bot_state_t *bs) {
 	//}
 	// do not chat if in lava or slime
 	VectorCopy(bs->origin, point);
+
 	point[2] -= 24;
 
 	if (trap_PointContents(point, bs->entitynum) & (CONTENTS_LAVA|CONTENTS_SLIME)) {

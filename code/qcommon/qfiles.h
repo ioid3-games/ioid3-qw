@@ -58,10 +58,10 @@ typedef struct {
 	int codeLength;
 	int dataOffset;
 	int dataLength;
-	int litLength; // (dataLength - litLength) should be byteswapped on load
-	int bssLength; // zero filled memory appended to datalength
+	int litLength;	// (dataLength - litLength) should be byteswapped on load
+	int bssLength;	// zero filled memory appended to datalength
 	// !!! below here is VM_MAGIC_VER2 !!!
-	int jtrgLength; // number of jump table targets
+	int jtrgLength;	// number of jump table targets
 } vmHeader_t;
 
 /*
@@ -99,7 +99,7 @@ typedef struct md3Tag_s {
 } md3Tag_t;
 /*
 ** md3Surface_t
-**
+
 ** CHUNK			SIZE
 ** header			sizeof(md3Surface_t)
 ** shaders			sizeof(md3Shader_t) * numShaders
@@ -303,10 +303,12 @@ typedef struct {
 #define MAX_KEY 32
 #define MAX_VALUE 1024
 // the editor uses these predefined yaw angles to orient entities up or down
-#define ANGLE_UP -1
-#define ANGLE_DOWN -2
+#define ANGLE_UP	-1
+#define ANGLE_DOWN	-2
+
 #define LIGHTMAP_WIDTH 128
 #define LIGHTMAP_HEIGHT 128
+
 #define MAX_WORLD_COORD (128 * 1024)
 #define MIN_WORLD_COORD (-128 * 1024)
 #define WORLD_SIZE (MAX_WORLD_COORD - MIN_WORLD_COORD)

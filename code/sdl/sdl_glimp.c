@@ -53,9 +53,11 @@ cvar_t *r_sdlDriver;
 int qglMajorVersion, qglMinorVersion;
 int qglesMajorVersion, qglesMinorVersion;
 
+// GL_ARB_multisample
 void (APIENTRYP qglActiveTextureARB)(GLenum texture);
 void (APIENTRYP qglClientActiveTextureARB)(GLenum texture);
 void (APIENTRYP qglMultiTexCoord2fARB)(GLenum target, GLfloat s, GLfloat t);
+// GL_EXT_compiled_vertex_array
 void (APIENTRYP qglLockArraysEXT)(GLint first, GLsizei count);
 void (APIENTRYP qglUnlockArraysEXT)(void);
 #define GLE(ret, name, ...) name##proc * qgl##name;

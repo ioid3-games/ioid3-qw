@@ -1256,10 +1256,10 @@ int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, int area2
 					ortdot = DotProduct(ort, ort);
 					// projection into the step plane
 					// NOTE: since gravity is vertical this is just the z coordinate
-					y1 = v1[2]; // DotProduct(v1, invgravity) / invgravitydot;
-					y2 = v2[2]; // DotProduct(v2, invgravity) / invgravitydot;
-					y3 = v3[2]; // DotProduct(v3, invgravity) / invgravitydot;
-					y4 = v4[2]; // DotProduct(v4, invgravity) / invgravitydot;
+					y1 = v1[2]; //DotProduct(v1, invgravity) / invgravitydot;
+					y2 = v2[2]; //DotProduct(v2, invgravity) / invgravitydot;
+					y3 = v3[2]; //DotProduct(v3, invgravity) / invgravitydot;
+					y4 = v4[2]; //DotProduct(v4, invgravity) / invgravitydot;
 
 					x1 = DotProduct(v1, ort) / ortdot;
 					x2 = DotProduct(v2, ort) / ortdot;
@@ -1434,7 +1434,7 @@ int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, int area2
 			VectorMA(ground_bestend, INSIDEUNITS_WALKEND, ground_bestnormal, lreach->end);
 
 			lreach->traveltype = TRAVEL_WALK;
-			lreach->traveltime = 0; // 1;
+			lreach->traveltime = 0; //1
 			// if going into a crouch area
 			if (!AAS_AreaCrouch(area1num) && AAS_AreaCrouch(area2num)) {
 				lreach->traveltime += aassettings.rs_startcrouch;
@@ -2296,6 +2296,7 @@ int AAS_Reachability_Jump(int area1num, int area2num) {
 			traveltype = TRAVEL_JUMP;
 			// NOTE: test if the horizontal distance isn't too small
 			VectorSubtract(bestend, beststart, dir);
+
 			dir[2] = 0;
 
 			if (VectorLength(dir) < 10) {
@@ -3039,7 +3040,9 @@ void AAS_Reachability_Teleport(void) {
 		}
 
 		for (link = areas; link; link = link->next_area) {
-			//if (!AAS_AreaGrounded(link->areanum)) continue;
+			//if (!AAS_AreaGrounded(link->areanum)) {
+			//	continue;
+			//}
 
 			if (!AAS_AreaTeleporter(link->areanum)) {
 				continue;
@@ -4344,7 +4347,7 @@ int AAS_Reachability_WeaponJump(int area1num, int area2num) {
 	aas_face_t *face2;
 	aas_area_t *area1, *area2;
 	aas_lreachability_t *lreach;
-	vec3_t areastart, facecenter, start, end, dir, cmdmove; // teststart;
+	vec3_t areastart, facecenter, start, end, dir, cmdmove; // teststart
 	vec3_t velocity;
 	aas_clientmove_t move;
 	aas_trace_t trace;

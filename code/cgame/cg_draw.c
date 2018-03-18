@@ -199,7 +199,9 @@ void CG_Text_Paint(float x, float y, float scale, vec4_t color, const char *text
 				memcpy(newColor, g_color_table[ColorIndex(*(s + 1))], sizeof(newColor));
 
 				newColor[3] = color[3];
+
 				trap_R_SetColor(newColor);
+
 				s += 2;
 				continue;
 			} else {
@@ -209,9 +211,12 @@ void CG_Text_Paint(float x, float y, float scale, vec4_t color, const char *text
 					int ofs = style == ITEM_TEXTSTYLE_SHADOWED ? 1 : 2;
 
 					colorBlack[3] = newColor[3];
+
 					trap_R_SetColor(colorBlack);
 					CG_Text_PaintChar(x + ofs, y - yadj + ofs, glyph->imageWidth, glyph->imageHeight, useScale, glyph->s, glyph->t, glyph->s2, glyph->t2, glyph->glyph);
+
 					colorBlack[3] = 1.0;
+
 					trap_R_SetColor(newColor);
 				}
 
@@ -1031,7 +1036,6 @@ static float CG_DrawTeamOverlay(float y, qboolean right, qboolean upper) {
 			}
 
 			CG_GetColorForHealth(ci->health, ci->armor, hcolor);
-
 			Com_sprintf(st, sizeof(st), "%3i %3i", ci->health, ci->armor);
 
 			xx = x + TINYCHAR_WIDTH * 3 + TINYCHAR_WIDTH * pwidth + TINYCHAR_WIDTH * lwidth;
@@ -1369,7 +1373,7 @@ static float CG_DrawPowerups(float y) {
 		if (!ps->powerups[i]) {
 			continue;
 		}
-		// don't draw if the power up has unlimited time. This is true of the CTF flags
+		// don't draw if the power up has unlimited time, this is true of the CTF flags
 		if (ps->powerups[i] == INT_MAX) {
 			continue;
 		}

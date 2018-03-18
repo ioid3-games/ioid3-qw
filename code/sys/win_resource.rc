@@ -43,7 +43,7 @@ BEGIN
     "\0"
 END
 
-#endif    // APSTUDIO_INVOKED
+#endif // APSTUDIO_INVOKED
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -76,5 +76,5 @@ END
 //
 CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "win_manifest.xml"
 
-#endif    // English (U.S.) resources
+#endif // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////

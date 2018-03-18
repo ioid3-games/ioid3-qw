@@ -49,28 +49,28 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define PROJECTILE_OFS(x) (size_t)&(((projectileinfo_t *)0)->x)
 // weapon definition
 static fielddef_t weaponinfo_fields[] = {
-	{"number", WEAPON_OFS(number), FT_INT},						// weapon number
-	{"name", WEAPON_OFS(name), FT_STRING},						// name of the weapon
+	{"number", WEAPON_OFS(number), FT_INT},							// weapon number
+	{"name", WEAPON_OFS(name), FT_STRING},							// name of the weapon
 	{"level", WEAPON_OFS(level), FT_INT},
-	{"model", WEAPON_OFS(model), FT_STRING},					// model of the weapon
-	{"weaponindex", WEAPON_OFS(weaponindex), FT_INT},			// index of weapon in inventory
-	{"flags", WEAPON_OFS(flags), FT_INT},						// special flags
-	{"projectile", WEAPON_OFS(projectile), FT_STRING},			// projectile used by the weapon
-	{"numprojectiles", WEAPON_OFS(numprojectiles), FT_INT},		// number of projectiles
-	{"hspread", WEAPON_OFS(hspread), FT_FLOAT},					// horizontal spread of projectiles (degrees from middle)
-	{"vspread", WEAPON_OFS(vspread), FT_FLOAT},					// vertical spread of projectiles (degrees from middle)
-	{"speed", WEAPON_OFS(speed), FT_FLOAT},						// speed of the projectile (0 = instant hit)
-	{"acceleration", WEAPON_OFS(acceleration), FT_FLOAT},		// "acceleration" * time (in seconds) + "speed" = projectile speed
-	{"recoil", WEAPON_OFS(recoil), FT_FLOAT|FT_ARRAY, 3},		// amount of recoil the player gets from the weapon
-	{"offset", WEAPON_OFS(offset), FT_FLOAT|FT_ARRAY, 3},		// projectile start offset relative to eye and view angles
+	{"model", WEAPON_OFS(model), FT_STRING},						// model of the weapon
+	{"weaponindex", WEAPON_OFS(weaponindex), FT_INT},				// index of weapon in inventory
+	{"flags", WEAPON_OFS(flags), FT_INT},							// special flags
+	{"projectile", WEAPON_OFS(projectile), FT_STRING},				// projectile used by the weapon
+	{"numprojectiles", WEAPON_OFS(numprojectiles), FT_INT},			// number of projectiles
+	{"hspread", WEAPON_OFS(hspread), FT_FLOAT},						// horizontal spread of projectiles (degrees from middle)
+	{"vspread", WEAPON_OFS(vspread), FT_FLOAT},						// vertical spread of projectiles (degrees from middle)
+	{"speed", WEAPON_OFS(speed), FT_FLOAT},							// speed of the projectile (0 = instant hit)
+	{"acceleration", WEAPON_OFS(acceleration), FT_FLOAT},			// "acceleration" * time (in seconds) + "speed" = projectile speed
+	{"recoil", WEAPON_OFS(recoil), FT_FLOAT|FT_ARRAY, 3},			// amount of recoil the player gets from the weapon
+	{"offset", WEAPON_OFS(offset), FT_FLOAT|FT_ARRAY, 3},			// projectile start offset relative to eye and view angles
 	{"angleoffset", WEAPON_OFS(angleoffset), FT_FLOAT|FT_ARRAY, 3}, // offset of the shoot angles relative to the view angles
-	{"extrazvelocity", WEAPON_OFS(extrazvelocity), FT_FLOAT},	// extra z velocity the projectile gets
-	{"ammoamount", WEAPON_OFS(ammoamount), FT_INT},				// ammo amount used per shot
-	{"ammoindex", WEAPON_OFS(ammoindex), FT_INT},				// index of ammo in inventory
-	{"activate", WEAPON_OFS(activate), FT_FLOAT},				// time it takes to select the weapon
-	{"reload", WEAPON_OFS(reload), FT_FLOAT},					// time it takes to reload the weapon
-	{"spinup", WEAPON_OFS(spinup), FT_FLOAT},					// time it takes before first shot
-	{"spindown", WEAPON_OFS(spindown), FT_FLOAT},				// time it takes before weapon stops firing
+	{"extrazvelocity", WEAPON_OFS(extrazvelocity), FT_FLOAT},		// extra z velocity the projectile gets
+	{"ammoamount", WEAPON_OFS(ammoamount), FT_INT},					// ammo amount used per shot
+	{"ammoindex", WEAPON_OFS(ammoindex), FT_INT},					// index of ammo in inventory
+	{"activate", WEAPON_OFS(activate), FT_FLOAT},					// time it takes to select the weapon
+	{"reload", WEAPON_OFS(reload), FT_FLOAT},						// time it takes to reload the weapon
+	{"spinup", WEAPON_OFS(spinup), FT_FLOAT},						// time it takes before first shot
+	{"spindown", WEAPON_OFS(spindown), FT_FLOAT},					// time it takes before weapon stops firing
 	{NULL, 0, 0, 0}
 };
 // projectile definition

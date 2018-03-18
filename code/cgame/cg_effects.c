@@ -230,7 +230,7 @@ void CG_KamikazeEffect(vec3_t org) {
 	le->leFlags = 0;
 	le->leType = LE_KAMIKAZE;
 	le->startTime = cg.time;
-	le->endTime = cg.time + 3000; // 2250
+	le->endTime = cg.time + 3000; //2250
 	le->lifeRate = 1.0 / (le->endTime - le->startTime);
 	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
 

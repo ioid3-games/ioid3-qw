@@ -103,6 +103,7 @@ LAN_ResetPings
 static void LAN_ResetPings(int source) {
 	int count, i;
 	serverInfo_t *servers = NULL;
+
 	count = 0;
 
 	switch (source) {
@@ -1069,13 +1070,12 @@ void CL_ShutdownUI(void) {
 	uivm = NULL;
 }
 
+#define UI_OLD_API_VERSION 4
 /*
 =======================================================================================================================================
 CL_InitUI
 =======================================================================================================================================
 */
-#define UI_OLD_API_VERSION 4
-
 void CL_InitUI(void) {
 	int v;
 	vmInterpret_t interpret;

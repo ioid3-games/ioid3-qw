@@ -386,7 +386,6 @@ void COM_ParseError(char *format, ...) {
 	va_start(argptr, format);
 	Q_vsnprintf(string, sizeof(string), format, argptr);
 	va_end(argptr);
-
 	Com_Printf("ERROR: %s, line %d: %s\n", com_parsename, COM_GetCurrentParseLine(), string);
 }
 
@@ -402,7 +401,6 @@ void COM_ParseWarning(char *format, ...) {
 	va_start(argptr, format);
 	Q_vsnprintf(string, sizeof(string), format, argptr);
 	va_end(argptr);
-
 	Com_Printf("WARNING: %s, line %d: %s\n", com_parsename, COM_GetCurrentParseLine(), string);
 }
 
@@ -868,7 +866,7 @@ qboolean Q_isintegral(float f) {
 Q_vsnprintf
 
 Special wrapper function for Microsoft's broken _vsnprintf() function. MinGW comes with its own vsnprintf() which is not broken.
-Mingw-w64 however, uses Microsoft's broken _vsnprintf() function.
+MinGW-w64 however, uses Microsoft's broken _vsnprintf() function.
 =======================================================================================================================================
 */
 int Q_vsnprintf(char *str, size_t size, const char *format, va_list ap) {

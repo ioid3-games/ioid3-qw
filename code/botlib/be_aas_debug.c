@@ -708,9 +708,10 @@ void AAS_ShowReachableAreas(int areanum) {
 		Com_Memcpy(&reach, &aasworld.reachability[settings->firstreachablearea + index], sizeof(aas_reachability_t));
 
 		index++;
-
 		lasttime = AAS_Time();
+
 		AAS_PrintTravelType(reach.traveltype & TRAVELTYPE_MASK);
+
 		botimport.Print(PRT_MESSAGE, "\n");
 	}
 

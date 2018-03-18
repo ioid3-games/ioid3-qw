@@ -401,7 +401,7 @@ typedef struct {
 	int timelimitWarnings;			// 5 min, 1 min, overtime
 	int fraglimitWarnings;
 	qboolean mapRestart;			// set on a map restart to set back the weapon
-	qboolean renderingThirdPerson;	// during deaths, chasecams, etc
+	qboolean renderingThirdPerson;	// during deaths, chasecams, etc.
 	// prediction state
 	qboolean hyperspace;			// true if prediction has hit a trigger_teleport
 	playerState_t predictedPlayerState;
@@ -461,7 +461,7 @@ typedef struct {
 	char centerPrint[1024];
 	int centerPrintLines;
 	// low ammo warning state
-	int lowAmmoWarning; // 1 = low, 2 = empty
+	int lowAmmoWarning;						// 1 = low, 2 = empty
 	// crosshair client ID
 	int crosshairClientNum;
 	int crosshairClientTime;
@@ -514,7 +514,7 @@ typedef struct {
 	int bobcycle;
 	float xyspeed;
 	int nextOrbitTime;
-	//qboolean cameraMode;	// if rendering from a loaded camera
+	//qboolean cameraMode;					// if rendering from a loaded camera
 	// development tool
 	refEntity_t testModelEntity;
 	char testModelName[MAX_QPATH];
@@ -524,7 +524,7 @@ typedef struct {
 /**************************************************************************************************************************************
 
 	All of the model, shader, and sound references that are loaded at gamestate time are stored in cgMedia_t. Other media that can be
-	tied to clients, weapons, or items are stored in the clientInfo_t, itemInfo_t, weaponInfo_t, and powerupInfo_t.
+	tied to clients, weapons, or items are stored in the clientInfo_t, weaponInfo_t, or itemInfo_t.
 
 **************************************************************************************************************************************/
 
@@ -853,7 +853,7 @@ typedef struct {
 	qhandle_t inlineDrawModel[MAX_MODELS];
 	vec3_t inlineModelMidpoints[MAX_MODELS];
 	clientInfo_t clientinfo[MAX_CLIENTS];
-	// teamchat width is *3 because of embedded color codes
+	// teamchat width is * 3 because of embedded color codes
 	char teamChatMsgs[TEAMCHAT_HEIGHT][TEAMCHAT_WIDTH * 3 + 1];
 	int teamChatMsgTimes[TEAMCHAT_HEIGHT];
 	int teamChatPos;
@@ -1240,7 +1240,7 @@ void trap_CM_BoxTrace(trace_t *results, const vec3_t start, const vec3_t end, co
 void trap_CM_CapsuleTrace(trace_t *results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask);
 void trap_CM_TransformedBoxTrace(trace_t *results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, const vec3_t origin, const vec3_t angles);
 void trap_CM_TransformedCapsuleTrace(trace_t *results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, const vec3_t origin, const vec3_t angles);
-// Returns the projection of a polygon onto the solid brushes in the world
+// returns the projection of a polygon onto the solid brushes in the world
 int trap_CM_MarkFragments(int numPoints, const vec3_t *points, const vec3_t projection, int maxPoints, vec3_t pointBuffer, int maxFragments, markFragment_t *fragmentBuffer);
 // normal sounds will have their volume dynamically changed as their entity moves and the listener moves
 void trap_S_StartSound(vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx);
@@ -1258,12 +1258,12 @@ void trap_S_StartBackgroundTrack(const char *intro, const char *loop); // empty 
 void trap_S_StopBackgroundTrack(void);
 void trap_R_LoadWorldMap(const char *mapname);
 // all media should be registered during level startup to prevent hitches during gameplay
-qhandle_t trap_R_RegisterModel(const char *name);		// returns rgb axis if not found
-qhandle_t trap_R_RegisterSkin(const char *name);		// returns all white if not found
-qhandle_t trap_R_RegisterShader(const char *name);		// returns all white if not found
-qhandle_t trap_R_RegisterShaderNoMip(const char *name);	// returns all white if not found
+qhandle_t trap_R_RegisterModel(const char *name); // returns rgb axis if not found
+qhandle_t trap_R_RegisterSkin(const char *name); // returns all white if not found
+qhandle_t trap_R_RegisterShader(const char *name); // returns all white if not found
+qhandle_t trap_R_RegisterShaderNoMip(const char *name); // returns all white if not found
 // a scene is built up by calls to R_ClearScene and the various R_Add functions.
-// Nothing is drawn until R_RenderScene is called.
+// nothing is drawn until R_RenderScene is called.
 void trap_R_ClearScene(void);
 void trap_R_AddRefEntityToScene(const refEntity_t *re);
 // polys are intended for simple wall marks, not really for doing significant construction
@@ -1279,24 +1279,20 @@ void trap_R_ModelBounds(clipHandle_t model, vec3_t mins, vec3_t maxs);
 int trap_R_LerpTag(orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, float frac, const char *tagName);
 void trap_R_RemapShader(const char *oldShader, const char *newShader, const char *timeOffset);
 qboolean trap_R_inPVS(const vec3_t p1, const vec3_t p2);
-// The glconfig_t will not change during the life of a cgame.
-// If it needs to change, the entire cgame will be restarted, because all the qhandle_t are then invalid.
+// the glconfig_t will not change during the life of a cgame. If it needs to change, the entire cgame will be restarted,
+// because all the qhandle_t are then invalid.
 void trap_GetGlconfig(glconfig_t *glconfig);
 // the gamestate should be grabbed at startup, and whenever a configstring changes
 void trap_GetGameState(gameState_t *gamestate);
-// cgame will poll each frame to see if a newer snapshot has arrived that it is interested in.
-// The time is returned separately so that snapshot latency can be calculated.
+// cgame will poll each frame to see if a newer snapshot has arrived that it is interested in. The time is returned separately so that snapshot latency can be calculated.
 void trap_GetCurrentSnapshotNumber(int *snapshotNumber, int *serverTime);
 // a snapshot get can fail if the snapshot (or the entties it holds) is so old that it has fallen out of the client system queue
 qboolean trap_GetSnapshot(int snapshotNumber, snapshot_t *snapshot);
-// retrieve a text command from the server stream
-// the current snapshot will hold the number of the most recent command
-// qfalse can be returned if the client system handled the command
-// argc() / argv() can be used to examine the parameters of the command
+// retrieve a text command from the server stream the current snapshot will hold the number of the most recent command qfalse can be returned if the client system handled the command
+// argc()/argv()can be used to examine the parameters of the command
 qboolean trap_GetServerCommand(int serverCommandNumber);
 // returns the most recent command number that can be passed to GetUserCmd
-// this will always be at least one higher than the number in the current snapshot, and it may be quite a few higher if it is a
-// fast computer on a lagged connection
+// this will always be at least one higher than the number in the current snapshot, and it may be quite a few higher if it is a fast computer on a lagged connection
 int trap_GetCurrentCmdNumber(void);
 qboolean trap_GetUserCmd(int cmdNumber, usercmd_t *ucmd);
 // used for the weapon select and zoom

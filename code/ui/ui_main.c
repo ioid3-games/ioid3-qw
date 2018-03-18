@@ -5978,7 +5978,7 @@ static void UI_DrawCinematic(int handle, float x, float y, float w, float h) {
 
 	// adjust coords to get correct placement in wide screen
 	UI_AdjustFrom640(&x, &y, &w, &h);
-	// CIN_SetExtents takes stretched 640 x 480 virtualized coords
+	// CIN_SetExtents takes stretched 640 * 480 virtualized coords
 	x *= SCREEN_WIDTH / (float)uiInfo.uiDC.glconfig.vidWidth;
 	w *= SCREEN_WIDTH / (float)uiInfo.uiDC.glconfig.vidWidth;
 	y *= SCREEN_HEIGHT / (float)uiInfo.uiDC.glconfig.vidHeight;
@@ -6074,11 +6074,12 @@ void _UI_Init(qboolean inGameLoad) {
 	const char *menuSet;
 
 	//uiInfo.inGameLoad = inGameLoad;
+
 	UI_RegisterCvars();
 	UI_InitMemory();
 	// cache redundant calulations
 	trap_GetGlconfig(&uiInfo.uiDC.glconfig);
-	// for 640 x 480 virtualized screen
+	// for 640 * 480 virtualized screen
 	uiInfo.uiDC.yscale = uiInfo.uiDC.glconfig.vidHeight * (1.0 / 480.0);
 	uiInfo.uiDC.xscale = uiInfo.uiDC.glconfig.vidWidth * (1.0 / 640.0);
 

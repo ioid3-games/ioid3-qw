@@ -26,8 +26,8 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 //			   default long
 
 #define AASID (('S' << 24) + ('A' << 16) + ('A' << 8) + 'E')
-#define AASVERSION_OLD	4
-#define AASVERSION		5
+#define AASVERSION_OLD 4
+#define AASVERSION 5
 // presence types
 #define PRESENCE_NONE	1
 #define PRESENCE_NORMAL	2
@@ -56,8 +56,9 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define TRAVEL_FUNCBOB		19 // func bob
 // additional travel flags
 #define TRAVELTYPE_MASK 0xFFFFFF
-#define TRAVELFLAG_NOTTEAM1	(1 << 24)
-#define TRAVELFLAG_NOTTEAM2	(2 << 24)
+
+#define TRAVELFLAG_NOTTEAM1 (1 << 24)
+#define TRAVELFLAG_NOTTEAM2 (2 << 24)
 // face flags
 #define FACE_SOLID			 1 // just solid at the other side
 #define FACE_LADDER			 2 // ladder
