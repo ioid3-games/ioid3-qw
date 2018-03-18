@@ -3035,7 +3035,7 @@ void AAS_Reachability_Teleport(void) {
 		}
 
 		for (link = areas; link; link = link->next_area) {
-			//if(!AAS_AreaGrounded(link->areanum)) {
+			//if (!AAS_AreaGrounded(link->areanum)) {
 			//	continue;
 			//}
 
