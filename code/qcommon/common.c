@@ -194,8 +194,8 @@ void QDECL Com_Printf(const char *fmt, ...) {
 	Sys_Print(msg);
 	// logfile
 	if (com_logfile && com_logfile->integer) {
-		// TTimo: only open the qconsole.log if the filesystem is in an initialized state
-		// also, avoid recursing in the qconsole.log opening (i.e. if fs_debug is on)
+		// TTimo: only open the console.log if the filesystem is in an initialized state
+		// also, avoid recursing in the console.log opening (i.e. if fs_debug is on)
 		if (!logfile && FS_Initialized() && !opening_qconsole) {
 			struct tm *newtime;
 			time_t aclock;
@@ -205,7 +205,7 @@ void QDECL Com_Printf(const char *fmt, ...) {
 			time(&aclock);
 
 			newtime = localtime(&aclock);
-			logfile = FS_FOpenFileWrite("qconsole.log");
+			logfile = FS_FOpenFileWrite("console.log");
 
 			if (logfile) {
 				Com_Printf("logfile opened on %s\n", asctime(newtime));
@@ -215,7 +215,7 @@ void QDECL Com_Printf(const char *fmt, ...) {
 					FS_ForceFlush(logfile);
 				}
 			} else {
-				Com_Printf("Opening qconsole.log failed!\n");
+				Com_Printf("Opening console.log failed!\n");
 				Cvar_SetValue("logfile", 0);
 			}
 

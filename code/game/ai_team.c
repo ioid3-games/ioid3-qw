@@ -3573,10 +3573,10 @@ BotCTFOrders
 void BotCTFOrders(bot_state_t *bs) {
 	int flagstatus;
 
-	if (BotTeam(bs) == TEAM_RED) {
-		flagstatus = bs->redflagstatus * 2 + bs->blueflagstatus;
-	} else {
+	if (BotTeam(bs) != TEAM_RED) {
 		flagstatus = bs->blueflagstatus * 2 + bs->redflagstatus;
+	} else {
+		flagstatus = bs->redflagstatus * 2 + bs->blueflagstatus;
 	}
 
 	switch (flagstatus) {
@@ -3618,10 +3618,10 @@ void BotCreateGroup(bot_state_t *bs, int *teammates, int groupsize) {
 	for (i = 1; i < groupsize; i++) {
 		ClientName(teammates[i], name, sizeof(name));
 
-		if (teammates[0] == bs->client) {
-			BotAI_BotInitialChat(bs, "cmd_accompanyme", name, NULL);
-		} else {
+		if (teammates[0] != bs->client) {
 			BotAI_BotInitialChat(bs, "cmd_accompany", name, leadername, NULL);
+		} else {
+			BotAI_BotInitialChat(bs, "cmd_accompanyme", name, NULL);
 		}
 
 		BotSayTeamOrderAlways(bs, teammates[i]);
@@ -3663,21 +3663,30 @@ void BotTeamOrders(bot_state_t *bs) {
 		case 1:
 			break;
 		case 2:
+		{
 			// nothing special
 			break;
+		}
 		case 3:
+		{
 			// have one follow another and one free roaming
 			BotCreateGroup(bs, teammates, 2);
 			break;
+		}
 		case 4:
+		{
 			BotCreateGroup(bs, teammates, 2); // a group of 2
 			BotCreateGroup(bs, &teammates[2], 2); // a group of 2
 			break;
+		}
 		case 5:
+		{
 			BotCreateGroup(bs, teammates, 2); // a group of 2
 			BotCreateGroup(bs, &teammates[2], 3); // a group of 3
 			break;
+		}
 		default:
+		{
 			if (numteammates <= 10) {
 				for (i = 0; i < numteammates / 2; i++) {
 					BotCreateGroup(bs, &teammates[i * 2], 2); // groups of 2
@@ -3685,6 +3694,7 @@ void BotTeamOrders(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
 

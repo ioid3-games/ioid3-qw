@@ -616,8 +616,7 @@ typedef struct {
 	float bobfracsin;
 	int bobcycle;
 	float xyspeed;
-	int nextOrbitTime;
-	//qboolean cameraMode;	// if rendering from a loaded camera
+	//qboolean cameraMode;					// if rendering from a loaded camera
 	// development tool
 	refEntity_t testModelEntity;
 	char testModelName[MAX_QPATH];
@@ -708,7 +707,6 @@ typedef struct {
 	qhandle_t backTileShader;
 	qhandle_t noammoShader;
 	qhandle_t smokePuffShader;
-	qhandle_t smokePuffRageProShader;
 	qhandle_t shotgunSmokePuffShader;
 	qhandle_t plasmaBallShader;
 	qhandle_t waterBubbleShader;

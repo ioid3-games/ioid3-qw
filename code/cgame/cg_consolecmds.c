@@ -186,8 +186,7 @@ CG_spWin_f
 */
 static void CG_spWin_f(void) {
 
-	trap_Cvar_SetValue("cg_cameraOrbit", 2);
-	trap_Cvar_SetValue("cg_cameraOrbitDelay", 35);
+	trap_Cvar_SetValue("cg_cameraOrbit", 30);
 	trap_Cvar_SetValue("cg_thirdPerson", 1);
 	trap_Cvar_SetValue("cg_thirdPersonAngle", 0);
 	trap_Cvar_SetValue("cg_thirdPersonRange", 100);
@@ -204,8 +203,7 @@ CG_spLose_f
 */
 static void CG_spLose_f(void) {
 
-	trap_Cvar_SetValue("cg_cameraOrbit", 2);
-	trap_Cvar_SetValue("cg_cameraOrbitDelay", 35);
+	trap_Cvar_SetValue("cg_cameraOrbit", 30);
 	trap_Cvar_SetValue("cg_thirdPerson", 1);
 	trap_Cvar_SetValue("cg_thirdPersonAngle", 0);
 	trap_Cvar_SetValue("cg_thirdPersonRange", 100);
@@ -589,7 +587,7 @@ static void CG_StartOrbit_f(void) {
 		trap_Cvar_SetValue("cg_cameraOrbit", 0);
 		trap_Cvar_SetValue("cg_thirdPerson", 0);
 	} else {
-		trap_Cvar_SetValue("cg_cameraOrbit", 5);
+		trap_Cvar_SetValue("cg_cameraOrbit", 30);
 		trap_Cvar_SetValue("cg_thirdPerson", 1);
 		trap_Cvar_SetValue("cg_thirdPersonAngle", 0);
 		trap_Cvar_SetValue("cg_thirdPersonRange", 100);
