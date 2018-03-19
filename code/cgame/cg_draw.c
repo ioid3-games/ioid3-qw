@@ -991,7 +991,7 @@ static float CG_DrawTeamOverlay(float y, qboolean right, qboolean upper) {
 				p = CG_ConfigString(CS_LOCATIONS + ci->location);
 
 				if (!p || !*p) {
-					p = "Unknown";
+					p = "unknown";
 				}
 
 				xx = x + TINYCHAR_WIDTH * 2 + TINYCHAR_WIDTH * pwidth;

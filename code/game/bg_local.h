@@ -30,7 +30,6 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define STEPSIZE 18
 #define JUMP_VELOCITY 200
 #define TIMER_LAND 130
-#define TIMER_GESTURE 2294
 #define OVERCLIP 1.001f
 
 /**************************************************************************************************************************************

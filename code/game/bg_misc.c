@@ -208,7 +208,7 @@ gitem_t bg_itemlist[] = {
 		{"models/weapons2/machinegun/machinegun.md3", NULL, NULL, NULL},
 /* icon */		"icons/iconw_machinegun",
 /* pickup */	"Machine Gun",
-		40,
+		50,
 		IT_WEAPON,
 		WP_MACHINEGUN,
 /* sounds */ ""
@@ -222,7 +222,7 @@ gitem_t bg_itemlist[] = {
 		{"models/weapons/vulcan/vulcan.md3", NULL, NULL, NULL},
 /* icon */		"icons/iconw_chaingun",
 /* pickup */	"Chain Gun",
-		80,
+		100,
 		IT_WEAPON,
 		WP_CHAINGUN,
 /* sounds */ "sound/weapons/vulcan/wvulwind.wav"
