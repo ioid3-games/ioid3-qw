@@ -145,7 +145,6 @@ typedef struct {
 	usercmd_t cmd;
 	int tracemask;			// collide against these types of surfaces
 	int debugLevel;			// if set, diagnostic output will be printed
-	qboolean noFootsteps;	// if the game is setup for no footsteps by the server
 	qboolean gauntletHit;	// true if a gauntlet attack would actually hit something
 	int framecount;
 	// results (out)
@@ -606,7 +605,6 @@ void FinalizeTracemapClamp(int *x, int *y);
 // g_dmflags->integer flags
 #define DF_NO_FALLING	8
 #define DF_FIXED_FOV	16
-#define DF_NO_FOOTSTEPS	32
 // content masks
 #define MASK_ALL			(-1)
 #define MASK_SOLID			(CONTENTS_SOLID)

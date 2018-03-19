@@ -2097,18 +2097,6 @@ CG_DrawIntermission
 =======================================================================================================================================
 */
 static void CG_DrawIntermission(void) {
-//	int key;
-#ifdef BASEGAME
-	//if (cg_singlePlayer.integer) {
-	//	CG_DrawCenterString();
-	//	return;
-	//}
-#else
-	if (cgs.gametype == GT_SINGLE_PLAYER) {
-		CG_DrawCenterString();
-		return;
-	}
-#endif
 	cg.scoreFadeTime = cg.time;
 	cg.scoreBoardShowing = CG_DrawScoreboard();
 }
@@ -2353,6 +2341,11 @@ static void CG_Draw2D(stereoFrame_t stereoFrame) {
 
 			CG_DrawCrosshairNames();
 			CG_DrawWeaponSelect();
+#ifndef BASEGAME
+			CG_DrawHoldableItem();
+#else
+			//CG_DrawPersistantPowerup();
+#endif
 		}
 	}
 
