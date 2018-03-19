@@ -1162,7 +1162,7 @@ char *eventnames[] = {
 	"EV_FALL_MEDIUM",
 	"EV_FALL_FAR",
 	"EV_JUMP",
-	"EV_JUMP_PAD",				// boing sound at origin", jump sound on player
+	"EV_JUMP_PAD",				// boing sound at origin, jump sound on player
 	"EV_PLAYER_TELEPORT_IN",
 	"EV_PLAYER_TELEPORT_OUT",
 	"EV_NOAMMO",
