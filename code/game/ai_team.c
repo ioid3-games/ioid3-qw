@@ -1113,7 +1113,6 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 				BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
 				BotSayTeamOrder(bs, teammates[0]);
 				BotSayVoiceTeamOrder(bs, teammates[0], VOICECHAT_DEFEND);
-
 				ClientName(teammates[1], name, sizeof(name));
 				BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
 				BotSayTeamOrder(bs, teammates[1]);
@@ -1446,6 +1445,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 	char name[MAX_NETNAME], carriername[MAX_NETNAME];
 
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
+	// sort team mates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 	// different orders based on the number of team mates
 	switch (bs->numteammates) {
@@ -1580,7 +1580,7 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 	char name[MAX_NETNAME];
 
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
-
+	// sort team mates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 	// passive strategy
 	if (!(bs->ctfstrategy & CTFS_AGRESSIVE)) {
@@ -1595,7 +1595,7 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 				BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
 				BotSayTeamOrder(bs, teammates[0]);
 				BotSayVoiceTeamOrder(bs, teammates[0], VOICECHAT_DEFEND);
-
+				// the other will get the flag
 				ClientName(teammates[1], name, sizeof(name));
 				BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
 				BotSayTeamOrder(bs, teammates[1]);
@@ -1737,6 +1737,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 	char name[MAX_NETNAME], carriername[MAX_NETNAME];
 
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
+	// sort team mates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 	// different orders based on the number of team mates
 	switch (numteammates) {

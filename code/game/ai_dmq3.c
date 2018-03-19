@@ -2333,7 +2333,7 @@ float BotAggression(bot_state_t *bs) {
 	if (bs->inventory[INVENTORY_GRENADELAUNCHER] > 0 && bs->inventory[INVENTORY_GRENADES] > 10) {
 		return 80;
 	}
-	// if the bot can use the rocketlauncher
+	// if the bot can use the rocket launcher
 	if (bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 5) {
 		return 90;
 	}
@@ -2345,7 +2345,7 @@ float BotAggression(bot_state_t *bs) {
 	if (bs->inventory[INVENTORY_RAILGUN] > 0 && bs->inventory[INVENTORY_SLUGS] > 5) {
 		return 95;
 	}
-	// if the bot can use the plasmagun
+	// if the bot can use the plasma gun
 	if (bs->inventory[INVENTORY_PLASMAGUN] > 0 && bs->inventory[INVENTORY_CELLS] > 40) {
 		return 85;
 	}
@@ -5666,7 +5666,7 @@ void BotCheckSnapshot(bot_state_t *bs) {
 
 	// remove all avoid spots
 	trap_BotAddAvoidSpot(bs->ms, vec3_origin, 0, AVOID_CLEAR);
-	// reset number of proxmines
+	// reset number of prox mines
 	bs->numproxmines = 0;
 	// reset kamikaze body
 	bs->kamikazebody = 0;

@@ -1556,9 +1556,7 @@ static void PM_Footsteps(void) {
 	// if we just crossed a cycle boundary, play an appropriate footstep event
 	if (((old + 64) ^ (pm->ps->bobCycle + 64)) & 128) {
 		if (pm->waterlevel == 0) {
-			if (!pm->noFootsteps) {
-				PM_AddEvent(PM_FootstepForSurface());
-			}
+			PM_AddEvent(PM_FootstepForSurface());
 		} else if (pm->waterlevel == 1) {
 			// splashing
 			PM_AddEvent(EV_FOOTSPLASH);

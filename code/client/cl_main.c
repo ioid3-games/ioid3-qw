@@ -2112,7 +2112,6 @@ void CL_CheckForResend(void) {
 			Info_SetValueForKey(info, "protocol", va("%i", com_protocol->integer));
 			Info_SetValueForKey(info, "qport", va("%i", port));
 			Info_SetValueForKey(info, "challenge", va("%i", clc.challenge));
-
 			Com_sprintf(data, sizeof(data), "connect \"%s\"", info);
 			NET_OutOfBandData(NS_CLIENT, clc.serverAddress, (byte *)data, strlen(data));
 			// the most current userinfo has been sent, so watch for any newer changes to userinfo variables

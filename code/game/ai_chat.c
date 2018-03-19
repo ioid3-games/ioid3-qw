@@ -354,7 +354,6 @@ char *BotRandomWeaponName(void) {
 			return "Railgun";
 		case 11:
 			return "Plasma Gun";
-
 		default:
 			return "BFG 10K";
 	}
