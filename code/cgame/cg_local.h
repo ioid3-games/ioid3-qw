@@ -291,10 +291,8 @@ typedef enum {
 	LE_FALL_SCALE_FADE,
 	LE_MOVE_SCALE_FADE,
 	LE_BUBBLE,
-	LE_SCOREPLUM
-#ifdef MISSIONPACK
-	, LE_SHOWREFENTITY
-#endif
+	LE_SCOREPLUM,
+	LE_SHOWREFENTITY
 } leType_t;
 
 typedef enum {
@@ -381,7 +379,6 @@ typedef struct {
 	int health;				// you only get this info about your teammates
 	int armor;
 	int curWeapon;
-	int handicap;
 	int wins, losses;		// in tourney mode
 	int teamTask;			// task in teamplay (offence/defence)
 	qboolean teamLeader;	// true when this is a team leader
@@ -594,8 +591,10 @@ typedef struct {
 	// warmup countdown
 	int warmup;
 	int warmupCount;
+#ifndef BASEGAME
 	int itemPickup;
 	int itemPickupTime;
+#endif
 	int weaponSelectTime;
 	int weaponAnimation;
 	int weaponAnimationTime;
@@ -846,10 +845,8 @@ typedef struct {
 	sfxHandle_t youHaveFlagSound;
 	sfxHandle_t holyShitSound;
 	sfxHandle_t yourBaseIsUnderAttackSound;
-#ifdef MISSIONPACK
 	sfxHandle_t winnerSound;
 	sfxHandle_t loserSound;
-#endif
 	sfxHandle_t jumpPadSound; // Tobias CHECK: move this out from 'world' folder?
 	// item sounds
 	sfxHandle_t itemPickupSounds[MAX_ITEMS];
@@ -1318,9 +1315,7 @@ void CG_SpawnEffectSmall(vec3_t org);
 void CG_KamikazeEffect(vec3_t org);
 void CG_ObeliskExplode(vec3_t org, int entityNum);
 void CG_ObeliskPain(vec3_t org);
-#ifdef MISSIONPACK
-void CG_LightningBoltBeam(vec3_t start, vec3_t end);
-#endif
+void CG_LightningBolt(vec3_t start, vec3_t end);
 void CG_ScorePlum(int client, vec3_t org, int score);
 void CG_GibPlayer(vec3_t playerOrigin);
 void CG_BigExplode(vec3_t playerOrigin);

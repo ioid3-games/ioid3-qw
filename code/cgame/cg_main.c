@@ -296,14 +296,12 @@ static cvarTable_t cvarTable[] = {
 	{&cg_enableDust, "cg_enableDust", "0", 0},
 	{&cg_enableBreath, "cg_enableBreath", "0", 0},
 	{&cg_obeliskRespawnDelay, "g_obeliskRespawnDelay", "10", CVAR_SYSTEMINFO},
-#ifdef MISSIONPACK
 	{&cg_redTeamName, "g_redteam", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE|CVAR_SYSTEMINFO},
 	{&cg_blueTeamName, "g_blueteam", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE|CVAR_SYSTEMINFO},
 	{&cg_currentSelectedPlayer, "cg_currentSelectedPlayer", "0", CVAR_ARCHIVE},
 	{&cg_currentSelectedPlayerName, "cg_currentSelectedPlayerName", "", CVAR_ARCHIVE},
 	{&cg_recordSPDemo, "ui_recordSPDemo", "0", CVAR_ARCHIVE},
 	{&cg_recordSPDemoName, "ui_recordSPDemoName", "", CVAR_ARCHIVE},
-#endif
 	{&cg_singlePlayer, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO|CVAR_ROM},
 	{&cg_hudFiles, "cg_hudFiles", "ui/hud.txt", CVAR_ARCHIVE},
 	{&cg_cameraOrbit, "cg_cameraOrbit", "0", CVAR_CHEAT},
@@ -350,7 +348,7 @@ void CG_RegisterCvars(void) {
 	blueTeamNameModificationCount = cg_blueTeamName.modificationCount;
 
 	trap_Cvar_Register(NULL, "model", DEFAULT_MODEL, CVAR_USERINFO|CVAR_ARCHIVE);
-	trap_Cvar_Register(NULL, "headmodel", DEFAULT_MODEL, CVAR_USERINFO|CVAR_ARCHIVE);
+	trap_Cvar_Register(NULL, "headmodel", DEFAULT_HEAD, CVAR_USERINFO|CVAR_ARCHIVE);
 	trap_Cvar_Register(NULL, "team_model", DEFAULT_TEAM_MODEL, CVAR_USERINFO|CVAR_ARCHIVE);
 	trap_Cvar_Register(NULL, "team_headmodel", DEFAULT_TEAM_HEAD, CVAR_USERINFO|CVAR_ARCHIVE);
 }
@@ -657,10 +655,9 @@ static void CG_RegisterSounds(void) {
 			cgs.media.yourBaseIsUnderAttackSound = trap_S_RegisterSound("snd/v/voc_base_attack.wav", qtrue);
 		}
 	}
-#ifdef MISSIONPACK
+
 	cgs.media.winnerSound = trap_S_RegisterSound("sound/feedback/voc_youwin.wav", qfalse);
 	cgs.media.loserSound = trap_S_RegisterSound("sound/feedback/voc_youlose.wav", qfalse);
-#endif
 	cgs.media.jumpPadSound = trap_S_RegisterSound("sound/world/jumppad.wav", qfalse);
 	// only register the items that the server says we need
 	Q_strncpyz(items, CG_ConfigString(CS_ITEMS), sizeof(items));
@@ -1775,8 +1772,6 @@ static const char *CG_FeederItemText(float feederID, int index, int column, qhan
 				} else {
 					if (info->botSkill > 0 && info->botSkill <= 5) {
 						*handle = cgs.media.botSkillShaders[info->botSkill - 1];
-					} else if (info->handicap < 100) {
-						return va("%i", info->handicap);
 					}
 				}
 

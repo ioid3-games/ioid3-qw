@@ -1057,7 +1057,6 @@ Returns false if the item should not be picked up. This needs to be the same for
 */
 qboolean BG_CanItemBeGrabbed(int gametype, const entityState_t *ent, const playerState_t *ps) {
 	gitem_t *item;
-	int max;
 
 	if (ent->modelindex < 1 || ent->modelindex >= bg_numItems) {
 		Com_Error(ERR_DROP, "BG_CanItemBeGrabbed: index out of range");
@@ -1067,27 +1066,13 @@ qboolean BG_CanItemBeGrabbed(int gametype, const entityState_t *ent, const playe
 
 	switch (item->giType) {
 		case IT_HEALTH:
-			// don't pick up if already at max
-			if (bg_itemlist[ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-				max = ps->stats[STAT_MAX_HEALTH] / 2;
-			} else {
-				max = ps->stats[STAT_MAX_HEALTH];
-			}
-
-			if (ps->stats[STAT_HEALTH] >= max) {
+			if (ps->stats[STAT_HEALTH] >= 100) {
 				return qfalse;
 			}
 
 			return qtrue;
 		case IT_ARMOR:
-			// we also clamp armor to the maxhealth for handicapping
-			if (bg_itemlist[ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-				max = ps->stats[STAT_MAX_HEALTH];
-			} else {
-				max = ps->stats[STAT_MAX_HEALTH] * 2;
-			}
-
-			if (ps->stats[STAT_ARMOR] >= max) {
+			if (ps->stats[STAT_ARMOR] >= 200) {
 				return qfalse;
 			}
 
@@ -2148,9 +2133,7 @@ char *eventnames[] = {
 	"EV_USE_ITEM2",
 	"EV_USE_ITEM3",
 	"EV_SCOREPLUM",				// score plum
-#ifdef MISSIONPACK
-	"EV_LIGHTNINGBOLT",
-#endif
+	"EV_LIGHTNINGBOLT",			// lightning bolt
 	"EV_DEBUG_LINE"
 };
 

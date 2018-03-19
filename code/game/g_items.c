@@ -129,9 +129,6 @@ int Pickup_PersistantPowerup(gentity_t *ent, gentity_t *other) {
 			memset(other->client->ammoTimes, 0, sizeof(other->client->ammoTimes));
 			break;
 		case PW_GUARD:
-			other->client->ps.stats[STAT_MAX_HEALTH] = 200;
-			other->client->pers.maxHealth = 200;
-			break;
 		case PW_DOUBLER:
 		case PW_SCOUT:
 		default:
@@ -223,7 +220,7 @@ int Pickup_Weapon(gentity_t *ent, gentity_t *other) {
 	Add_Ammo(other, ent->item->giTag, quantity);
 /*
 	if (ent->item->giTag == WP_GRAPPLING_HOOK) {
-		other->client->ps.ammo[ent->item->giTag] = -1; // unlimited ammo
+		other->client->ps.ammo[ent->item->giTag] = -1; // unlimited ammo // Tobias NOTE: useful for other weapons as well?
 	}
 */
 	// team deathmatch has slow weapon respawns
@@ -240,15 +237,7 @@ Pickup_Health
 =======================================================================================================================================
 */
 int Pickup_Health(gentity_t *ent, gentity_t *other) {
-	int max;
 	int quantity;
-
-	// don't pick up if already at max
-	if (bg_itemlist[other->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-		max = other->client->ps.stats[STAT_MAX_HEALTH] / 2;
-	} else {
-		max = other->client->ps.stats[STAT_MAX_HEALTH];
-	}
 
 	if (ent->count) {
 		quantity = ent->count;
@@ -258,8 +247,8 @@ int Pickup_Health(gentity_t *ent, gentity_t *other) {
 
 	other->health += quantity;
 
-	if (other->health > max) {
-		other->health = max;
+	if (other->health > 100) {
+		other->health = 100;
 	}
 
 	other->client->ps.stats[STAT_HEALTH] = other->health;
@@ -273,18 +262,11 @@ Pickup_Armor
 =======================================================================================================================================
 */
 int Pickup_Armor(gentity_t *ent, gentity_t *other) {
-	int max;
-
-	if (other->client && bg_itemlist[other->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-		max = other->client->ps.stats[STAT_MAX_HEALTH];
-	} else {
-		max = other->client->ps.stats[STAT_MAX_HEALTH] * 2;
-	}
 
 	other->client->ps.stats[STAT_ARMOR] += ent->item->quantity;
 
-	if (other->client->ps.stats[STAT_ARMOR] > max) {
-		other->client->ps.stats[STAT_ARMOR] = max;
+	if (other->client->ps.stats[STAT_ARMOR] > 200) {
+		other->client->ps.stats[STAT_ARMOR] = 200;
 	}
 
 	return RESPAWN_ARMOR;

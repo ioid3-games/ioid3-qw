@@ -706,7 +706,6 @@ void G_Damage(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t
 	int take;
 	int asave;
 	int knockback;
-	int max;
 
 	if (!targ->takedamage) {
 		return;
@@ -734,16 +733,6 @@ void G_Damage(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t
 
 	if (g_gametype.integer == GT_OBELISK && CheckObeliskAttack(targ, attacker)) {
 		return;
-	}
-	// reduce damage by the attacker's handicap value unless they are rocket jumping
-	if (attacker->client && attacker != targ) {
-		max = attacker->client->ps.stats[STAT_MAX_HEALTH];
-
-		if (bg_itemlist[attacker->client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-			max /= 2;
-		}
-
-		damage = damage * max / 100;
 	}
 
 	client = targ->client;

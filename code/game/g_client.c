@@ -649,7 +649,7 @@ static void ClientCleanName(const char *in, char *out, int outSize) {
 	out[outpos] = '\0';
 	// don't allow empty names
 	if (*out == '\0' || colorlessLen == 0) {
-		Q_strncpyz(out, "UnnamedPlayer", outSize);
+		Q_strncpyz(out, DEFAULT_PLAYER_NAME, outSize);
 	}
 }
 
@@ -663,7 +663,7 @@ The game can override any of the settings and call trap_SetUserinfo if desired.
 */
 void ClientUserinfoChanged(int clientNum) {
 	gentity_t *ent;
-	int teamTask, teamLeader, health;
+	int teamTask, teamLeader;
 	char *s;
 	char model[MAX_QPATH];
 	char headModel[MAX_QPATH];
@@ -709,23 +709,6 @@ void ClientUserinfoChanged(int clientNum) {
 			trap_SendServerCommand(-1, va("print \"%s" S_COLOR_WHITE " renamed to %s\n\"", oldname, client->pers.netname));
 		}
 	}
-	// set max health
-	if (client->ps.powerups[PW_GUARD]) {
-		client->pers.maxHealth = 200;
-	} else {
-		health = atoi(Info_ValueForKey(userinfo, "handicap"));
-		client->pers.maxHealth = health;
-
-		if (client->pers.maxHealth < 1 || client->pers.maxHealth > 100) {
-			client->pers.maxHealth = 100;
-		}
-	}
-
-	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
-	// team task (0 = none, 1 = offence, 2 = defence)
-	teamTask = atoi(Info_ValueForKey(userinfo, "teamtask"));
-	// team leader (1 = leader, 0 is normal player)
-	teamLeader = client->sess.teamLeader;
 	// set model
 	if (g_gametype.integer > GT_TOURNAMENT) {
 		Q_strncpyz(model, Info_ValueForKey(userinfo, "team_model"), sizeof(model));
@@ -755,16 +738,20 @@ void ClientUserinfoChanged(int clientNum) {
 		client->pers.pmoveFixed = qtrue;
 	}
 	*/
+	// team task (0 = none, 1 = offence, 2 = defence)
+	teamTask = atoi(Info_ValueForKey(userinfo, "teamtask"));
+	// team leader (1 = leader, 0 is normal player)
+	teamLeader = client->sess.teamLeader;
 	// colors
 	Q_strncpyz(c1, Info_ValueForKey(userinfo, "color1"), sizeof(c1));
 	Q_strncpyz(c2, Info_ValueForKey(userinfo, "color2"), sizeof(c2));
 	// send over a subset of the userinfo keys so other clients can print scoreboards, display models, and play custom sounds
 	if (ent->r.svFlags & SVF_BOT) {
-		s = va("n\\%s\\t\\%i\\tt\\%d\\tl\\%d\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\skill\\%s",
-			client->pers.netname, client->sess.sessionTeam, teamTask, teamLeader, model, headModel, c1, c2, client->pers.maxHealth, client->sess.wins, client->sess.losses, Info_ValueForKey(userinfo, "skill"));
+		s = va("n\\%s\\t\\%i\\tt\\%d\\tl\\%d\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\w\\%i\\l\\%i\\skill\\%s",
+			client->pers.netname, client->sess.sessionTeam, teamTask, teamLeader, model, headModel, c1, c2, client->sess.wins, client->sess.losses, Info_ValueForKey(userinfo, "skill"));
 	} else {
-		s = va("n\\%s\\t\\%i\\tt\\%d\\tl\\%d\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i",
-			client->pers.netname, client->sess.sessionTeam, teamTask, teamLeader, model, headModel, c1, c2, client->pers.maxHealth, client->sess.wins, client->sess.losses);
+		s = va("n\\%s\\t\\%i\\tt\\%d\\tl\\%d\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\w\\%i\\l\\%i",
+			client->pers.netname, client->sess.sessionTeam, teamTask, teamLeader, model, headModel, c1, c2, client->sess.wins, client->sess.losses);
 	}
 
 	trap_SetConfigstring(CS_PLAYERS + clientNum, s);
@@ -957,7 +944,6 @@ void ClientSpawn(gentity_t *ent) {
 //	char *savedAreaBits;
 	int accuracy_hits, accuracy_shots;
 	int eventSequence;
-	char userinfo[MAX_INFO_STRING];
 
 	index = ent - g_entities;
 	client = ent->client;
@@ -1019,18 +1005,10 @@ void ClientSpawn(gentity_t *ent) {
 	client->ps.persistant[PERS_SPAWN_COUNT]++;
 	client->ps.persistant[PERS_TEAM] = client->sess.sessionTeam;
 	client->airOutTime = level.time + 30000;
-
-	trap_GetUserinfo(index, userinfo, sizeof(userinfo));
-	// set max health
-	client->pers.maxHealth = atoi(Info_ValueForKey(userinfo, "handicap"));
-
-	if (client->pers.maxHealth < 1 || client->pers.maxHealth > 100) {
-		client->pers.maxHealth = 100;
-	}
 	// clear entity values
-	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
 	client->ps.eFlags = flags;
-
+	// health will count down towards max_health
+	ent->health = client->ps.stats[STAT_HEALTH] = 125;
 	ent->s.groundEntityNum = ENTITYNUM_NONE;
 	ent->client = &level.clients[index];
 	ent->takedamage = qtrue;
@@ -1062,8 +1040,6 @@ void ClientSpawn(gentity_t *ent) {
 	COM_BitSet(client->ps.weapons, WP_GAUNTLET);
 
 	client->ps.ammo[WP_GAUNTLET] = -1;
-	// health will count down towards max_health
-	ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH] + 25;
 
 	G_SetOrigin(ent, spawn_origin);
 	VectorCopy(spawn_origin, client->ps.origin);

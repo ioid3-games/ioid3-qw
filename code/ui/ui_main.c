@@ -1164,44 +1164,6 @@ const char *UI_FilterDir(int value) {
 	return uiInfo.modList[value - 1].modName;
 }
 
-static const char *handicapValues[] = {
-	"None",
-	"95",
-	"90",
-	"85",
-	"80",
-	"75",
-	"70",
-	"65",
-	"60",
-	"55",
-	"50",
-	"45",
-	"40",
-	"35",
-	"30",
-	"25",
-	"20",
-	"15",
-	"10",
-	"5",
-	NULL
-};
-
-/*
-=======================================================================================================================================
-UI_DrawHandicap
-=======================================================================================================================================
-*/
-static void UI_DrawHandicap(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
-	int i, h;
-
-	h = Com_Clamp(5, 100, trap_Cvar_VariableValue("handicap"));
-	i = 20 - h / 5;
-
-	Text_Paint(rect->x, rect->y, scale, color, handicapValues[i], 0, 0, textStyle);
-}
-
 /*
 =======================================================================================================================================
 UI_DrawClanName
@@ -2036,16 +1998,11 @@ UI_OwnerDrawWidth
 =======================================================================================================================================
 */
 static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
-	int i, h, value;
+	int i, value;
 	const char *text;
 	const char *s = NULL;
 
 	switch (ownerDraw) {
-		case UI_HANDICAP:
-			h = Com_Clamp(5, 100, trap_Cvar_VariableValue("handicap"));
-			i = 20 - h / 5;
-			s = handicapValues[i];
-			break;
 		case UI_CLANNAME:
 			s = UI_Cvar_VariableString("ui_teamName");
 			break;
@@ -2448,9 +2405,6 @@ static void UI_OwnerDraw(float x, float y, float w, float h, float text_x, float
 	rect.h = h;
 
 	switch (ownerDraw) {
-		case UI_HANDICAP:
-			UI_DrawHandicap(&rect, scale, color, textStyle);
-			break;
 		case UI_EFFECTS:
 			UI_DrawEffects(&rect, scale, color);
 			break;
@@ -2743,33 +2697,6 @@ static qboolean UI_OwnerDrawVisible(int flags) {
 	}
 
 	return vis;
-}
-
-/*
-=======================================================================================================================================
-UI_Handicap_HandleKey
-=======================================================================================================================================
-*/
-static qboolean UI_Handicap_HandleKey(int flags, float *special, int key) {
-	int select = UI_SelectForKey(key);
-
-	if (select != 0) {
-		int h;
-
-		h = Com_Clamp(5, 100, trap_Cvar_VariableValue("handicap"));
-		h += 5 * select;
-
-		if (h > 100) {
-			h = 5;
-		} else if (h < 5) {
-			h = 100;
-		}
-
-		trap_Cvar_SetValue("handicap", h);
-		return qtrue;
-	}
-
-	return qfalse;
 }
 
 /*
@@ -3264,9 +3191,6 @@ UI_OwnerDrawHandleKey
 static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, int key) {
 
 	switch (ownerDraw) {
-		case UI_HANDICAP:
-			return UI_Handicap_HandleKey(flags, special, key);
-			break;
 		case UI_EFFECTS:
 			return UI_Effects_HandleKey(flags, special, key);
 			break;
@@ -3871,13 +3795,13 @@ static void UI_RunMenuScript(char **args) {
 			clients = 0;
 
 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
-				int bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
+				int bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
 
 				if (bot >= 0) {
 					clients++;
 				}
 
-				bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
+				bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
 
 				if (bot >= 0) {
 					clients++;
@@ -3986,15 +3910,15 @@ static void UI_RunMenuScript(char **args) {
 
 				if (bot > 1) {
 					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s\n", uiInfo.characterList[bot - 2].name, skill, "Blue");
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s %i\n", uiInfo.characterList[bot - 2].name, skill, "Blue", delay);
 					} else {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f \n", UI_GetBotNameByNumber(bot - 2), skill);
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %i\n", UI_GetBotNameByNumber(bot - 2), skill, delay);
 					}
-
 					trap_Cmd_ExecuteText(EXEC_APPEND, buff);
+					delay += 500;
 				}
 			}
-// Tobias end
+// Tobias END
 		} else if (Q_stricmp(name, "updateSPMenu") == 0) {
 			UI_SetCapFragLimits(qtrue);
 			UI_MapCountByGameType(qtrue);
@@ -4007,9 +3931,7 @@ static void UI_RunMenuScript(char **args) {
 			trap_Cmd_ExecuteText(EXEC_APPEND, "exec default.cfg\n");
 			trap_Cmd_ExecuteText(EXEC_APPEND, "cvar_restart\n");
 			Controls_SetDefaults();
-#ifdef CINEMATICS_INTRO
 			trap_Cvar_SetValue("com_introPlayed", 1);
-#endif
 			trap_Cmd_ExecuteText(EXEC_APPEND, "vid_restart\n");
 		} else if (Q_stricmp(name, "loadArenas") == 0) {
 			UI_MapCountByGameType(qfalse);
@@ -6777,7 +6699,7 @@ static cvarTable_t cvarTable[] = {
 	{&ui_captureLimit, "ui_captureLimit", "8", 0},
 	{&ui_smallFont, "ui_smallFont", "0.25", CVAR_ARCHIVE},
 	{&ui_bigFont, "ui_bigFont", "0.4", CVAR_ARCHIVE},
-	{&ui_findPlayer, "ui_findPlayer", "Sarge", CVAR_ARCHIVE},
+	{&ui_findPlayer, "ui_findPlayer", DEFAULT_MODEL, CVAR_ARCHIVE},
 	{&ui_Q3Model, "ui_q3model", "0", CVAR_ARCHIVE},
 	{&ui_hudFiles, "cg_hudFiles", "ui/hud.txt", CVAR_ARCHIVE},
 	{&ui_recordSPDemo, "ui_recordSPDemo", "0", CVAR_ARCHIVE},
