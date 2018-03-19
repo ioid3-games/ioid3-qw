@@ -1007,10 +1007,9 @@ void CG_NewClientInfo(int clientNum) {
 	// team leader
 	v = Info_ValueForKey(configstring, "tl");
 	newInfo.teamLeader = atoi(v);
-#ifdef MISSIONPACK
+
 	Q_strncpyz(newInfo.redTeam, cg_redTeamName.string, MAX_TEAMNAME);
 	Q_strncpyz(newInfo.blueTeam, cg_blueTeamName.string, MAX_TEAMNAME);
-#endif
 	// model
 	v = Info_ValueForKey(configstring, "model");
 
@@ -1137,9 +1136,6 @@ void CG_NewClientInfo(int clientNum) {
 	newInfo.c2RGBA[1] = 255 * newInfo.color2[1];
 	newInfo.c2RGBA[2] = 255 * newInfo.color2[2];
 	newInfo.c2RGBA[3] = 255;
-	// handicap
-	v = Info_ValueForKey(configstring, "hc");
-	newInfo.handicap = atoi(v);
 	// wins
 	v = Info_ValueForKey(configstring, "w");
 	newInfo.wins = atoi(v);
@@ -1339,7 +1335,7 @@ static void CG_PlayerAnimation(centity_t *cent, int *legsOld, int *legs, float *
 	}
 
 	if (cent->currentState.powerups & (1 << PW_SCOUT)) {
-		speedScale = 1.3;
+		speedScale = SCOUT_SPEED_SCALE;
 	} else {
 		speedScale = 1;
 	}
@@ -1630,7 +1626,7 @@ static void CG_AddBreathPuffs(centity_t *cent, refEntity_t *head) {
 		VectorMA(origin, -4, cg.refdef.viewaxis[2], origin);
 		CG_BreathPuff(cent->currentState.number, origin, cg.refdef.viewaxis);
 	}
-	// add third person effects for mirrors/other clients
+	// add third person effects for mirrors
 	VectorMA(head->origin, 8, head->axis[0], origin);
 	VectorMA(origin, -4, head->axis[2], origin);
 	CG_BreathPuff(cent->currentState.number, origin, head->axis);
@@ -2287,7 +2283,7 @@ The missing models on the podiums aren't a big issue anymore since we do no long
 void CG_Corpse(centity_t *cent, int clientNum, float *bodySinkOffset, float *shadowAlpha) {
 	float offset;
 
-	// After sitting around for five seconds, fall into the ground and dissapear.
+	// after sitting around for five seconds, fall into the ground and dissapear.
 	if (cg.time - cent->currentState.pos.trTime > BODY_SINK_DELAY) {
 		float sinkFrac;
 
@@ -2358,6 +2354,14 @@ void CG_Player(centity_t *cent) {
 	memset(&head, 0, sizeof(head));
 	// get the rotation information
 	CG_PlayerAngles(cent, legs.axis, torso.axis, head.axis);
+// Tobias HACK: make player models(visually)bigger until we have new models...
+	VectorScale(legs.axis[0], 1.19, legs.axis[0]);
+	VectorScale(legs.axis[1], 1.19, legs.axis[1]);
+	VectorScale(legs.axis[2], 1.19, legs.axis[2]);
+
+	legs.nonNormalizedAxes = qtrue;
+	cent->lerpOrigin[2] += 4;
+// Tobias END
 	// get the animation state (after rotation, to allow feet shuffle)
 	CG_PlayerAnimation(cent, &legs.oldframe, &legs.frame, &legs.backlerp, &torso.oldframe, &torso.frame, &torso.backlerp);
 

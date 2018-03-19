@@ -855,7 +855,7 @@ void Svcmd_BotList_f(void) {
 		Q_strncpyz(name, Info_ValueForKey(g_botInfos[i], "name"), sizeof(name));
 
 		if (!*name) {
-			strcpy(name, "UnnamedPlayer");
+			strcpy(name, DEFAULT_PLAYER_NAME);
 		}
 
 		Q_strncpyz(funname, Info_ValueForKey(g_botInfos[i], "funname"), sizeof(funname));

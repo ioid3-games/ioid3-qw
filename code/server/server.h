@@ -351,6 +351,8 @@ void SV_Trace(trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, co
 // if the starting point is in a solid, it will be allowed to move out to an open area
 
 // passEntityNum is explicitly excluded from clipping checks (normally ENTITYNUM_NONE)
+void SV_ClipToEntities(trace_t *trace, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int entityNum, int contentmask, int capsule);
+// clip to entities, but not world
 void SV_ClipToEntity(trace_t *trace, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int entityNum, int contentmask, int capsule);
 // clip to a specific entity
 // sv_net_chan.c

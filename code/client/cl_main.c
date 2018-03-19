@@ -3234,7 +3234,6 @@ void CL_Init(void) {
 	Cvar_Get("team_headmodel", "*james", CVAR_USERINFO|CVAR_ARCHIVE);
 	Cvar_Get("color1", "5", CVAR_USERINFO|CVAR_ARCHIVE);
 	Cvar_Get("color2", "5", CVAR_USERINFO|CVAR_ARCHIVE);
-	Cvar_Get("handicap", "100", CVAR_USERINFO|CVAR_ARCHIVE);
 	Cvar_Get("teamtask", "0", CVAR_USERINFO);
 	Cvar_Get("sex", "male", CVAR_USERINFO|CVAR_ARCHIVE);
 	Cvar_Get("cl_anonymous", "0", CVAR_USERINFO|CVAR_ARCHIVE);
@@ -3377,12 +3376,12 @@ static void CL_SetServerInfo(serverInfo_t *server, const char *info, int ping) {
 
 	if (server) {
 		if (info) {
+			server->clients = atoi(Info_ValueForKey(info, "clients"));
 			Q_strncpyz(server->hostName, Info_ValueForKey(info, "hostname"), sizeof(server->hostName));
-			Q_strncpyz(server->game, Info_ValueForKey(info, "game"), sizeof(server->game));
-			Q_strncpyz(server->gameType, Info_ValueForKey(info, "gametype"), sizeof(server->gameType));
 			Q_strncpyz(server->mapName, Info_ValueForKey(info, "mapname"), sizeof(server->mapName));
 			server->maxClients = atoi(Info_ValueForKey(info, "sv_maxclients"));
-			server->clients = atoi(Info_ValueForKey(info, "clients"));
+			Q_strncpyz(server->game, Info_ValueForKey(info, "game"), sizeof(server->game));
+			Q_strncpyz(server->gameType, Info_ValueForKey(info, "gametype"), sizeof(server->gameType));
 			server->netType = atoi(Info_ValueForKey(info, "nettype"));
 			server->minPing = atoi(Info_ValueForKey(info, "minping"));
 			server->maxPing = atoi(Info_ValueForKey(info, "maxping"));

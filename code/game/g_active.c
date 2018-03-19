@@ -352,23 +352,24 @@ void ClientTimerActions(gentity_t *ent, int msec) {
 	client = ent->client;
 	client->timeResidual += msec;
 
+	maxHealth = 0;
+	addHealth = 0;
+
 	while (client->timeResidual >= 1000) {
 		client->timeResidual -= 1000;
-		maxHealth = 0;
-		addHealth = 0;
 		// regenerate
 		if (client->ps.powerups[PW_REGEN]) {
-			maxHealth = client->ps.stats[STAT_MAX_HEALTH];
+			maxHealth = 200;
 			addHealth += 10;
 		}
 		// guard
 		if (bg_itemlist[client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_GUARD) {
-			maxHealth = client->ps.stats[STAT_MAX_HEALTH] / 2;
+			maxHealth = 200;
 			addHealth += 5;
 		}
 
 		if (maxHealth) {
-			if (ent->health < maxHealth) {
+			if (ent->health < maxHealth * 0.5) {
 				ent->health += addHealth * 2;
 
 				if (ent->health > maxHealth * 1.1) {
@@ -376,24 +377,24 @@ void ClientTimerActions(gentity_t *ent, int msec) {
 				}
 
 				G_AddEvent(ent, EV_POWERUP_REGEN, 0);
-			} else if (ent->health < maxHealth * 2) {
+			} else if (ent->health < maxHealth) {
 				ent->health += addHealth;
 
-				if (ent->health > maxHealth * 2) {
-					ent->health = maxHealth * 2;
+				if (ent->health > maxHealth) {
+					ent->health = maxHealth;
 				}
 
 				G_AddEvent(ent, EV_POWERUP_REGEN, 0);
 			}
 		} else {
 			// count down health when over max
-			if (ent->health > client->ps.stats[STAT_MAX_HEALTH]) {
+			if (ent->health > 100) {
 				ent->health--;
 			}
-		}
-		// count down armor when over max
-		if (client->ps.stats[STAT_ARMOR] > client->ps.stats[STAT_MAX_HEALTH] && client->ps.powerups[PW_REGEN] == 0) {
-			client->ps.stats[STAT_ARMOR]--;
+			// count down armor when over max
+			if (client->ps.stats[STAT_ARMOR] > 100) {
+				client->ps.stats[STAT_ARMOR]--;
+			}
 		}
 	}
 
@@ -561,7 +562,7 @@ void ClientEvents(gentity_t *ent, int oldEventSequence) {
 				G_Damage(ent, NULL, NULL, NULL, NULL, damage, 0, MOD_FALLING);
 				break;
 			case EV_USE_ITEM1: // medkit
-				ent->health = ent->client->ps.stats[STAT_MAX_HEALTH] + 25;
+				ent->health = 100;
 				break;
 			case EV_USE_ITEM2: // kamikaze
 				// start the kamikaze
@@ -697,7 +698,7 @@ void ClientThink_Real(gentity_t *ent) {
 	client->ps.speed = g_speed.value;
 
 	if (bg_itemlist[client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_SCOUT) {
-		client->ps.speed *= 1.3;
+		client->ps.speed *= SCOUT_SPEED_SCALE;
 	}
 	// set up for pmove
 	oldEventSequence = client->ps.eventSequence;
@@ -749,6 +750,7 @@ void ClientThink_Real(gentity_t *ent) {
 	}
 
 	Pmove(&pm);
+// Tobias HACK: find a better, more natural-looking solution
 	// prevent players from standing ontop of each other
 	if (ent->client->ps.groundEntityNum >= 0 && ent->client->ps.groundEntityNum < MAX_CLIENTS && VectorLength(ent->client->ps.velocity) < 200) {
 		// give them some random velocity
@@ -756,6 +758,7 @@ void ClientThink_Real(gentity_t *ent) {
 		ent->client->ps.velocity[1] += crandom() * 100;
 		ent->client->ps.velocity[2] += 100;
 	}
+// Tobias END
 	// save results of pmove
 	if (ent->client->ps.eventSequence != oldEventSequence) {
 		ent->eventTime = level.time;

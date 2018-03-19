@@ -422,6 +422,15 @@ void trap_TraceCapsule(trace_t *results, const vec3_t start, const vec3_t mins, 
 
 /*
 =======================================================================================================================================
+trap_ClipToEntities
+=======================================================================================================================================
+*/
+void trap_ClipToEntities(trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask) {
+	syscall(G_CLIPTOENTITIES, results, start, mins, maxs, end, passEntityNum, contentmask);
+}
+
+/*
+=======================================================================================================================================
 trap_PointContents
 =======================================================================================================================================
 */

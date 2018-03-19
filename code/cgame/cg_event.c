@@ -394,9 +394,10 @@ A new item was picked up this frame.
 =======================================================================================================================================
 */
 static void CG_ItemPickup(int itemNum) {
-
+#ifndef BASEGAME
 	cg.itemPickup = itemNum;
 	cg.itemPickupTime = cg.time;
+#endif
 	// see if it should be the grabbed weapon
 	if (bg_itemlist[itemNum].giType == IT_WEAPON) {
 		// select it immediately
@@ -848,12 +849,13 @@ void CG_EntityEvent(centity_t *cent, vec3_t position) {
 			break;
 		case EV_PLAYER_TELEPORT_OUT:
 			DEBUGNAME("EV_PLAYER_TELEPORT_OUT");
-			trap_S_StartSound(NULL, es->number, CHAN_AUTO, cgs.media.teleOutSound);
 			CG_SpawnEffectDefault(position);
+			trap_S_StartSound(NULL, es->number, CHAN_AUTO, cgs.media.teleOutSound);
 			break;
 		// weapon events
 		case EV_NOAMMO:
 			DEBUGNAME("EV_NOAMMO");
+
 //			trap_S_StartSound(NULL, es->number, CHAN_AUTO, cgs.media.noAmmoSound);
 
 			if (es->number == cg.snap->ps.clientNum) {
@@ -1507,7 +1509,7 @@ void CG_EntityEvent(centity_t *cent, vec3_t position) {
 			break;
 		case EV_LIGHTNINGBOLT:
 			DEBUGNAME("EV_LIGHTNINGBOLT");
-			CG_LightningBoltBeam(es->origin2, es->pos.trBase);
+			CG_LightningBolt(es->origin2, es->pos.trBase);
 			break;
 		case EV_DEBUG_LINE:
 			DEBUGNAME("EV_DEBUG_LINE");

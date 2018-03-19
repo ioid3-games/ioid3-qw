@@ -355,7 +355,7 @@ void G_RunMissile(gentity_t *ent) {
 
 	// get current position
 	BG_EvaluateTrajectory(&ent->s.pos, level.time, origin);
-	// if this missile bounced off an invulnerability sphere
+	// if this missile bounced off
 	if (ent->target_ent) {
 		passent = ent->target_ent->s.number;
 	// prox mines that left the owner bbox will attach to anything, even the owner
@@ -620,7 +620,7 @@ gentity_t *fire_rocket(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME; // move a bit on the very first frame
 
 	VectorCopy(start, bolt->s.pos.trBase);
-	VectorScale(dir, 1000, bolt->s.pos.trDelta);
+	VectorScale(dir, 1100, bolt->s.pos.trDelta);
 	SnapVector(bolt->s.pos.trDelta); // save net bandwidth
 	VectorCopy(start, bolt->r.currentOrigin);
 

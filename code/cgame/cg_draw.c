@@ -229,7 +229,7 @@ void CG_Text_Paint(float x, float y, float scale, vec4_t color, const char *text
 	}
 }
 
-#ifndef MISSIONPACK
+#ifndef BASEGAME
 /*
 =======================================================================================================================================
 CG_DrawField
@@ -489,7 +489,7 @@ void CG_DrawFlagModel(float x, float y, float w, float h, int team, qboolean for
 		}
 	}
 }
-#ifndef MISSIONPACK
+#ifndef BASEGAME
 /*
 =======================================================================================================================================
 CG_DrawStatusBarHead
@@ -579,7 +579,7 @@ void CG_DrawTeamBackground(int x, int y, int w, int h, float alpha, int team) {
 	CG_PopScreenPlacement();
 	trap_R_SetColor(NULL);
 }
-#ifndef MISSIONPACK
+#ifndef BASEGAME
 /*
 =======================================================================================================================================
 CG_DrawStatusBar
@@ -1083,7 +1083,7 @@ static void CG_DrawUpperRight(stereoFrame_t stereoFrame) {
 
 =======================================================================================================================================
 */
-#ifndef MISSIONPACK
+#ifndef BASEGAME
 /*
 =======================================================================================================================================
 CG_DrawScores
@@ -1540,7 +1540,7 @@ static void CG_DrawPersistantPowerup(void) {
 	}
 }
 #endif
-#endif // MISSIONPACK
+#endif // BASEGAME
 /*
 =======================================================================================================================================
 
@@ -2213,7 +2213,7 @@ CG_DrawIntermission
 */
 static void CG_DrawIntermission(void) {
 //	int key;
-#ifdef MISSIONPACK
+#ifdef BASEGAME
 	//if (cg_singlePlayer.integer) {
 	//	CG_DrawCenterString();
 	//	return;
@@ -2518,7 +2518,7 @@ static void CG_Draw2D(stereoFrame_t stereoFrame) {
 	}
 
 	if (cgs.gametype > GT_TOURNAMENT) {
-#ifndef MISSIONPACK
+#ifndef BASEGAME
 		CG_DrawTeamInfo();
 #endif
 	}

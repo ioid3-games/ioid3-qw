@@ -5315,7 +5315,7 @@ int KeywordHash_Key(char *keyword) {
 		}
 	}
 
-	hash = (hash ^ (hash >> 10) ^ (hash >> 20))&(KEYWORDHASH_SIZE - 1);
+	hash = (hash ^ (hash >> 10) ^ (hash >> 20)) & (KEYWORDHASH_SIZE - 1);
 	return hash;
 }
 

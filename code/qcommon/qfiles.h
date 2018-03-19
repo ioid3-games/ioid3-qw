@@ -278,6 +278,7 @@ typedef struct {
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I')
 // little-endian "IBSP"
 #define BSP_VERSION 46
+#define WOLF_BSP_VERSION 47 // RTCW/WolfET // Tobias HACK: temporarely stop checking AAS/BSP checksums
 // there shouldn't be any problem with increasing these values at the expense of more memory allocation in the utilities
 #define MAX_MAP_MODELS			0x400
 #define MAX_MAP_BRUSHES			0x8000

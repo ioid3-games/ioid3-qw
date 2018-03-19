@@ -74,9 +74,7 @@ cvar_t *com_version;
 cvar_t *com_singlePlayerActive;
 cvar_t *com_blood;
 cvar_t *com_buildScript; // for automated data building scripts
-#ifdef CINEMATICS_INTRO
 cvar_t *com_introPlayed;
-#endif
 cvar_t *cl_paused;
 cvar_t *sv_paused;
 cvar_t *cl_packetdelay;
@@ -2628,9 +2626,7 @@ void Com_Init(char *commandLine) {
 	com_abnormalExit = Cvar_Get("com_abnormalExit", "0", CVAR_ROM);
 	com_busyWait = Cvar_Get("com_busyWait", "0", CVAR_ARCHIVE);
 	Cvar_Get("com_errorMessage", "", CVAR_ROM|CVAR_NORESTART);
-#ifdef CINEMATICS_INTRO
 	com_introPlayed = Cvar_Get("com_introplayed", "0", CVAR_ARCHIVE);
-#endif
 	s = va("%s %s %s", QW_VERSION, PLATFORM_STRING, PRODUCT_DATE);
 	com_version = Cvar_Get("version", s, CVAR_ROM|CVAR_SERVERINFO);
 	com_gamename = Cvar_Get("com_gamename", GAMENAME_FOR_MASTER, CVAR_SERVERINFO|CVAR_INIT);
@@ -2668,12 +2664,10 @@ void Com_Init(char *commandLine) {
 #ifdef CINEMATICS_LOGO
 			Cbuf_AddText("cinematic " CINEMATICS_LOGO "\n");
 #endif
-#ifdef CINEMATICS_INTRO
 			if (!com_introPlayed->integer) {
 				Cvar_Set(com_introPlayed->name, "1");
 				Cvar_Set("nextmap", "cinematic " CINEMATICS_INTRO);
 			}
-#endif
 		}
 	}
 	// start in full screen ui mode

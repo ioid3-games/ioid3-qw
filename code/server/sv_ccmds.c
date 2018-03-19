@@ -155,7 +155,6 @@ Restart the server on a different map.
 static void SV_Map_f(void) {
 	char *cmd;
 	char *map;
-	qboolean cheat;
 	char expanded[MAX_QPATH];
 	char mapname[MAX_QPATH];
 
@@ -197,15 +196,9 @@ static void SV_Map_f(void) {
 	// if the level was started with "map <levelname>", then cheats will not be allowed. If started with "devmap <levelname>"
 	// then cheats will be allowed
 	if (!Q_stricmp(cmd, "devmap")) {
-		cheat = qtrue;
+		Cvar_SetValue("sv_cheats", 1);
 	} else {
-		cheat = qfalse;
-	}
-
-	if (cheat) {
-		Cvar_Set("sv_cheats", "1");
-	} else {
-		Cvar_Set("sv_cheats", "0");
+		Cvar_SetValue("sv_cheats", 0);
 	}
 }
 

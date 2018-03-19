@@ -671,18 +671,18 @@ static void Sys_ZenityCommand(dialogType_t type, const char *message, const char
 			break;
 		case DT_YES_NO:
 			Sys_AppendToExecBuffer("--question");
-			Sys_AppendToExecBuffer("--ok-label=Yes");
-			Sys_AppendToExecBuffer("--cancel-label=No");
+			Sys_AppendToExecBuffer("--ok - label = Yes");
+			Sys_AppendToExecBuffer("--cancel - label = No");
 			break;
 		case DT_OK_CANCEL:
 			Sys_AppendToExecBuffer("--question");
-			Sys_AppendToExecBuffer("--ok-label=OK");
-			Sys_AppendToExecBuffer("--cancel-label=Cancel");
+			Sys_AppendToExecBuffer("--ok - label = OK");
+			Sys_AppendToExecBuffer("--cancel - label = Cancel");
 			break;
 	}
 
-	Sys_AppendToExecBuffer(va("--text=%s", message));
-	Sys_AppendToExecBuffer(va("--title=%s", title));
+	Sys_AppendToExecBuffer(va("--text = %s", message));
+	Sys_AppendToExecBuffer(va("--title = %s", title));
 }
 
 /*
@@ -715,7 +715,7 @@ static void Sys_KdialogCommand(dialogType_t type, const char *message, const cha
 	}
 
 	Sys_AppendToExecBuffer(message);
-	Sys_AppendToExecBuffer(va("--title=%s", title));
+	Sys_AppendToExecBuffer(va("--title = %s", title));
 }
 
 /*

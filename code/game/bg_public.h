@@ -29,9 +29,6 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 // because games can change separately from the main system version, we need a second version that must match between game and cgame
 
 #define GAME_VERSION BASEGAME "-1"
-#define DEFAULT_MODEL "james"
-#define DEFAULT_TEAM_MODEL "james"
-#define DEFAULT_TEAM_HEAD "*james"
 #define DEFAULT_GRAVITY 800
 #define GIB_HEALTH -40
 #define ARMOR_PROTECTION 0.66
@@ -184,8 +181,7 @@ typedef enum {
 	STAT_HOLDABLE_ITEM,
 	STAT_PERSISTANT_POWERUP,
 	STAT_DEAD_YAW,		// look this direction when dead (FIXME: get rid of?)
-	STAT_CLIENTS_READY,	// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
-	STAT_MAX_HEALTH		// health/armor limit, changeable by handicap
+	STAT_CLIENTS_READY	// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
 } statIndex_t;
 
 /**************************************************************************************************************************************
@@ -391,9 +387,7 @@ typedef enum {
 	EV_USE_ITEM2,
 	EV_USE_ITEM3,
 	EV_SCOREPLUM,			// score plum
-#ifdef MISSIONPACK
 	EV_LIGHTNINGBOLT,
-#endif
 	EV_DEBUG_LINE
 } entity_event_t;
 
@@ -473,6 +467,12 @@ typedef struct animation_s {
 } animation_t;
 // flip the togglebit every time an animation changes so a restart of the same anim can be detected
 #define ANIM_TOGGLEBIT 128
+
+#define DEFAULT_PLAYER_NAME "UnnamedPlayer"
+#define DEFAULT_MODEL "james"
+#define DEFAULT_HEAD "*james"
+#define DEFAULT_TEAM_MODEL "james"
+#define DEFAULT_TEAM_HEAD "*james"
 
 #define DEFAULT_REDTEAM_NAME "Stroggs"
 #define DEFAULT_BLUETEAM_NAME "Pagans"

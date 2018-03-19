@@ -389,13 +389,13 @@ static void CG_GrenadeTrail(centity_t *ent, const weaponInfo_t *wi) {
 
 /*
 =======================================================================================================================================
-CG_BeamgunTrail
+CG_BeamgunBolt
 
 Origin will be the exact tag point, which is slightly different than the muzzle point used for determining hits. The cent should be the
 non-predicted cent if it is from the player, so the endpoint will reflect the simulated strike (lagging the predicted angle).
 =======================================================================================================================================
 */
-static void CG_BeamgunTrail(centity_t *cent, vec3_t origin) {
+static void CG_BeamgunBolt(centity_t *cent, vec3_t origin) {
 	trace_t trace;
 	refEntity_t beam;
 	vec3_t forward;
@@ -461,7 +461,7 @@ static void CG_BeamgunTrail(centity_t *cent, vec3_t origin) {
 	}
 }
 /*
-static void CG_BeamgunTrail(centity_t *cent, vec3_t origin) {
+static void CG_BeamgunBolt(centity_t *cent, vec3_t origin) {
 	trace_t trace;
 	refEntity_t beam;
 	vec3_t forward;
@@ -558,6 +558,45 @@ void CG_RailTrail(clientInfo_t *ci, vec3_t start, vec3_t end) {
 	AxisClear(re->axis);
 
 	if (cg_oldRail.integer) {
+		// reimplementing the rail discs(removed in 1.30)
+		if (cg_oldRail.integer > 1) {
+			le = CG_AllocLocalEntity();
+			re = &le->refEntity;
+
+			VectorCopy(start, re->origin);
+			VectorCopy(end, re->oldorigin);
+
+			le->leType = LE_FADE_RGB;
+			le->startTime = cg.time;
+			le->endTime = cg.time + cg_railTrailTime.value;
+			le->lifeRate = 1.0 / (le->endTime - le->startTime);
+
+			re->shaderTime = cg.time / 1000.0f;
+			re->reType = RT_RAIL_RINGS;
+			re->customShader = cgs.media.railRingsShader;
+			re->shaderRGBA[0] = ci->color1[0] * 255;
+			re->shaderRGBA[1] = ci->color1[1] * 255;
+			re->shaderRGBA[2] = ci->color1[2] * 255;
+			re->shaderRGBA[3] = 255;
+	
+			le->color[0] = ci->color1[0] * 0.75;
+			le->color[1] = ci->color1[1] * 0.75;
+			le->color[2] = ci->color1[2] * 0.75;
+			le->color[3] = 1.0f;
+			// alternatively, use the secondary color
+			if (cg_oldRail.integer > 2) {
+				re->shaderRGBA[0] = ci->color2[0] * 255;
+				re->shaderRGBA[1] = ci->color2[1] * 255;
+				re->shaderRGBA[2] = ci->color2[2] * 255;
+				re->shaderRGBA[3] = 255;
+		
+				le->color[0] = ci->color2[0] * 0.75;
+				le->color[1] = ci->color2[1] * 0.75;
+				le->color[2] = ci->color2[2] * 0.75;
+				le->color[3] = 1.0f;
+			}
+		}
+
 		return;
 	}
 
@@ -1792,8 +1831,8 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent,
 	trap_R_AddRefEntityToScene(&flash);
 
 	if (ps || cg.renderingThirdPerson || cent->currentState.number != cg.predictedPlayerState.clientNum) {
-		// add beam gun trail
-		CG_BeamgunTrail(nonPredictedCent, flash.origin);
+		// add beam gun bolt
+		CG_BeamgunBolt(nonPredictedCent, flash.origin);
 
 		if (weapon->flashDlightColor[0] || weapon->flashDlightColor[1] || weapon->flashDlightColor[2]) {
 			trap_R_AddLightToScene(flash.origin, 100 + (rand()&31), weapon->flashDlightColor[0], weapon->flashDlightColor[1], weapon->flashDlightColor[2]);
@@ -1835,7 +1874,7 @@ void CG_AddViewWeapon(playerState_t *ps) {
 
 		if (cg.predictedPlayerState.eFlags & EF_FIRING) {
 			// special hack for beam gun...
-			CG_BeamgunTrail(&cg_entities[ps->clientNum], cg.flashOrigin);
+			CG_BeamgunBolt(&cg_entities[ps->clientNum], cg.flashOrigin);
 		}
 
 		return;
@@ -1930,8 +1969,10 @@ void CG_DrawWeaponSelect(void) {
 	}
 
 	trap_R_SetColor(color);
+#ifndef BASEGAME
 	// showing weapon select clears pickup item display, but not the blend blob
 	cg.itemPickupTime = 0;
+#endif
 	// count the number of weapons owned
 	bits = cg.snap->ps.stats[STAT_WEAPONS];
 	count = 0;

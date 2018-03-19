@@ -1161,44 +1161,6 @@ const char *UI_FilterDir(int value) {
 	return uiInfo.modList[value - 1].modName;
 }
 
-static const char *handicapValues[] = {
-	"None",
-	"95",
-	"90",
-	"85",
-	"80",
-	"75",
-	"70",
-	"65",
-	"60",
-	"55",
-	"50",
-	"45",
-	"40",
-	"35",
-	"30",
-	"25",
-	"20",
-	"15",
-	"10",
-	"5",
-	NULL
-};
-
-/*
-=======================================================================================================================================
-UI_DrawHandicap
-=======================================================================================================================================
-*/
-static void UI_DrawHandicap(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
-	int i, h;
-
-	h = Com_Clamp(5, 100, trap_Cvar_VariableValue("handicap"));
-	i = 20 - h / 5;
-
-	Text_Paint(rect->x, rect->y, scale, color, handicapValues[i], 0, 0, textStyle);
-}
-
 /*
 =======================================================================================================================================
 UI_DrawClanName
@@ -2033,16 +1995,11 @@ UI_OwnerDrawWidth
 =======================================================================================================================================
 */
 static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
-	int i, h, value;
+	int i, value;
 	const char *text;
 	const char *s = NULL;
 
 	switch (ownerDraw) {
-		case UI_HANDICAP:
-			h = Com_Clamp(5, 100, trap_Cvar_VariableValue("handicap"));
-			i = 20 - h / 5;
-			s = handicapValues[i];
-			break;
 		case UI_CLANNAME:
 			s = UI_Cvar_VariableString("ui_teamName");
 			break;
@@ -2445,9 +2402,6 @@ static void UI_OwnerDraw(float x, float y, float w, float h, float text_x, float
 	rect.h = h;
 
 	switch (ownerDraw) {
-		case UI_HANDICAP:
-			UI_DrawHandicap(&rect, scale, color, textStyle);
-			break;
 		case UI_EFFECTS:
 			UI_DrawEffects(&rect, scale, color);
 			break;
@@ -2740,33 +2694,6 @@ static qboolean UI_OwnerDrawVisible(int flags) {
 	}
 
 	return vis;
-}
-
-/*
-=======================================================================================================================================
-UI_Handicap_HandleKey
-=======================================================================================================================================
-*/
-static qboolean UI_Handicap_HandleKey(int flags, float *special, int key) {
-	int select = UI_SelectForKey(key);
-
-	if (select != 0) {
-		int h;
-
-		h = Com_Clamp(5, 100, trap_Cvar_VariableValue("handicap"));
-		h += 5 * select;
-
-		if (h > 100) {
-			h = 5;
-		} else if (h < 5) {
-			h = 100;
-		}
-
-		trap_Cvar_SetValue("handicap", h);
-		return qtrue;
-	}
-
-	return qfalse;
 }
 
 /*
@@ -3261,9 +3188,6 @@ UI_OwnerDrawHandleKey
 static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, int key) {
 
 	switch (ownerDraw) {
-		case UI_HANDICAP:
-			return UI_Handicap_HandleKey(flags, special, key);
-			break;
 		case UI_EFFECTS:
 			return UI_Effects_HandleKey(flags, special, key);
 			break;
@@ -3705,6 +3629,7 @@ static void UI_StartSkirmish(qboolean next) {
 	}
 
 	if (g > GT_TOURNAMENT) {
+		// send team command for game qvm
 		trap_Cmd_ExecuteText(EXEC_APPEND, "wait 5; team Blue\n");
 	}
 }
@@ -3865,13 +3790,13 @@ static void UI_RunMenuScript(char **args) {
 			clients = 0;
 
 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
-				int bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
+				int bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
 
 				if (bot >= 0) {
 					clients++;
 				}
 
-				bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
+				bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
 
 				if (bot >= 0) {
 					clients++;
@@ -3913,38 +3838,36 @@ static void UI_RunMenuScript(char **args) {
 					trap_Cmd_ExecuteText(EXEC_APPEND, buff);
 				}
 			}
-// Tobias NOTE: Do we want a simplified script for in-game server setup?
-// Tobias FIXME: 1: Waiting for too long before starting a new server will CRASH! -> Com_Error(ERR_DROP, "CL_GetServerCommand: a reliable command was cycled out")
-//				 2: Issue 1 is eventually related to the "kickbots" cmd, wich is called AFTER(!) the "map" cmd, but if we do the "kickbots" cmd before the "map" cmd very bad things will happen (invisible bots, stale scoreboard etc.)?
-//				 3: There is a short pause before starting the new server (drawing a black screen), this is ugly, and this was not the case with baseq3 UI!
+// Tobias FIXME: 1: Changing the gametype from > GT_TOURNAMENT ->GT_FFA ->> GT_TOURNAMENT will switch teams for connected players, and also displays the wrong HUD(Free for all HUD in team gametypes and vice versa, etc.)!
+//				 2: Waiting for too long before starting a new server will CRASH! Is this still the case?
 		} else if (Q_stricmp(name, "StartServerIngame") == 0) {
-			int i, clients, oldclients;
+			int i, delay, clients, oldclients;
 			float skill;
 
-			trap_Cvar_SetValue("ui_singlePlayerActive", 0);
+			trap_Cvar_SetValue("cg_thirdPerson", 0);
 			trap_Cvar_SetValue("cg_cameraOrbit", 0);
+			trap_Cvar_SetValue("ui_singlePlayerActive", 0);
+			trap_Cvar_SetValue("dedicated", Com_Clamp(0, 2, ui_dedicated.integer));
+			trap_Cvar_SetValue("g_gametype", Com_Clamp(0, GT_MAX_GAME_TYPE - 1, uiInfo.gameTypes[ui_netGameType.integer].gtEnum));
 			trap_Cvar_Set("g_redTeam", UI_Cvar_VariableString("ui_opponentName"));
 			trap_Cvar_Set("g_blueTeam", UI_Cvar_VariableString("ui_teamName"));
-			trap_Cvar_SetValue("dedicated", Com_Clamp(0, 2, ui_dedicated.integer));
-
-			trap_Cmd_ExecuteText(EXEC_APPEND, va("g_gametype %i\n", uiInfo.gameTypes[ui_netGameType.integer].gtEnum));
 			trap_Cmd_ExecuteText(EXEC_APPEND, va("map %s\n", uiInfo.mapList[ui_currentNetMap.integer].mapLoadName));
-			// kick already connected bots, otherwise more and more bots are continuously added with every new map (because this script will always add bots and doesn't check if there are already enough/new bots selected (Tobias: FIXME?).
-			trap_Cmd_ExecuteText(EXEC_APPEND, "kickbots\n"); // Tobias FIXME: why do we have to do this AFTER the map restart and NOT before the new map will be loaded, which would be more logical? Is this a q3 bug?
-
-			skill = trap_Cvar_VariableValue("g_spSkill");
+			// Tobias FIXME: this script will add bots and doesn't check if there are already enough bots, so we must kick already connected bots, otherwise bots are added to the existing ones continuously with each new map(FIXME?).
+			// Tobias NOTE: we must kick bots before executing the map command otherwise bots become 'invisible'(FIXME?).
+			// Tobias FIXME: unfortunately kicking bots AFTER map loading spawns some extra skulls again, https:// github.com / ioquake / ioq3 / commit / f7c3276fe803388bd613ab6bf6ad8e0a6647b740#diff - 08c7587b3da3e294c50c64c1024339d7
+			trap_Cmd_ExecuteText(EXEC_APPEND, "kickbots\n");
 			// set max clients based on spots
 			oldclients = trap_Cvar_VariableValue("sv_maxClients");
 			clients = 0;
 
 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
-				int bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
+				int bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
 
 				if (bot >= 0) {
 					clients++;
 				}
 
-				bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
+				bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
 
 				if (bot >= 0) {
 					clients++;
@@ -3960,36 +3883,36 @@ static void UI_RunMenuScript(char **args) {
 			}
 
 			trap_Cvar_SetValue("sv_maxClients", clients);
-// Tobias FIXME: I don't think this is really needed. I put it in here, but deactivated this for now!
-//			// add bots
-//			trap_Cmd_ExecuteText(EXEC_APPEND, "wait 3\n");
-// Tobias end
+
+			skill = trap_Cvar_VariableValue("g_spSkill");
+			delay = 500;
+
 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
 				int bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
 
 				if (bot > 1) {
 					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s\n", uiInfo.characterList[bot - 2].name, skill, "Red");
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s %i\n", uiInfo.characterList[bot - 2].name, skill, "Red", delay);
 					} else {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f \n", UI_GetBotNameByNumber(bot - 2), skill);
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %i\n", UI_GetBotNameByNumber(bot - 2), skill, delay);
 					}
-
 					trap_Cmd_ExecuteText(EXEC_APPEND, buff);
+					delay += 500;
 				}
 
 				bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
 
 				if (bot > 1) {
 					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s\n", uiInfo.characterList[bot - 2].name, skill, "Blue");
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s %i\n", uiInfo.characterList[bot - 2].name, skill, "Blue", delay);
 					} else {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f \n", UI_GetBotNameByNumber(bot - 2), skill);
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %i\n", UI_GetBotNameByNumber(bot - 2), skill, delay);
 					}
-
 					trap_Cmd_ExecuteText(EXEC_APPEND, buff);
+					delay += 500;
 				}
 			}
-// Tobias end
+// Tobias END
 		} else if (Q_stricmp(name, "updateSPMenu") == 0) {
 			UI_SetCapFragLimits(qtrue);
 			UI_MapCountByGameType(qtrue);
@@ -4002,9 +3925,7 @@ static void UI_RunMenuScript(char **args) {
 			trap_Cmd_ExecuteText(EXEC_APPEND, "exec default.cfg\n");
 			trap_Cmd_ExecuteText(EXEC_APPEND, "cvar_restart\n");
 			Controls_SetDefaults();
-#ifdef CINEMATICS_INTRO
 			trap_Cvar_SetValue("com_introPlayed", 1);
-#endif
 			trap_Cmd_ExecuteText(EXEC_APPEND, "vid_restart\n");
 		} else if (Q_stricmp(name, "loadArenas") == 0) {
 			UI_MapCountByGameType(qfalse);
@@ -6787,7 +6708,7 @@ static cvarTable_t cvarTable[] = {
 	{&ui_captureLimit, "ui_captureLimit", "8", 0},
 	{&ui_smallFont, "ui_smallFont", "0.25", CVAR_ARCHIVE},
 	{&ui_bigFont, "ui_bigFont", "0.4", CVAR_ARCHIVE},
-	{&ui_findPlayer, "ui_findPlayer", "Sarge", CVAR_ARCHIVE},
+	{&ui_findPlayer, "ui_findPlayer", DEFAULT_MODEL, CVAR_ARCHIVE},
 	{&ui_Q3Model, "ui_q3model", "0", CVAR_ARCHIVE},
 	{&ui_hudFiles, "cg_hudFiles", "ui/hud.txt", CVAR_ARCHIVE},
 	{&ui_recordSPDemo, "ui_recordSPDemo", "0", CVAR_ARCHIVE},

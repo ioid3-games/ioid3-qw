@@ -998,18 +998,11 @@ void BeginIntermission(void) {
 
 		MoveClientToIntermission(client);
 	}
-#ifdef MISSIONPACK
+
 	if (g_singlePlayer.integer) {
 		trap_Cvar_SetValue("ui_singlePlayerActive", 0);
 		UpdateTournamentInfo();
 	}
-#else
-	// if single player game
-	if (g_gametype.integer == GT_SINGLE_PLAYER) {
-		UpdateTournamentInfo();
-		SpawnModelsOnVictoryPads();
-	}
-#endif
 	// send the current scoring to all clients
 	SendScoreboardMessageToAllClients();
 }
@@ -1122,10 +1115,9 @@ Append information about this game to the log file.
 void LogExit(const char *string) {
 	int i, numSorted;
 	gclient_t *cl;
-#ifdef MISSIONPACK
 	qboolean won = qtrue;
 	team_t team = TEAM_BLUE;
-#endif
+
 	G_LogPrintf("Exit: %s\n", string);
 
 	level.intermissionQueued = level.time;
@@ -1158,7 +1150,7 @@ void LogExit(const char *string) {
 		ping = cl->ps.ping < 999 ? cl->ps.ping : 999;
 
 		G_LogPrintf("score: %i  ping: %i  client: %i %s\n", cl->ps.persistant[PERS_SCORE], ping, level.sortedClients[i], cl->pers.netname);
-#ifdef MISSIONPACK
+
 		if (g_singlePlayer.integer && !(g_entities[cl - level.clients].r.svFlags & SVF_BOT)) {
 			team = cl->sess.sessionTeam;
 		}
@@ -1168,9 +1160,8 @@ void LogExit(const char *string) {
 				won = qfalse;
 			}
 		}
-#endif
 	}
-#ifdef MISSIONPACK
+
 	if (g_singlePlayer.integer) {
 		if (g_gametype.integer > GT_TOURNAMENT) {
 			if (team == TEAM_RED) {
@@ -1182,7 +1173,6 @@ void LogExit(const char *string) {
 
 		trap_Cmd_ExecuteText(EXEC_APPEND, (won) ? "spWin\n" : "spLose\n");
 	}
-#endif
 }
 
 /*
@@ -1312,19 +1302,13 @@ void CheckExitRules(void) {
 	}
 
 	if (level.intermissionQueued) {
-#ifdef MISSIONPACK
 		int time = (g_singlePlayer.integer) ? SP_INTERMISSION_DELAY_TIME : INTERMISSION_DELAY_TIME;
 
 		if (level.time - level.intermissionQueued >= time) {
 			level.intermissionQueued = 0;
 			BeginIntermission();
 		}
-#else
-		if (level.time - level.intermissionQueued >= INTERMISSION_DELAY_TIME) {
-			level.intermissionQueued = 0;
-			BeginIntermission();
-		}
-#endif
+
 		return;
 	}
 	// check for sudden death
