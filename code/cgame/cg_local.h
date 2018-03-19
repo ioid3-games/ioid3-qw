@@ -1375,19 +1375,15 @@ void trap_TranslateString(const char *string, char *buf); // localization
 int trap_MemoryRemaining(void);
 // the gamestate should be grabbed at startup, and whenever a configstring changes
 void trap_GetGameState(gameState_t *gamestate);
-// cgame will poll each frame to see if a newer snapshot has arrived that it is interested in.
-// the time is returned separately so that snapshot latency can be calculated.
+// cgame will poll each frame to see if a newer snapshot has arrived that it is interested in. The time is returned separately so that snapshot latency can be calculated.
 void trap_GetCurrentSnapshotNumber(int *snapshotNumber, int *serverTime);
 // a snapshot get can fail if the snapshot (or the entties it holds) is so old that it has fallen out of the client system queue
 qboolean trap_GetSnapshot(int snapshotNumber, snapshot_t *snapshot);
-// retrieve a text command from the server stream
-// the current snapshot will hold the number of the most recent command
-// qfalse can be returned if the client system handled the command
-// argc()/argv() can be used to examine the parameters of the command
+// retrieve a text command from the server stream the current snapshot will hold the number of the most recent command qfalse can be returned if the client system handled the command
+// argc()/argv()can be used to examine the parameters of the command
 qboolean trap_GetServerCommand(int serverCommandNumber);
 // returns the most recent command number that can be passed to GetUserCmd
-// this will always be at least one higher than the number in the current snapshot, and it may be quite a few higher if it is a
-// fast computer on a lagged connection
+// this will always be at least one higher than the number in the current snapshot, and it may be quite a few higher if it is a fast computer on a lagged connection
 int trap_GetCurrentCmdNumber(void);
 qboolean trap_GetUserCmd(int cmdNumber, usercmd_t *ucmd);
 // used for the weapon select and zoom
