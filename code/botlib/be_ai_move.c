@@ -580,7 +580,7 @@ int BotOnTopOfEntity(bot_movestate_t *ms) {
 
 	AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
 	VectorMA(ms->origin, -4, up, end);
-	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY);
+	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
 	// if not started in solid and NOT hitting the world entity
 	if (!trace.startsolid && (trace.entityNum != ENTITYNUM_WORLD && trace.entityNum != ENTITYNUM_NONE)) {
 		return trace.entityNum;
@@ -1348,7 +1348,7 @@ void BotCheckBlocked(bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_mover
 	currentspeed = DotProduct(ms->velocity, dir) + 10;
 	// do a full trace to check for distant obstacles to avoid, depending on current speed
 	VectorMA(ms->origin, currentspeed * 1.25, dir, end);
-	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY);
+	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
 	// if not started in solid and NOT hitting the world entity
 	if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE && trace.entityNum != ENTITYNUM_WORLD) {
 		result->blocked = qtrue;
@@ -1356,17 +1356,17 @@ void BotCheckBlocked(bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_mover
 	// if the bot is standing on something and not in an area with reachability
 	} else if (checkbottom && !AAS_AreaReachability(ms->areanum)) {
 		VectorMA(ms->origin, -4, up, end);
-		trace = AAS_TraceEntities(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY);
+		trace = AAS_TraceEntities(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
 		// if not started in solid and hitting an entity
 		if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE) {
 			result->blocked = qtrue;
 			result->blockentity = trace.entityNum;
 			result->flags |= MOVERESULT_ONTOPOFOBSTACLE;
 		}
-	// check for world entity hit before hitting nearby entities (... can cause entities to go unnoticed).
+	// check for nearby entities only (sometimes world entity is hit before hitting nearby entities... this can cause entities to go unnoticed).
 	} else {
 		VectorMA(ms->origin, 4, dir, end);
-		trace = AAS_TraceEntities(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY);
+		trace = AAS_TraceEntities(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
 		// if not started in solid and hitting an entity
 		if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE) {
 			result->blocked = qtrue;

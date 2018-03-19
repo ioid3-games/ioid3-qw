@@ -88,7 +88,7 @@ void G_InitSessionData(gclient_t *client, char *userinfo) {
 
 	sess = &client->sess;
 	// check for team preference, mainly for bots
-	value = Info_ValueForKey(userinfo, "teampref");
+	value = Info_ValueForKey(userinfo, "team");
 	// initial team determination
 	if (g_gametype.integer > GT_TOURNAMENT) {
 		// always spawn as spectator in team games

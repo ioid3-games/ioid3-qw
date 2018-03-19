@@ -216,7 +216,6 @@ static void CelebrateStop(gentity_t *player) {
 	player->s.torsoAnim = ((player->s.torsoAnim & ANIM_TOGGLEBIT) ^ ANIM_TOGGLEBIT)|anim;
 }
 
-#define TIMER_GESTURE 2294
 /*
 =======================================================================================================================================
 CelebrateStart

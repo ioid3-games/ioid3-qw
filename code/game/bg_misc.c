@@ -380,7 +380,7 @@ gitem_t bg_itemlist[] = {
 		{"models/powerups/ammo/machinegunam.md3", NULL, NULL, NULL},
 /* icon */		"icons/icona_machinegun",
 /* pickup */	"Bullets",
-		40,
+		50,
 		IT_AMMO,
 		WP_MACHINEGUN,
 /* sounds */ ""
@@ -394,7 +394,7 @@ gitem_t bg_itemlist[] = {
 		{"models/powerups/ammo/chaingunam.md3", NULL, NULL, NULL},
 /* icon */		"icons/icona_chaingun",
 /* pickup */	"Chain Gun Belt",
-		80,
+		100,
 		IT_AMMO,
 		WP_CHAINGUN,
 /* sounds */ ""
@@ -492,7 +492,7 @@ gitem_t bg_itemlist[] = {
 		{"models/powerups/ammo/lightningam.md3", NULL, NULL, NULL},
 /* icon */		"icons/icona_lightning",
 /* pickup */	"Cartridge",
-		50,
+		100,
 		IT_AMMO,
 		WP_BEAMGUN,
 /* sounds */ ""
@@ -520,7 +520,7 @@ gitem_t bg_itemlist[] = {
 		{"models/powerups/ammo/plasmaam.md3", NULL, NULL, NULL},
 /* icon */		"icons/icona_plasma",
 /* pickup */	"Cells",
-		30,
+		50,
 		IT_AMMO,
 		WP_PLASMAGUN,
 /* sounds */ ""
@@ -534,7 +534,7 @@ gitem_t bg_itemlist[] = {
 		{"models/powerups/ammo/bfgam.md3", NULL, NULL, NULL},
 /* icon */		"icons/icona_bfg",
 /* pickup */	"Bfg Ammo",
-		15,
+		20,
 		IT_AMMO,
 		WP_BFG,
 /* sounds */ ""

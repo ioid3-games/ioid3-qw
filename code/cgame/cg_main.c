@@ -181,7 +181,6 @@ vmCvar_t pmove_msec;
 vmCvar_t cg_pmove_msec;
 vmCvar_t cg_cameraMode;
 vmCvar_t cg_cameraOrbit;
-vmCvar_t cg_cameraOrbitDelay;
 vmCvar_t cg_timescaleFadeEnd;
 vmCvar_t cg_timescaleFadeSpeed;
 vmCvar_t cg_timescale;
@@ -304,7 +303,6 @@ static cvarTable_t cvarTable[] = {
 	{&cg_singlePlayer, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO|CVAR_ROM},
 	{&cg_hudFiles, "cg_hudFiles", "ui/hud.txt", CVAR_ARCHIVE},
 	{&cg_cameraOrbit, "cg_cameraOrbit", "0", CVAR_CHEAT},
-	{&cg_cameraOrbitDelay, "cg_cameraOrbitDelay", "50", CVAR_ARCHIVE},
 	{&cg_timescaleFadeEnd, "cg_timescaleFadeEnd", "1", 0},
 	{&cg_timescaleFadeSpeed, "cg_timescaleFadeSpeed", "0", 0},
 	{&cg_timescale, "timescale", "1", 0},
@@ -317,7 +315,7 @@ static cvarTable_t cvarTable[] = {
 	{&cg_noProjectileTrail, "cg_noProjectileTrail", "0", CVAR_ARCHIVE},
 	{&cg_smallFont, "ui_smallFont", "0.25", CVAR_ARCHIVE},
 	{&cg_bigFont, "ui_bigFont", "0.4", CVAR_ARCHIVE},
-	{&cg_oldRail, "cg_oldRail", "1", CVAR_ARCHIVE},
+	{&cg_oldRail, "cg_oldRail", "2", CVAR_ARCHIVE},
 	{&cg_oldRocket, "cg_oldRocket", "1", CVAR_ARCHIVE},
 	{&cg_oldPlasma, "cg_oldPlasma", "1", CVAR_ARCHIVE}
 //	{&cg_pmove_fixed, "cg_pmove_fixed", "0", CVAR_USERINFO|CVAR_ARCHIVE}
@@ -886,7 +884,7 @@ static void CG_RegisterSounds(void) {
 		Com_sprintf(name, sizeof(name), "snd/c/footsteps/swim%i.wav", i + 1);
 		cgs.media.footsteps4[FOOTSTEP_SWIM][i] = trap_S_RegisterSound(name, qfalse);
 	}
-#ifdef MISSIONPACK
+
 	trap_S_RegisterSound("snd/c/james/dd1.wav", qfalse);
 	trap_S_RegisterSound("snd/c/james/dd2.wav", qfalse);
 	trap_S_RegisterSound("snd/c/james/dd3.wav", qfalse);
@@ -913,7 +911,6 @@ static void CG_RegisterSounds(void) {
 	trap_S_RegisterSound("snd/c/janet/pd3.wav", qfalse);
 	trap_S_RegisterSound("snd/c/janet/pd4.wav", qfalse);
 	trap_S_RegisterSound("snd/c/janet/ta1.wav", qfalse);
-#endif
 }
 
 /*
@@ -968,7 +965,6 @@ static void CG_RegisterGraphics(void) {
 	cgs.media.scoreboardScore = trap_R_RegisterShaderNoMip("menu/tab/score.tga");
 	cgs.media.scoreboardTime = trap_R_RegisterShaderNoMip("menu/tab/time.tga");
 	cgs.media.smokePuffShader = trap_R_RegisterShader("smokePuff");
-	cgs.media.smokePuffRageProShader = trap_R_RegisterShader("smokePuffRagePro");
 	cgs.media.shotgunSmokePuffShader = trap_R_RegisterShader("shotgunSmokePuff");
 	cgs.media.nailPuffShader = trap_R_RegisterShader("nailtrail");
 	cgs.media.blueProxMine = trap_R_RegisterModel("models/weaphits/proxmineb.md3");

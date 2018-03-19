@@ -409,12 +409,12 @@ void ClientTimerActions(gentity_t *ent, int msec) {
 			switch (w) {
 				case WP_MACHINEGUN:
 					max = 50;
-					inc = 4;
+					inc = 5;
 					t = 1000;
 					break;
 				case WP_CHAINGUN:
 					max = 100;
-					inc = 5;
+					inc = 10;
 					t = 1000;
 					break;
 				case WP_SHOTGUN:
@@ -425,7 +425,7 @@ void ClientTimerActions(gentity_t *ent, int msec) {
 				case WP_NAILGUN:
 					max = 10;
 					inc = 1;
-					t = 1250;
+					t = 1500;
 					break;
 				case WP_PROXLAUNCHER:
 					max = 5;
@@ -448,24 +448,24 @@ void ClientTimerActions(gentity_t *ent, int msec) {
 					t = 1750;
 					break;
 				case WP_BEAMGUN:
-					max = 50;
-					inc = 5;
-					t = 1500;
+					max = 100;
+					inc = 10;
+					t = 1250;
 					break;
 				case WP_RAILGUN:
 					max = 10;
 					inc = 1;
-					t = 1750;
+					t = 2750;
 					break;
 				case WP_PLASMAGUN:
 					max = 50;
 					inc = 5;
-					t = 1500;
+					t = 2000;
 					break;
 				case WP_BFG:
-					max = 10;
+					max = 20;
 					inc = 1;
-					t = 4000;
+					t = 3000;
 					break;
 				default:
 					max = 0;
