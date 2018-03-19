@@ -24,7 +24,6 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
 #include "ui_local.h"
 
-#define UI_TIMER_GESTURE 2300
 #define UI_TIMER_JUMP 1000
 #define UI_TIMER_LAND 130
 #define UI_TIMER_WEAPON_SWITCH 300
@@ -175,7 +174,7 @@ static void UI_ForceTorsoAnim(playerInfo_t *pi, int anim) {
 	pi->torsoAnim = ((pi->torsoAnim & ANIM_TOGGLEBIT) ^ ANIM_TOGGLEBIT)|anim;
 
 	if (anim == TORSO_GESTURE) {
-		pi->torsoAnimationTimer = UI_TIMER_GESTURE;
+		pi->torsoAnimationTimer = TIMER_GESTURE;
 	}
 
 	if (anim == TORSO_ATTACK || anim == TORSO_ATTACK2) {

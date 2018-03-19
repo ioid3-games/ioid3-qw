@@ -48,6 +48,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define BODY_SINK_TIME 1500
 #define BODY_SINK_DIST 15
 #define OBELISK_TARGET_HEIGHT 56
+#define TIMER_GESTURE 2294
 #define MAX_DLIGHT_CONFIGSTRINGS 128
 
 /**************************************************************************************************************************************

@@ -2628,7 +2628,6 @@ void Com_Init(char *commandLine) {
 	com_version = Cvar_Get("version", s, CVAR_ROM|CVAR_SERVERINFO);
 	com_gamename = Cvar_Get("com_gamename", GAMENAME_FOR_MASTER, CVAR_SERVERINFO|CVAR_INIT);
 	com_protocol = Cvar_Get("com_protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO|CVAR_INIT);
-
 	Cvar_Get("protocol", com_protocol->string, CVAR_ROM);
 #ifndef DEDICATED
 	con_autochat = Cvar_Get("con_autochat", "0", CVAR_ARCHIVE);

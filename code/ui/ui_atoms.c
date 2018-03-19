@@ -133,7 +133,7 @@ void UI_LoadBestScores(const char *map, int game) {
 	char fileName[MAX_QPATH];
 	fileHandle_t f;
 	postGameInfo_t newInfo;
-	int protocol, protocolLegacy;
+	int protocol;
 
 	memset(&newInfo, 0, sizeof(postGameInfo_t));
 
@@ -154,15 +154,10 @@ void UI_LoadBestScores(const char *map, int game) {
 	UI_SetBestScores(&newInfo, qfalse);
 
 	uiInfo.demoAvailable = qfalse;
-	protocolLegacy = trap_Cvar_VariableValue("com_legacyprotocol");
 	protocol = trap_Cvar_VariableValue("com_protocol");
 
 	if (!protocol) {
 		protocol = trap_Cvar_VariableValue("protocol");
-	}
-
-	if (protocolLegacy == protocol) {
-		protocolLegacy = 0;
 	}
 
 	Com_sprintf(fileName, MAX_QPATH, "demos/%s_%d.%s%d", map, game, DEMOEXT, protocol);
@@ -170,13 +165,6 @@ void UI_LoadBestScores(const char *map, int game) {
 	if (trap_FS_FOpenFile(fileName, &f, FS_READ) >= 0) {
 		uiInfo.demoAvailable = qtrue;
 		trap_FS_FCloseFile(f);
-	} else if (protocolLegacy > 0) {
-		Com_sprintf(fileName, MAX_QPATH, "demos/%s_%d.%s%d", map, game, DEMOEXT, protocolLegacy);
-
-		if (trap_FS_FOpenFile(fileName, &f, FS_READ) >= 0) {
-			uiInfo.demoAvailable = qtrue;
-			trap_FS_FCloseFile(f);
-		}
 	}
 }
 

@@ -112,7 +112,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define SLIDER_THUMB_WIDTH 12.0
 #define SLIDER_THUMB_HEIGHT 20.0
 
-#define NUM_CROSSHAIRS 5
+#define NUM_CROSSHAIRS 10
 
 typedef struct {
 	const char *command;

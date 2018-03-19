@@ -3471,17 +3471,12 @@ static void UI_LoadDemos(void) {
 	char demoExt[32];
 	char *demoname;
 	int i, j, len;
-	int protocol, protocolLegacy;
+	int protocol;
 
-	protocolLegacy = trap_Cvar_VariableValue("com_legacyprotocol");
 	protocol = trap_Cvar_VariableValue("com_protocol");
 
 	if (!protocol) {
 		protocol = trap_Cvar_VariableValue("protocol");
-	}
-
-	if (protocolLegacy == protocol) {
-		protocolLegacy = 0;
 	}
 
 	Com_sprintf(demoExt, sizeof(demoExt), ".%s%d", DEMOEXT, protocol);
@@ -3502,13 +3497,7 @@ static void UI_LoadDemos(void) {
 		}
 
 		if (!j) {
-			if (protocolLegacy > 0 && uiInfo.demoCount < MAX_DEMOS) {
-				Com_sprintf(demoExt, sizeof(demoExt), ".%s%d", DEMOEXT, protocolLegacy);
-				uiInfo.demoCount += trap_FS_GetFileList("demos", demoExt, demolist, ARRAY_LEN(demolist));
-				demoname = demolist;
-			} else {
-				break;
-			}
+			break;
 		}
 	}
 }
