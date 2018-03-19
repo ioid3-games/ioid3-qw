@@ -903,7 +903,6 @@ static void CG_RegisterSounds(void) {
 	trap_S_RegisterSound("snd/c/james/pd3.wav", qfalse);
 	trap_S_RegisterSound("snd/c/james/pd4.wav", qfalse);
 	trap_S_RegisterSound("snd/c/james/ta1.wav", qfalse);
-
 	trap_S_RegisterSound("snd/c/janet/dd1.wav", qfalse);
 	trap_S_RegisterSound("snd/c/janet/dd2.wav", qfalse);
 	trap_S_RegisterSound("snd/c/janet/dd3.wav", qfalse);

@@ -1965,7 +1965,6 @@ static void S_AL_MusicUpdate(void) {
 	S_AL_Gain(musicSource, s_alGain->value * s_musicVolume->value);
 }
 
-
 /*
 =======================================================================================================================================
 S_AL_StopAllSounds

@@ -194,7 +194,6 @@ void CG_MissileHitWall(int weapon, int clientNum, vec3_t origin, vec3_t dir) {
 			mark = cgs.media.burnMarkShader;
 			markRadius = 32;
 			sfx = cgs.media.sfx_rockexp;
-
 			break;
 	}
 	// create the explosion
