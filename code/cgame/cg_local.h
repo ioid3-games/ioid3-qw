@@ -67,7 +67,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 // very large characters
 #define GIANT_WIDTH 32
 #define GIANT_HEIGHT 48
-#define NUM_CROSSHAIRS 5
+#define NUM_CROSSHAIRS 10
 #define TEAM_OVERLAY_MAXNAME_WIDTH 12
 #define TEAM_OVERLAY_MAXLOCATION_WIDTH 16
 

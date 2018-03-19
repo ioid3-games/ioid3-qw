@@ -188,13 +188,10 @@ typedef struct {
 	int challenge;
 	int lastSentTime;
 	int lastSentSize;
-#ifdef LEGACY_PROTOCOL
-	qboolean compat;
-#endif
 } netchan_t;
 
 void Netchan_Init(int qport);
-void Netchan_Setup(netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, int challenge, qboolean compat);
+void Netchan_Setup(netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, int challenge);
 void Netchan_Transmit(netchan_t *chan, int length, const byte *data);
 void Netchan_TransmitNextFragment(netchan_t *chan);
 qboolean Netchan_Process(netchan_t *chan, msg_t *msg);
@@ -208,14 +205,11 @@ qboolean Netchan_Process(netchan_t *chan, msg_t *msg);
 */
 
 #define PROTOCOL_VERSION 71
-#define PROTOCOL_LEGACY_VERSION 68
 // 1.31 - 67
 // maintain a list of compatible protocols for demo playing
 // NOTE: that stuff only works with two digits protocols
 extern int demo_protocols[];
-#if !defined UPDATE_SERVER_NAME && !defined STANDALONE
-#define UPDATE_SERVER_NAME "update.quake3arena.com"
-#endif
+//#define UPDATE_SERVER_NAME "update.quake3arena.com"
 // override on command line, config files etc.
 #ifndef MASTER_SERVER_NAME
 #define MASTER_SERVER_NAME "dpmaster.deathmask.net"
@@ -683,9 +677,6 @@ extern cvar_t *cl_packetdelay;
 extern cvar_t *sv_packetdelay;
 extern cvar_t *com_gamename;
 extern cvar_t *com_protocol;
-#ifdef LEGACY_PROTOCOL
-extern cvar_t *com_legacyprotocol;
-#endif
 #ifndef DEDICATED
 extern cvar_t *con_autochat;
 #endif

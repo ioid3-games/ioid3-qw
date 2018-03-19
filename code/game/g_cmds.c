@@ -553,7 +553,7 @@ void SetTeam(gentity_t *ent, const char *s) {
 
 		if (!Q_stricmp(s, "red") || !Q_stricmp(s, "r")) {
 			team = TEAM_RED;
-		} else if (!Q_stricmp(s, "blue") || !Q_stricmp(s, "b")) {
+		} else if (!Q_stricmp(s, "blue") || !Q_stricmp(s, "b") || client->pers.localClient) {
 			team = TEAM_BLUE;
 		} else {
 			// pick the team with the least number of players
