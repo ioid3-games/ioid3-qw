@@ -629,6 +629,7 @@ static void G_AddBot(const char *name, float skill, const char *team, int delay,
 	char *model;
 	char *headmodel;
 	char userinfo[MAX_INFO_STRING];
+	qboolean modelSet;
 
 	// have the server allocate a client slot
 	clientNum = trap_BotAllocateClient();
@@ -698,21 +699,14 @@ static void G_AddBot(const char *name, float skill, const char *team, int delay,
 	Info_SetValueForKey(userinfo, "rate", "25000");
 	Info_SetValueForKey(userinfo, "snaps", "60");
 	Info_SetValueForKey(userinfo, "skill", va("%.2f", skill));
-	Info_SetValueForKey(userinfo, "teampref", team);
-	// handicap
-	if (skill >= 1 && skill < 2) {
-		Info_SetValueForKey(userinfo, "handicap", "50");
-	} else if (skill >= 2 && skill < 3) {
-		Info_SetValueForKey(userinfo, "handicap", "70");
-	} else if (skill >= 3 && skill < 4) {
-		Info_SetValueForKey(userinfo, "handicap", "90");
-	}
+	Info_SetValueForKey(userinfo, "team", team);
 	// model
 	key = "model";
 	model = Info_ValueForKey(botinfo, key);
+	modelSet = (*model);
 
-	if (!*model) {
-		model = "visor/default";
+	if (!modelSet) {
+		model = DEFAULT_MODEL;
 	}
 
 	Info_SetValueForKey(userinfo, key, model);
@@ -724,7 +718,11 @@ static void G_AddBot(const char *name, float skill, const char *team, int delay,
 	headmodel = Info_ValueForKey(botinfo, key);
 
 	if (!*headmodel) {
-		headmodel = model;
+		if (!modelSet) {
+			headmodel = DEFAULT_HEAD;
+		} else {
+			headmodel = model;
+		}
 	}
 
 	Info_SetValueForKey(userinfo, key, headmodel);

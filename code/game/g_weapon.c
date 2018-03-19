@@ -489,6 +489,8 @@ void Weapon_Beamgun_Fire(gentity_t *ent) {
 =======================================================================================================================================
 */
 
+#define MAX_RAIL_HITS 4
+
 /*
 =======================================================================================================================================
 Weapon_Railgun_Fire
@@ -497,7 +499,7 @@ Weapon_Railgun_Fire
 void Weapon_Railgun_Fire(gentity_t *ent) {
 	vec3_t end;
 	trace_t trace;
-	gentity_t *traceEnt, *tent, *unlinkedEntities[4];
+	gentity_t *traceEnt, *tent, *unlinkedEntities[MAX_RAIL_HITS];
 	int damage, i, hits, unlinked, passent;
 
 	damage = 100 * s_quadFactor;
@@ -533,7 +535,7 @@ void Weapon_Railgun_Fire(gentity_t *ent) {
 
 		unlinkedEntities[unlinked] = traceEnt;
 		unlinked++;
-	} while (unlinked < 4);
+	} while (unlinked < MAX_RAIL_HITS);
 	// link back in any entities we unlinked
 	for (i = 0; i < unlinked; i++) {
 		trap_LinkEntity(unlinkedEntities[i]);
