@@ -534,7 +534,7 @@ void BotInitLevelItems(void) {
 	// validate the modelindexes of the item info
 	for (i = 0; i < ic->numiteminfo; i++) {
 		if (!ic->iteminfo[i].modelindex) {
-			Log_Write("item %s has modelindex 0\n", ic->iteminfo[i].classname);
+			Log_Write("item %s has modelindex 0.\n", ic->iteminfo[i].classname);
 		}
 	}
 

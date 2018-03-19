@@ -166,9 +166,6 @@ typedef struct client_s {
 #endif
 	int oldServerTime;
 	qboolean csUpdated[MAX_CONFIGSTRINGS];
-#ifdef LEGACY_PROTOCOL
-	qboolean compat;
-#endif
 } client_t;
 // MAX_CHALLENGES is made large to prevent a denial of service attack that could cycle all of them out before legitimate users connected
 #define MAX_CHALLENGES 2048

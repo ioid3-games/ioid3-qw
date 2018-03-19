@@ -153,10 +153,10 @@ When building a pak file, make sure a config.cfg isn't present in it, or configs
 // every time a new pk3 file is built, this checksum must be updated.
 // the easiest way to get it is to just run the game and see what it spits out
 static const unsigned int pak_checksums[] = {
-	2854918896u,
-	2290497875u,
-	3448304105u,
-	2421778206u
+	4087071573u,
+	3709064859u,
+	908855077u,
+	977125798u
 };
 
 // if this is defined, the executable positively won't work with any paks other
@@ -1040,11 +1040,7 @@ qboolean FS_IsDemoExt(const char *filename, int namelen) {
 		if (protocol == com_protocol->integer) {
 			return qtrue;
 		}
-#ifdef LEGACY_PROTOCOL
-		if (protocol == com_legacyprotocol->integer) {
-			return qtrue;
-		}
-#endif
+
 		for (index = 0; demo_protocols[index]; index++) {
 			if (demo_protocols[index] == protocol) {
 				return qtrue;
@@ -3313,7 +3309,7 @@ static void FS_CheckPak0(void) {
 
 		if (!Q_stricmpn(curpack->pakGamename, BASEGAME, MAX_OSPATH) && strlen(pakBasename) == 4 && !Q_stricmpn(pakBasename, "pak", 3) && pakBasename[3] >= '0' && pakBasename[3] <= '0' + NUM_QW_PAKS - 1) {
 			if (curpack->checksum != pak_checksums[pakBasename[3] - '0']) {
-				Com_Printf("\n\n**************************************************\nWARNING: "BASEGAME"/pak%d.pk3 is present but its checksum (%u) is not correct. Please re-copy /pak%d.pk3.\n**************************************************\n\n\n", pakBasename[3] - '0', curpack->checksum, pakBasename[3] - '0');
+				Com_Printf("\n\n**************************************************\nWARNING: "BASEGAME"/pak%d.pk3 is present but its checksum (%u) is not correct. Please re-copy pak%d.pk3.\n**************************************************\n\n\n", pakBasename[3] - '0', curpack->checksum, pakBasename[3] - '0');
 			}
 
 			foundPak |= 1 << (pakBasename[3] - '0');
@@ -3323,7 +3319,7 @@ static void FS_CheckPak0(void) {
 			// finally check whether this pak's checksum is listed because the user tried to trick us by renaming the file, and set foundPak's highest bit to indicate this case.
 			for (index = 0; index < ARRAY_LEN(pak_checksums); index++) {
 				if (curpack->checksum == pak_checksums[index]) {
-					Com_Printf("\n\n**************************************************\nWARNING: %s is renamed pak file %s%cpak%d.pk3. Please rename, or remove this file.\n**************************************************\n\n\n", curpack->pakFilename, BASEGAME, PATH_SEP, index);
+					Com_Printf("\n\n**************************************************\nWARNING: %s is renamed pak file %s%cpak%d.pk3. Please remove this file.\n**************************************************\n\n\n", curpack->pakFilename, BASEGAME, PATH_SEP, index);
 					foundPak |= 0x80000000;
 				}
 			}

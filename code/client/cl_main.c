@@ -700,24 +700,14 @@ void CL_Record_f(void) {
 	if (Cmd_Argc() == 2) {
 		s = Cmd_Argv(1);
 		Q_strncpyz(demoName, s, sizeof(demoName));
-#ifdef LEGACY_PROTOCOL
-		if (clc.compat) {
-			Com_sprintf(name, sizeof(name), "demos/%s.%s%d", demoName, DEMOEXT, com_legacyprotocol->integer);
-		} else
-#endif
-			Com_sprintf(name, sizeof(name), "demos/%s.%s%d", demoName, DEMOEXT, com_protocol->integer);
+		Com_sprintf(name, sizeof(name), "demos/%s.%s%d", demoName, DEMOEXT, com_protocol->integer);
 	} else {
 		int number;
 
 		// scan for a free demo name
 		for (number = 0; number <= 9999; number++) {
 			CL_DemoFilename(number, demoName, sizeof(demoName));
-#ifdef LEGACY_PROTOCOL
-			if (clc.compat) {
-				Com_sprintf(name, sizeof(name), "demos/%s.%s%d", demoName, DEMOEXT, com_legacyprotocol->integer);
-			} else
-#endif
-				Com_sprintf(name, sizeof(name), "demos/%s.%s%d", demoName, DEMOEXT, com_protocol->integer);
+			Com_sprintf(name, sizeof(name), "demos/%s.%s%d", demoName, DEMOEXT, com_protocol->integer);
 
 			if (!FS_FileExists(name)) {
 				break; // file doesn't exist
@@ -959,37 +949,18 @@ CL_WalkDemoExt
 static int CL_WalkDemoExt(char *arg, char *name, int *demofile) {
 	int i = 0;
 	*demofile = 0;
-#ifdef LEGACY_PROTOCOL
-	if (com_legacyprotocol->integer > 0) {
-		Com_sprintf(name, MAX_OSPATH, "demos/%s.%s%d", arg, DEMOEXT, com_legacyprotocol->integer);
-		FS_FOpenFileRead(name, demofile, qtrue);
 
-		if (*demofile) {
-			Com_Printf("Demo file: %s\n", name);
-			return com_legacyprotocol->integer;
-		}
-	}
+	Com_sprintf(name, MAX_OSPATH, "demos/%s.%s%d", arg, DEMOEXT, com_protocol->integer);
+	FS_FOpenFileRead(name, demofile, qtrue);
 
-	if (com_protocol->integer != com_legacyprotocol->integer)
-#endif
-	{
-		Com_sprintf(name, MAX_OSPATH, "demos/%s.%s%d", arg, DEMOEXT, com_protocol->integer);
-		FS_FOpenFileRead(name, demofile, qtrue);
-
-		if (*demofile) {
-			Com_Printf("Demo file: %s\n", name);
-			return com_protocol->integer;
-		}
+	if (*demofile) {
+		Com_Printf("Demo file: %s\n", name);
+		return com_protocol->integer;
 	}
 
 	Com_Printf("Not found: %s\n", name);
 
 	while (demo_protocols[i]) {
-#ifdef LEGACY_PROTOCOL
-		if (demo_protocols[i] == com_legacyprotocol->integer) {
-			continue;
-		}
-#endif
 		if (demo_protocols[i] == com_protocol->integer) {
 			continue;
 		}
@@ -1061,11 +1032,7 @@ void CL_PlayDemo_f(void) {
 			}
 		}
 
-		if (demo_protocols[i] || protocol == com_protocol->integer
-#ifdef LEGACY_PROTOCOL
-			|| protocol == com_legacyprotocol->integer
-#endif
-		) {
+		if (demo_protocols[i] || protocol == com_protocol->integer) {
 			Com_sprintf(name, sizeof(name), "demos/%s", arg);
 			FS_FOpenFileRead(name, &clc.demofile, qtrue);
 		} else {
@@ -1099,13 +1066,6 @@ void CL_PlayDemo_f(void) {
 	clc.demoplaying = qtrue;
 
 	Q_strncpyz(clc.servername, arg, sizeof(clc.servername));
-#ifdef LEGACY_PROTOCOL
-	if (protocol <= com_legacyprotocol->integer) {
-		clc.compat = qtrue;
-	} else {
-		clc.compat = qfalse;
-	}
-#endif
 	// read demo messages until connected
 	while (clc.state >= CA_CONNECTED && clc.state < CA_PRIMED) {
 		CL_ReadDemoMessage();
@@ -2153,17 +2113,7 @@ void CL_CheckForResend(void) {
 			port = Cvar_VariableValue("net_qport");
 
 			Q_strncpyz(info, Cvar_InfoString(CVAR_USERINFO), sizeof(info));
-#ifdef LEGACY_PROTOCOL
-			if (com_legacyprotocol->integer == com_protocol->integer) {
-				clc.compat = qtrue;
-			}
-
-			if (clc.compat) {
-				Info_SetValueForKey(info, "protocol", va("%i", com_legacyprotocol->integer));
-			} else
-#endif
-				Info_SetValueForKey(info, "protocol", va("%i", com_protocol->integer));
-
+			Info_SetValueForKey(info, "protocol", va("%i", com_protocol->integer));
 			Info_SetValueForKey(info, "qport", va("%i", port));
 			Info_SetValueForKey(info, "challenge", va("%i", clc.challenge));
 
@@ -2391,24 +2341,10 @@ void CL_ConnectionlessPacket(netadr_t from, msg_t *msg) {
 			ver = atoi(strver);
 
 			if (ver != com_protocol->integer) {
-#ifdef LEGACY_PROTOCOL
-				if (com_legacyprotocol->integer > 0) {
-					// server is ioq3 but has a different protocol than we do. Fall back to legacy protocol.
-					clc.compat = qtrue;
-
-					Com_Printf(S_COLOR_YELLOW "Warning: Server reports protocol version %d, we have %d. Trying legacy protocol %d.\n", ver, com_protocol->integer, com_legacyprotocol->integer);
-				} else
-#endif
-				{
-					Com_Printf(S_COLOR_YELLOW "Warning: Server reports protocol version %d, we have %d. Trying anyways.\n", ver, com_protocol->integer);
-				}
+				Com_Printf(S_COLOR_YELLOW "Warning: Server reports protocol version %d, we have %d. Trying anyways.\n", ver, com_protocol->integer);
 			}
 		}
-#ifdef LEGACY_PROTOCOL
-		else {
-			clc.compat = qtrue;
-		}
-#endif
+
 		if (!*c || challenge != clc.challenge) {
 			Com_Printf("Bad challenge for challengeResponse. Ignored.\n");
 			return;
@@ -2453,11 +2389,9 @@ void CL_ConnectionlessPacket(netadr_t from, msg_t *msg) {
 			Com_Printf("ConnectResponse with bad challenge received. Ignored.\n");
 			return;
 		}
-#ifdef LEGACY_PROTOCOL
-		Netchan_Setup(NS_CLIENT, &clc.netchan, from, Cvar_VariableValue("net_qport"), clc.challenge, clc.compat);
-#else
-		Netchan_Setup(NS_CLIENT, &clc.netchan, from, Cvar_VariableValue("net_qport"), clc.challenge, qfalse);
-#endif
+
+		Netchan_Setup(NS_CLIENT, &clc.netchan, from, Cvar_VariableValue("net_qport"), clc.challenge);
+
 		clc.state = CA_CONNECTED;
 		clc.lastPacketSentTime = -9999; // send first packet immediately
 		return;
@@ -3489,11 +3423,7 @@ void CL_ServerInfoPacket(netadr_t from, msg_t *msg) {
 	// if this isn't the correct protocol version, ignore it
 	prot = atoi(Info_ValueForKey(infoString, "protocol"));
 
-	if (prot != com_protocol->integer
-#ifdef LEGACY_PROTOCOL
-		&& prot != com_legacyprotocol->integer
-#endif
-	) {
+	if (prot != com_protocol->integer) {
 		Com_DPrintf("Different protocol info packet: %s\n", infoString);
 		return;
 	}
