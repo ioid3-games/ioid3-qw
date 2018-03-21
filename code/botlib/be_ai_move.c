@@ -1257,7 +1257,7 @@ BotWalkInDirection
 */
 int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 	vec3_t hordir, cmdmove, velocity, tmpdir, origin;
-	int moveflags, presencetype, maxframes, cmdframes, stopevent, gapdist;
+	int moveflags, presencetype, maxframes, cmdframes;
 	aas_clientmove_t move;
 	qboolean predictSuccess;
 
@@ -1284,6 +1284,13 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 		hordir[2] = 0;
 
 		VectorNormalize(hordir);
+		// if the bot is not supposed to jump
+		if (!(type & MOVE_JUMP)) {
+			// if there is a gap, try to jump over it
+			if (BotGapDistance(ms->origin, hordir, 400, ms->entitynum)) {
+				type |= MOVE_JUMP;
+			}
+		}
 		// get the presence type for the movement
 		if ((type & MOVE_CROUCH) && !(type & MOVE_JUMP)) {
 			presencetype = PRESENCE_CROUCH;
@@ -1299,7 +1306,6 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			cmdmove[2] = 400;
 			maxframes = PREDICTIONTIME_JUMP / 0.1;
 			cmdframes = 1;
-			stopevent = SE_HITGROUND|SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA;
 		} else {
 			if (type & MOVE_CROUCH) {
 				cmdmove[2] = -400;
@@ -1307,7 +1313,6 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 
 			maxframes = 2;
 			cmdframes = 2;
-			stopevent = SE_HITGROUNDDAMAGE|SE_GAP|SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA;
 		}
 
 		//AAS_ClearShownDebugLines();
@@ -1315,47 +1320,40 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 		VectorCopy(ms->origin, origin);
 
 		origin[2] += 0.5;
-		predictSuccess = AAS_PredictClientMovement(&move, ms->entitynum, origin, presencetype, qtrue, velocity, cmdmove, cmdframes, maxframes, 0.1f, stopevent, 0, qfalse);
+		predictSuccess = AAS_PredictClientMovement(&move, ms->entitynum, origin, presencetype, qtrue, velocity, cmdmove, cmdframes, maxframes, 0.1f, SE_HITGROUND|SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_GAP, 0, qfalse); // qtrue
 		// check if prediction failed
 		if (!predictSuccess) {
 			//botimport.Print(PRT_MESSAGE, "client %d: prediction was stuck in loop\n", ms->client);
 			return qfalse;
 		}
-		// if prediction time wasn't enough to fully predict the movement
-		if (move.frames >= maxframes && (type & MOVE_JUMP)) {
-			//botimport.Print(PRT_MESSAGE, "client %d: max prediction frames\n", ms->client);
-			return qfalse;
-		}
-		// don't enter slime or lava and don't fall from too high
-		if (move.stopevent & (SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE)) {
+		// don't fall from too high, don't enter slime or lava and don't fall in gaps
+		if (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_GAP)) {
 			//botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, would be hurt ", ms->client, move.frames, maxframes);
+			//if (move.stopevent & SE_HITGROUNDDAMAGE) botimport.Print(PRT_MESSAGE, "hitground\n");
 			//if (move.stopevent & SE_ENTERSLIME) botimport.Print(PRT_MESSAGE, "slime\n");
 			//if (move.stopevent & SE_ENTERLAVA) botimport.Print(PRT_MESSAGE, "lava\n");
-			//if (move.stopevent & SE_HITGROUNDDAMAGE) botimport.Print(PRT_MESSAGE, "hitground\n");
-			return qfalse;
-		}
-		// don't fall in gaps
-		if (move.stopevent & SE_GAP) {
-			//botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, there is a gap\n", ms->client, move.frames, maxframes);
+			//if (move.stopevent & SE_GAP) botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, there is a gap\n", ms->client, move.frames, maxframes);
 			return qfalse;
 		}
 		// if ground was hit
 		if (move.stopevent & SE_HITGROUND) {
 			// check for nearby gap
 			VectorNormalize2(move.velocity, tmpdir);
-			gapdist = BotGapDistance(move.endpos, tmpdir, 100, ms->entitynum);
 
-			if (gapdist > 0) {
+			if (BotGapDistance(move.endpos, tmpdir, 400, ms->entitynum)) {
 				//botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, hit ground near gap (move direction)\n", ms->client, move.frames, maxframes);
 				return qfalse;
 			}
 
-			gapdist = BotGapDistance(move.endpos, hordir, 100, ms->entitynum);
-
-			if (gapdist > 0) {
+			if (BotGapDistance(move.endpos, hordir, 400, ms->entitynum)) {
 				//botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, hit ground near gap (desired direction)\n", ms->client, move.frames, maxframes);
 				return qfalse;
 			}
+		}
+		// if prediction time wasn't enough to fully predict the movement
+		if (move.frames >= maxframes && (type & MOVE_JUMP)) {
+			//botimport.Print(PRT_MESSAGE, "client %d: max prediction frames\n", ms->client);
+			return qfalse;
 		}
 
 		//AAS_DrawCross(move.endpos, 4, LINECOLOR_BLUE);
@@ -1405,7 +1403,7 @@ BotCheckBlocked
 void BotCheckBlocked(bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_moveresult_t *result) {
 	vec3_t mins, maxs, end, up = {0, 0, 1};
 	bsp_trace_t trace;
-	int currentspeed;
+	float currentspeed;
 
 	// test for entities obstructing the bot's path
 	AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
@@ -1413,31 +1411,31 @@ void BotCheckBlocked(bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_mover
 	if (fabs(DotProduct(dir, up)) < 0.7) {
 		mins[2] += sv_maxstep->value;
 	}
-	// get the current speed
-	currentspeed = DotProduct(ms->velocity, dir);
-	// 1st: check for distant obstacles to avoid, depending on current speed
-	VectorMA(ms->origin, currentspeed + 2, dir, end);
-	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY);
-	// if not hitting the world entity
-	if (trace.entityNum != ENTITYNUM_WORLD && trace.entityNum != ENTITYNUM_NONE) {
+	// get the current speed (keep some minimum speed for calculations?)
+	currentspeed = DotProduct(ms->velocity, dir) + 10;
+	// do a full trace to check for distant obstacles to avoid, depending on current speed
+	VectorMA(ms->origin, currentspeed * 1.25, dir, end);
+	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
+	// if not started in solid and NOT hitting the world entity
+	if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE && trace.entityNum != ENTITYNUM_WORLD) {
 		result->blocked = qtrue;
 		result->blockentity = trace.entityNum;
-	// 2nd: check if the bot is standing on something and if not in an area with reachability
+	// if the bot is standing on something and not in an area with reachability
 	} else if (checkbottom && !AAS_AreaReachability(ms->areanum)) {
-		VectorMA(ms->origin, -2, up, end);
-		trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY);
-		// if not hitting the world entity
-		if (trace.entityNum != ENTITYNUM_WORLD && trace.entityNum != ENTITYNUM_NONE) {
+		VectorMA(ms->origin, -4, up, end);
+		trace = AAS_TraceEntities(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
+		// if not started in solid and hitting an entity
+		if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE) {
 			result->blocked = qtrue;
 			result->blockentity = trace.entityNum;
 			result->flags |= MOVERESULT_ONTOPOFOBSTACLE;
 		}
-	// 3rd: check for world entity hit before hitting nearby entities (... can cause entities to go unnoticed).
+	// check for nearby entities only (sometimes world entity is hit before hitting nearby entities... this can cause entities to go unnoticed).
 	} else {
-		VectorMA(ms->origin, 2, dir, end);
-		trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY);
-		// if hitting the world entity
-		if (trace.entityNum != ENTITYNUM_NONE) {
+		VectorMA(ms->origin, 4, dir, end);
+		trace = AAS_TraceEntities(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
+		// if not started in solid and hitting an entity
+		if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE) {
 			result->blocked = qtrue;
 			result->blockentity = trace.entityNum;
 		}
@@ -1510,18 +1508,22 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 	// if going towards a crouch area
 	if (!(AAS_AreaPresenceType(reach->areanum) & PRESENCE_NORMAL)) {
 		// if pretty close to the reachable area
-		if (dist < (20 + currentspeed) * 0.2f) {
+		if (dist < (200 + currentspeed) * 0.1f) {
 			EA_Crouch(ms->client);
 		}
 	}
 
-	gapdist = BotGapDistance(ms->origin, hordir, 100, ms->entitynum);
+	gapdist = BotGapDistance(ms->origin, hordir, 100, ms->entitynum); // Tobias NOTE: in a perfect world we would not need this! Try to get rid of gap checking here (it works fine, but it looks ugly)
 
 	if (ms->moveflags & MFL_WALK) {
-		speed = 200;
+		if (gapdist > 0) {
+			speed = 200 - (180 - gapdist);
+		} else {
+			speed = 200;
+		}
 	} else {
 		if (gapdist > 0) {
-			speed = 400 - (200 - 2 * gapdist);
+			speed = 400 - (360 - gapdist * 2);
 		} else {
 			speed = 400;
 		}
@@ -1722,11 +1724,21 @@ BotTravel_WalkOffLedge
 =======================================================================================================================================
 */
 bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t *reach) {
-	vec3_t hordir;
-	float dist, speed;
+	vec3_t hordir, dir, cmdmove, velocity;
+	float dist, speed, reachhordist;
 	int gapdist;
 	bot_moveresult_t_cleared(result);
+	aas_clientmove_t move;
 
+	// check if the bot is blocked by anything
+	VectorSubtract(reach->start, ms->origin, dir);
+	VectorNormalize(dir);
+	BotCheckBlocked(ms, dir, qtrue, &result);
+	// if the reachability start and end are practically above each other
+	VectorSubtract(reach->end, reach->start, dir);
+
+	dir[2] = 0;
+	reachhordist = VectorLength(dir);
 	// walk straight to the reachability start
 	hordir[0] = reach->start[0] - ms->origin[0];
 	hordir[1] = reach->start[1] - ms->origin[1];
@@ -1741,16 +1753,99 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 		hordir[2] = 0;
 
 		VectorNormalize(hordir);
+		// get command movement
+		VectorScale(hordir, 400, cmdmove);
+		VectorCopy(ms->velocity, velocity);
+
+		AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_TOUCHJUMPPAD, 0, qfalse); //qtrue
 		// check for nearby gap
 		gapdist = BotGapDistance(reach->end, hordir, 400, ms->entitynum);
-
-		if (gapdist > 0) {
-			speed = 400 - (300 - 0.75 * gapdist);
+		// if there is no gap under the ledge and the bot wants to walk or if the bot will fall into slime, lava or onto a jumppad
+		if (reachhordist < 20 && (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_TOUCHJUMPPAD) || ms->moveflags & MFL_WALK)) {
+			// if there is a gap or a ledge behind the current ledge (like a cascade)
+			if (gapdist > 0) {
+				speed = 200 - (100 - gapdist * 0.25);
+#ifdef DEBUG
+				//		O S   			(origin)O -> (reach)S < 64
+				//--------|
+				//        |
+				//        |
+				//        |
+				//        |E  			(reach)S -> (reach)E < 20
+				//        -------------|	GAP!
+				botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "BotTravel_WalkOffLedge: reachhordist = %f, dist = %f, Gap found!\n", reachhordist, dist);
+				if (move.stopevent & SE_HITGROUNDDAMAGE) botimport.Print(PRT_MESSAGE, S_COLOR_CYAN "hitground\n");
+				if (move.stopevent & SE_ENTERSLIME) botimport.Print(PRT_MESSAGE, S_COLOR_GREEN "slime\n");
+				if (move.stopevent & SE_ENTERLAVA) botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "lava\n");
+				if (move.stopevent & SE_TOUCHJUMPPAD) botimport.Print(PRT_MESSAGE, S_COLOR_BLUE "jumppad\n");
+#endif // DEBUG
+			} else {
+				speed = 200;
+#ifdef DEBUG
+				//		O S   			(origin)O -> (reach)S < 64
+				//--------|
+				//        |
+				//        |
+				//        |
+				//        |E  			(reach)S -> (reach)E < 20
+				//        -----------------------------------------
+				botimport.Print(PRT_MESSAGE, S_COLOR_CYAN "BotTravel_WalkOffLedge: reachhordist = %f, dist = %f, No gap.\n", reachhordist, dist);
+				if (move.stopevent & SE_HITGROUNDDAMAGE) botimport.Print(PRT_MESSAGE, S_COLOR_CYAN "hitground\n");
+				if (move.stopevent & SE_ENTERSLIME) botimport.Print(PRT_MESSAGE, S_COLOR_GREEN "slime\n");
+				if (move.stopevent & SE_ENTERLAVA) botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "lava\n");
+				if (move.stopevent & SE_TOUCHJUMPPAD) botimport.Print(PRT_MESSAGE, S_COLOR_BLUE "jumppad\n");
+#endif // DEBUG
+			}
+/*
+		else if (!AAS_HorizontalVelocityForJump(0, reach->start, reach->end, &speed)) {
+			speed = 400;
+*/
+		} else {
+			if (gapdist > 0) {
+				speed = 400 - (300 - gapdist * 0.75);
+#ifdef DEBUG
+				//		O S   			(origin)O -> (reach)S < 64
+				//--------|
+				//        |
+				//        |
+				//        |
+				//        |  	E		(reach)S -> (reach)E > 20
+				//        |     -------|	GAP!
+				botimport.Print(PRT_MESSAGE, S_COLOR_RED "BotTravel_WalkOffLedge: reachhordist = %f, dist = %f, Gap found!\n", reachhordist, dist);
+#endif // DEBUG
+			} else {
+				speed = 400;
+#ifdef DEBUG
+				//		O S   			(origin)O -> (reach)S < 64
+				//--------|
+				//        |
+				//        |
+				//        |
+				//        |  	E		(reach)S -> (reach)E > 20
+				//        |     -----------------------------------
+				botimport.Print(PRT_MESSAGE, S_COLOR_MAGENTA "BotTravel_WalkOffLedge: reachhordist = %f, dist = %f, No gap.\n", reachhordist, dist);
+#endif // DEBUG
+			}
+		}
+		// looks better crouching off a ledge
+		if (reachhordist < 20) {
+			if (fabs(reach->start[2] - reach->end[2]) > sv_maxbarrier->value * 15) {
+				EA_Crouch(ms->client);
+			}
+		}
+	} else {
+		if (ms->moveflags & MFL_WALK) {
+			speed = 200;
 		} else {
 			speed = 400;
 		}
-	} else {
-		speed = 400;
+#ifdef DEBUG
+		// O	  S   			(origin)O -> (reach)S > 64
+		//--------|
+		//        |
+		//        |
+		botimport.Print(PRT_MESSAGE, S_COLOR_GREEN "BotTravel_WalkOffLedge: reachhordist = %f, dist = %f, No gap.\n", reachhordist, dist);
+#endif // DEBUG
 	}
 
 	BotCheckBlocked(ms, hordir, qtrue, &result);
@@ -3009,7 +3104,11 @@ bot_moveresult_t BotMoveInGoalArea(bot_movestate_t *ms, bot_goal_t *goal) {
 		dist = 100;
 	}
 
-	speed = 400 - (400 - 4 * dist);
+	if (ms->moveflags & MFL_WALK) {
+		speed = 200 - (200 - 2 * dist);
+	} else {
+		speed = 400 - (400 - 4 * dist);
+	}
 
 	if (speed < 10) {
 		speed = 0;
@@ -3382,6 +3481,7 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 							ms->lastreachnum = lastreachnum;
 							ms->lastareanum = areas[i];
 							//botimport.Print(PRT_MESSAGE, "found jumppad reachability hard!!\n");
+							break;
 						}
 					}
 
