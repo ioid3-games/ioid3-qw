@@ -1237,6 +1237,13 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 		hordir[2] = 0;
 
 		VectorNormalize(hordir);
+		// if the bot is not supposed to jump
+		if (!(type & MOVE_JUMP)) {
+			// if there is a gap, try to jump over it
+			if (BotGapDistance(ms->origin, hordir, 400, ms->entitynum)) {
+				type |= MOVE_JUMP;
+			}
+		}
 		// get command movement
 		VectorScale(hordir, speed, cmdmove);
 		VectorCopy(ms->velocity, velocity);
@@ -1276,12 +1283,12 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			// check for nearby gap
 			VectorNormalize2(move.velocity, tmpdir);
 
-			if (BotGapDistance(move.endpos, tmpdir, 100, ms->entitynum)) {
+			if (BotGapDistance(move.endpos, tmpdir, 400, ms->entitynum)) {
 				//botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, hit ground near gap (move direction)\n", ms->client, move.frames, maxframes);
 				return qfalse;
 			}
 
-			if (BotGapDistance(move.endpos, hordir, 100, ms->entitynum)) {
+			if (BotGapDistance(move.endpos, hordir, 400, ms->entitynum)) {
 				//botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, hit ground near gap (desired direction)\n", ms->client, move.frames, maxframes);
 				return qfalse;
 			}
@@ -1336,7 +1343,7 @@ BotCheckBlocked
 void BotCheckBlocked(bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_moveresult_t *result) {
 	vec3_t mins, maxs, end, up = {0, 0, 1};
 	bsp_trace_t trace;
-	int currentspeed;
+	float currentspeed;
 
 	// test for entities obstructing the bot's path
 	AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
@@ -1460,7 +1467,7 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 		}
 	} else {
 		if (gapdist > 0) {
-			speed = 400 - (360 - 2 * gapdist);
+			speed = 400 - (360 - gapdist * 2);
 		} else {
 			speed = 400;
 		}
@@ -1703,6 +1710,10 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 	bot_moveresult_t_cleared(result);
 	aas_clientmove_t move;
 
+	// check if the bot is blocked by anything
+	VectorSubtract(reach->start, ms->origin, dir);
+	VectorNormalize(dir);
+	BotCheckBlocked(ms, dir, qtrue, &result);
 	// if the reachability start and end are practically above each other
 	VectorSubtract(reach->end, reach->start, dir);
 
@@ -1731,7 +1742,7 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 		if (reachhordist < 20 && (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_TOUCHJUMPPAD) || ms->moveflags & MFL_WALK)) {
 			// if there is a gap or a ledge behind the current ledge (like a cascade)
 			if (gapdist > 0) {
-				speed = 200 - (100 - 0.25 * gapdist);
+				speed = 200 - (100 - gapdist * 0.25);
 #ifdef DEBUG
 				//		O S   			(origin)O -> (reach)S < 64
 				//--------|
@@ -1763,9 +1774,13 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 				if (move.stopevent & SE_TOUCHJUMPPAD) botimport.Print(PRT_MESSAGE, S_COLOR_BLUE "jumppad\n");
 #endif // DEBUG
 			}
+/*
+		else if (!AAS_HorizontalVelocityForJump(0, reach->start, reach->end, &speed)) {
+			speed = 400;
+*/
 		} else {
 			if (gapdist > 0) {
-				speed = 400 - (300 - 0.75 * gapdist);
+				speed = 400 - (300 - gapdist * 0.75);
 #ifdef DEBUG
 				//		O S   			(origin)O -> (reach)S < 64
 				//--------|
