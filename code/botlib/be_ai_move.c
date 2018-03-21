@@ -1496,6 +1496,8 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 	hordir[2] = 0;
 	dist = VectorNormalize(hordir);
 
+	BotCheckBlocked(ms, hordir, qtrue, &result);
+
 	if (dist < 128) {
 		// walk straight to the reachability end
 		hordir[0] = reach->end[0] - ms->origin[0];
@@ -1577,7 +1579,6 @@ bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *
 	hordir[0] = reach->start[0] - ms->origin[0];
 	hordir[1] = reach->start[1] - ms->origin[1];
 	hordir[2] = 0;
-
 	dist = VectorNormalize(hordir);
 
 	BotCheckBlocked(ms, hordir, qtrue, &result);
@@ -1744,7 +1745,7 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 	hordir[1] = reach->start[1] - ms->origin[1];
 	hordir[2] = 0;
 	dist = VectorNormalize(hordir);
-	// check if the bot is blocked by anything
+
 	BotCheckBlocked(ms, hordir, qtrue, &result);
 	// if pretty close to the start focus on the reachability end
 	if (dist < 64) {
