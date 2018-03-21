@@ -1219,17 +1219,11 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 	}
 	// if the bot is on the ground
 	if (ms->moveflags & MFL_ONGROUND) {
+		// remove barrier jump flag
+		ms->moveflags &= ~MFL_BARRIERJUMP;
 		// if there is a barrier the bot can jump on
 		if (BotCheckBarrierJump(ms, dir, speed)) {
 			return qtrue;
-		}
-		// remove barrier jump flag
-		ms->moveflags &= ~MFL_BARRIERJUMP;
-		// get the presence type for the movement
-		if ((type & MOVE_CROUCH) && !(type & MOVE_JUMP)) {
-			presencetype = PRESENCE_CROUCH;
-		} else {
-			presencetype = PRESENCE_NORMAL;
 		}
 		// horizontal direction
 		hordir[0] = dir[0];
@@ -1244,6 +1238,12 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 				type |= MOVE_JUMP;
 			}
 		}
+		// get the presence type for the movement
+		if ((type & MOVE_CROUCH) && !(type & MOVE_JUMP)) {
+			presencetype = PRESENCE_CROUCH;
+		} else {
+			presencetype = PRESENCE_NORMAL;
+		}
 		// get command movement
 		VectorScale(hordir, speed, cmdmove);
 		VectorCopy(ms->velocity, velocity);
@@ -1254,6 +1254,10 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			maxframes = PREDICTIONTIME_JUMP / 0.1;
 			cmdframes = 1;
 		} else {
+			if (type & MOVE_CROUCH) {
+				cmdmove[2] = -400;
+			}
+
 			maxframes = 2;
 			cmdframes = 2;
 		}
@@ -1435,6 +1439,8 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 	hordir[1] = reach->start[1] - ms->origin[1];
 	hordir[2] = 0;
 	dist = VectorNormalize(hordir);
+
+	BotCheckBlocked(ms, hordir, qtrue, &result);
 
 	if (dist < 10) {
 		// walk straight to the reachability end
@@ -1724,6 +1730,8 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 	hordir[1] = reach->start[1] - ms->origin[1];
 	hordir[2] = 0;
 	dist = VectorNormalize(hordir);
+
+	BotCheckBlocked(ms, hordir, qtrue, &result);
 	// if pretty close to the start focus on the reachability end
 	if (dist < 64) {
 		hordir[0] = reach->end[0] - ms->origin[0];
