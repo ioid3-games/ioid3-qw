@@ -95,7 +95,7 @@ void AAS_InitSettings(void) {
 	aassettings.phys_maxstep = LibVarValue("phys_maxstep", "19");
 	aassettings.phys_maxsteepness = LibVarValue("phys_maxsteepness", "0.7");
 	aassettings.phys_maxwaterjump = LibVarValue("phys_maxwaterjump", "12");
-	aassettings.phys_maxbarrier = LibVarValue("phys_maxbarrier", "43");
+	aassettings.phys_maxbarrier = LibVarValue("phys_maxbarrier", "42");
 	aassettings.phys_jumpvel = LibVarValue("phys_jumpvel", "200");
 	aassettings.phys_falldelta5 = LibVarValue("phys_falldelta5", "40");
 	aassettings.phys_falldelta10 = LibVarValue("phys_falldelta10", "60");
@@ -1025,14 +1025,17 @@ int AAS_ClientMovementPrediction(struct aas_clientmove_s *move, int entnum, vec3
 			aas_trace_t gaptrace;
 
 			VectorCopy(org, start);
+
+			start[2] += 24;
+
 			VectorCopy(start, end);
 
 			end[2] -= 48 + aassettings.phys_maxbarrier;
 			gaptrace = AAS_TraceClientBBox(start, end, PRESENCE_CROUCH, entnum);
 			// if solid is found the bot cannot walk any further and will not fall into a gap
 			if (!gaptrace.startsolid) {
-				// if it is a gap (lower than one step height)
-				if (gaptrace.endpos[2] < org[2] - aassettings.phys_maxstep - 1) {
+				// if it is a gap (lower than phys_maxbarrier height)
+				if (gaptrace.endpos[2] < org[2] - aassettings.phys_maxbarrier) {
 					if (!(AAS_PointContents(end) & CONTENTS_WATER)) {
 						VectorCopy(lastorg, move->endpos);
 						VectorScale(frame_test_vel, 1 / frametime, move->velocity);

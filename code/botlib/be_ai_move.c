@@ -1103,7 +1103,7 @@ int BotGapDistance(vec3_t origin, vec3_t hordir, int checkdist, int entnum) {
 		// if solid is found the bot can't walk any further and fall into a gap
 		if (!trace.startsolid) {
 			// if it is a gap
-			if (trace.endpos[2] < startz - sv_maxstep->value - 8) {
+			if (trace.endpos[2] < startz - sv_maxbarrier->value) {
 				VectorCopy(trace.endpos, end);
 
 				end[2] -= 20;
@@ -1284,13 +1284,6 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 		hordir[2] = 0;
 
 		VectorNormalize(hordir);
-		// if the bot is not supposed to jump
-		if (!(type & MOVE_JUMP)) {
-			// if there is a gap, try to jump over it
-			if (BotGapDistance(ms->origin, hordir, 400, ms->entitynum)) {
-				type |= MOVE_JUMP;
-			}
-		}
 		// get the presence type for the movement
 		if ((type & MOVE_CROUCH) && !(type & MOVE_JUMP)) {
 			presencetype = PRESENCE_CROUCH;
@@ -1489,7 +1482,8 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 	int gapdist;
 	vec3_t hordir;
 	bot_moveresult_t_cleared(result);
-
+// Tobias CHECK: not really needed?
+/*
 	// first walk straight to the reachability start
 	hordir[0] = reach->start[0] - ms->origin[0];
 	hordir[1] = reach->start[1] - ms->origin[1];
@@ -1498,15 +1492,21 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 
 	BotCheckBlocked(ms, hordir, qtrue, &result);
 
-	if (dist < 128) {
+	if (dist < 10) {
+*/
 		// walk straight to the reachability end
 		hordir[0] = reach->end[0] - ms->origin[0];
 		hordir[1] = reach->end[1] - ms->origin[1];
 		hordir[2] = 0;
 		dist = VectorNormalize(hordir);
-	}
+//	}
+// Tobias END
 	// get the current speed
 	currentspeed = DotProduct(ms->velocity, hordir);
+	// if using the scout powerup
+	if (ms->moveflags & MFL_SCOUT) {
+		currentspeed *= SCOUT_SPEED_SCALE;
+	}
 	// if going towards a crouch area
 	if (!(AAS_AreaPresenceType(reach->areanum) & PRESENCE_NORMAL)) {
 		// if pretty close to the reachable area
@@ -1571,9 +1571,11 @@ BotTravel_BarrierJump
 =======================================================================================================================================
 */
 bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *reach) {
-	float dist, currentspeed;
-	vec3_t hordir;
+	float dist, speed, currentspeed;
+	vec3_t hordir, cmdmove, velocity;
 	bot_moveresult_t_cleared(result);
+	aas_clientmove_t move;
+	qboolean isDanger = qfalse;
 
 	// walk straight to reachability start
 	hordir[0] = reach->start[0] - ms->origin[0];
@@ -1582,14 +1584,34 @@ bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *
 	dist = VectorNormalize(hordir);
 
 	BotCheckBlocked(ms, hordir, qtrue, &result);
+	// get command movement
+	VectorScale(hordir, 400, cmdmove);
+	VectorCopy(ms->velocity, velocity);
 	// get the current speed
 	currentspeed = DotProduct(ms->velocity, hordir);
-	// if pretty close to the barrier
-	if (dist < (sv_maxbarrier->value + currentspeed) * 0.27f) {
-		EA_Jump(ms->client);
+
+	AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_GAP, 0, qfalse);
+	// reduce the speed if the bot will fall into slime, lava or into a gap
+	if (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_GAP) && dist < 150) {
+		isDanger = qtrue;
+		// if pretty close to the barrier
+		if (dist < (sv_maxbarrier->value + currentspeed) * 0.01f) {
+			EA_Jump(ms->client);
+		}
+	} else {
+		// if pretty close to the barrier
+		if (dist < (sv_maxbarrier->value + currentspeed) * 0.25f) {
+			EA_Jump(ms->client);
+		}
 	}
-	// always use max speed
-	EA_Move(ms->client, hordir, 400);
+
+	if (ms->moveflags & MFL_WALK || isDanger) {
+		speed = 200;
+	} else {
+		speed = 400;
+	}
+	// elementary action move in direction
+	EA_Move(ms->client, hordir, speed);
 	VectorCopy(hordir, result.movedir);
 
 	return result;
@@ -1725,11 +1747,12 @@ BotTravel_WalkOffLedge
 =======================================================================================================================================
 */
 bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t *reach) {
-	vec3_t hordir, dir, cmdmove, velocity;
+	vec3_t hordir, dir, cmdmove, velocity, mins, maxs, end = {0, 0, 1};
 	float dist, speed, reachhordist;
 	int gapdist;
 	bot_moveresult_t_cleared(result);
 	aas_clientmove_t move;
+	bsp_trace_t trace;
 
 	// check if the bot is blocked by anything
 	VectorSubtract(reach->start, ms->origin, dir);
@@ -1746,7 +1769,7 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 	hordir[2] = 0;
 	dist = VectorNormalize(hordir);
 
-	BotCheckBlocked(ms, hordir, qtrue, &result);
+//	BotCheckBlocked(ms, hordir, qtrue, &result); // Tobias CHECK: not really needed?
 	// if pretty close to the start focus on the reachability end
 	if (dist < 64) {
 		hordir[0] = reach->end[0] - ms->origin[0];
@@ -1828,8 +1851,17 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 #endif // DEBUG
 			}
 		}
-		// looks better crouching off a ledge
+
 		if (reachhordist < 20) {
+			AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
+			// test for running into something, could be just a simple wall too
+			VectorMA(ms->origin, 64, hordir, end);
+			trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
+			// if not started in solid
+			if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE) {
+				speed = 200;
+			}
+			// looks better crouching off a ledge
 			if (fabs(reach->start[2] - reach->end[2]) > sv_maxbarrier->value * 15) {
 				EA_Crouch(ms->client);
 			}
@@ -3080,8 +3112,9 @@ BotMoveInGoalArea
 */
 bot_moveresult_t BotMoveInGoalArea(bot_movestate_t *ms, bot_goal_t *goal) {
 	bot_moveresult_t_cleared(result);
-	vec3_t dir;
-	float dist, speed;
+	vec3_t dir, mins, maxs, end = {0, 0, 1};
+	bsp_trace_t trace;
+	float speed;
 #ifdef DEBUG
 	//botimport.Print(PRT_MESSAGE, "%s: moving straight to goal\n", ClientName(ms->entitynum - 1));
 	//AAS_ClearShownDebugLines();
@@ -3099,20 +3132,22 @@ bot_moveresult_t BotMoveInGoalArea(bot_movestate_t *ms, bot_goal_t *goal) {
 		result.traveltype = TRAVEL_WALK;
 	}
 
-	dist = VectorNormalize(dir);
-
-	if (dist > 100) {
-		dist = 100;
-	}
+	VectorNormalize(dir);
 
 	if (ms->moveflags & MFL_WALK) {
-		speed = 200 - (200 - 2 * dist);
+		speed = 200;
 	} else {
-		speed = 400 - (400 - 4 * dist);
-	}
-
-	if (speed < 10) {
-		speed = 0;
+		AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
+		mins[2] += sv_maxbarrier->value;
+		// test for running into something, could be just a simple wall too
+		VectorMA(ms->origin, 96, dir, end);
+		trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
+		// if not started in solid
+		if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE) {
+			speed = 200;
+		} else {
+			speed = 400;
+		}
 	}
 
 	BotCheckBlocked(ms, dir, qtrue, &result);

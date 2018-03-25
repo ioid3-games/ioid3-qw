@@ -1745,6 +1745,10 @@ void BotSetupForMovement(bot_state_t *bs) {
 		initmove.or_moveflags |= MFL_WALK;
 	}
 
+	if (bs->inventory[INVENTORY_SCOUT]) {
+		initmove.or_moveflags |= MFL_SCOUT;
+	}
+
 	VectorCopy(bs->viewangles, initmove.viewangles);
 	trap_BotInitMoveState(bs->ms, &initmove);
 }
@@ -3643,6 +3647,10 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 			BotEntityInfo(bs->client, &curbotinfo);
 			// if the bot is invisible and want to get the flag, ignore enemies
 			if (EntityIsInvisible(&curbotinfo) && bs->ltgtype == LTG_GETFLAG) {
+				continue;
+			}
+			// if trying to activate an entity, ignore enemies
+			if (bs->ainode == AINode_Seek_ActivateEntity) {
 				continue;
 			}
 			// check if we can avoid this enemy
