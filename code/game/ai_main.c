@@ -1555,7 +1555,7 @@ int BotAIStartFrame(int time) {
 
 	if (bot_pause.integer) {
 		// execute bot user commands every frame
-		for (i = 0; i < MAX_CLIENTS; i++) {
+		for (i = 0; i < level.maxclients; i++) {
 			if (!botstates[i] || !botstates[i]->inuse) {
 				continue;
 			}
@@ -1872,7 +1872,7 @@ int BotAIShutdown(int restart) {
 	// if the game is restarted for a tournament
 	if (restart) {
 		// shutdown all the bots in the botlib
-		for (i = 0; i < MAX_CLIENTS; i++) {
+		for (i = 0; i < level.maxclients; i++) {
 			if (botstates[i] && botstates[i]->inuse) {
 				BotAIShutdownClient(botstates[i]->client, restart);
 			}
