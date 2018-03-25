@@ -405,7 +405,7 @@ name:						default:	module(s):		description:
 "phys_maxstep"				"19"		be_aas_move.c	maximum step height
 "phys_maxsteepness"			"0.7"		be_aas_move.c	maximum floor steepness
 "phys_maxwaterjump"			"12"		be_aas_move.c	maximum waterjump height
-"phys_maxbarrier"			"43"		be_aas_move.c	maximum barrier height
+"phys_maxbarrier"			"42"		be_aas_move.c	maximum barrier height
 "phys_jumpvel"				"200"		be_aas_move.c	jump z velocity
 "phys_falldelta5"			"40"		be_aas_move.c
 "phys_falldelta10"			"60"		be_aas_move.c
@@ -438,8 +438,8 @@ name:						default:	module(s):		description:
 "bot_reloadcharacters"		"0"			-				reload bot character files
 "ai_gametype"				"0"			be_ai_goal.c	game type
 "droppedweight"				"1000"		be_ai_goal.c	additional dropped item weight
-"weapindex_rocketlauncher"	"12"			be_ai_move.c	rl weapon index for rocket jumping
-"weapindex_bfg10k"			"16"		be_ai_move.c	bfg weapon index for bfg jumping
+"weapindex_rocketlauncher"	"8"			be_ai_move.c	rl weapon index for rocket jumping
+"weapindex_bfg10k"			"12"		be_ai_move.c	bfg weapon index for bfg jumping
 "itemconfig"				"items.c"	be_ai_goal.c	item configuration file
 "weaponconfig"				"weapons.c"	be_ai_weap.c	weapon configuration file
 "synfile"					"syn.c"		be_ai_chat.c	file with synonyms
