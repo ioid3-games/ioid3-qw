@@ -2254,7 +2254,7 @@ BotCanCamp
 qboolean BotCanCamp(bot_state_t *bs) {
 
 	// if the bot's team does not lead
-	if (g_gametype.integer > GT_TOURNAMENT && bs->ownteamscore < bs->enemyteamscore) {
+	if (gametype > GT_TOURNAMENT && bs->ownteamscore < bs->enemyteamscore) {
 		return qfalse;
 	}
 	// if the enemy is located way higher than the bot
