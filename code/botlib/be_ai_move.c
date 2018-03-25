@@ -324,7 +324,7 @@ int BotReachabilityArea(vec3_t origin, int client) {
 
 	// check if the bot is standing on something
 	AAS_PresenceTypeBoundingBox(PRESENCE_CROUCH, mins, maxs);
-	VectorMA(origin, -3, up, end);
+	VectorMA(origin, -4, up, end);
 	bsptrace = AAS_Trace(origin, mins, maxs, end, client, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP);
 
 	if (!bsptrace.startsolid && bsptrace.fraction < 1 && bsptrace.entityNum != ENTITYNUM_NONE) {
@@ -488,7 +488,7 @@ int BotOnMover(vec3_t origin, int entnum, aas_reachability_t *reach) {
 	VectorCopy(origin, end);
 	end[2] -= 48;
 
-	trace = AAS_Trace(org, boxmins, boxmaxs, end, entnum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP);
+	trace = AAS_TraceEntities(org, boxmins, boxmaxs, end, entnum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
 
 	if (!trace.startsolid && !trace.allsolid) {
 		// NOTE: the reachability face number is the model number of the elevator
@@ -580,9 +580,9 @@ int BotOnTopOfEntity(bot_movestate_t *ms) {
 
 	AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
 	VectorMA(ms->origin, -4, up, end);
-	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
-	// if not started in solid and NOT hitting the world entity
-	if (!trace.startsolid && (trace.entityNum != ENTITYNUM_WORLD && trace.entityNum != ENTITYNUM_NONE)) {
+	trace = AAS_TraceEntities(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
+	// if not started in solid and hitting an entity
+	if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE) {
 		return trace.entityNum;
 	}
 
