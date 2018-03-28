@@ -2726,7 +2726,7 @@ int BotHasPersistantPowerupAndWeapon(bot_state_t *bs) {
 		return qtrue;
 	}
 	// if the bot can use the chain gun
-	if (bs->inventory[INVENTORY_CHAINGUN] > 0 && bs->inventory[INVENTORY_BELT] > 80) {
+	if (bs->inventory[INVENTORY_CHAINGUN] > 0 && bs->inventory[INVENTORY_BELT] > 60) {
 		return qtrue;
 	}
 	// if the bot can use the nail gun
