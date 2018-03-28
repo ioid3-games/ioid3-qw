@@ -2322,48 +2322,49 @@ qboolean BotAggression(bot_state_t *bs) {
 
 	aggression = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AGGRESSION, 0, 1);
 	selfpreservation = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_SELFPRESERVATION, 0, 1);
-	// if the enemy is located way higher than the bot.
+	// if the enemy is located way higher than the bot
 	if (bs->inventory[ENEMY_HEIGHT] > 200) {
 		return qfalse;
 	}
-	// if the bot is using the grenadelauncher.
+	// if the bot is using the grenadelauncher
 	if (bs->weaponnum == WP_GRENADELAUNCHER) {
 		return qfalse;
 	}
-	// if the bot is using the proxylauncher.
+	// if the bot is using the proxylauncher
 	if (bs->weaponnum == WP_PROXLAUNCHER) {
 		return qfalse;
 	}
-	// current enemy.
+	// current enemy
 	if (bs->enemy >= 0) {
 		BotEntityInfo(bs->enemy, &entinfo);
 
 		if (entinfo.valid) {
-			// if the enemy is using the gauntlet.
-			if (entinfo.weapon == WP_GAUNTLET) {
-				return qtrue;
-			}
-			// if the bot is using the gauntlet too.
+			// if the bot is using the gauntlet
 			if (bs->weaponnum == WP_GAUNTLET) {
 				// if attacking an obelisk
 				if (bs->enemy >= MAX_CLIENTS && (bs->enemy == redobelisk.entitynum || bs->enemy == blueobelisk.entitynum)) {
 					return qfalse;
 				}
-				// if the enemy is located higher than the bot can jump on.
+				// if the enemy is located higher than the bot can jump on
 				if (bs->inventory[ENEMY_HEIGHT] > 42) {
 					return qfalse;
 				}
-				// an extremely aggressive bot will less likely retreat.
+				// if the enemy is using the gauntlet
+				if (entinfo.weapon == WP_GAUNTLET) {
+					return qtrue;
+				}
+				// an extremely aggressive bot will less likely retreat
 				if (aggression > 0.9) {
 					return qtrue;
 				}
-				// if the enemy is really near.
+				// if the enemy is really near
 				if (bs->inventory[ENEMY_HORIZONTAL_DIST] < 200) {
 					return qtrue;
 				}
-				// if the enemy is far away, check if we can attack the enemy from behind.
-				if (bs->inventory[ENEMY_HORIZONTAL_DIST] < 500) {
+				// if the enemy is far away, check if we can attack the enemy from behind
+				if (aggression > 0.5 && bs->inventory[ENEMY_HORIZONTAL_DIST] < 500) {
 					vec3_t dir, angles;
+
 					VectorSubtract(bs->origin, entinfo.origin, dir);
 					vectoangles(dir, angles);
 					// if not in the enemy's field of vision, attack!
@@ -2371,49 +2372,57 @@ qboolean BotAggression(bot_state_t *bs) {
 						return qtrue;
 					}
 				}
-				// if the enemy is using the handgun.
+				// if the enemy is using the handgun
 				if (bs->inventory[ENEMY_HORIZONTAL_DIST] < 600 && entinfo.weapon == WP_HANDGUN) {
 					return qtrue;
 				}
-				// otherwise a bot, currently using the gauntlet, should retreat!
+				// if currently using the gauntlet, retreat!
 				return qfalse;
 			}
-			// an extremely aggressive bot will less likely retreat.
+			// if the enemy is using the gauntlet
+			if (entinfo.weapon == WP_GAUNTLET) {
+				return qtrue;
+			}
+			// an extremely aggressive bot will less likely retreat
 			if (aggression > 0.9 && bs->inventory[ENEMY_HORIZONTAL_DIST] < 200) {
 				return qtrue;
 			}
-			// if the enemy is using the BFG.
+			// if the enemy is using the bfg
 			if (entinfo.weapon == WP_BFG) {
 				return qfalse;
 			}
-			// if the enemy is using the grenadelauncher.
+			// if the enemy is using the grenadelauncher
 			if (entinfo.weapon == WP_GRENADELAUNCHER) {
 				return qfalse;
 			}
-			// if the enemy is using the proxylauncher.
+			// if the enemy is using the proxylauncher
 			if (entinfo.weapon == WP_PROXLAUNCHER) {
 				return qfalse;
 			}
-			// if the enemy has the quad damage.
+			// if the enemy has the quad damage
 			if (entinfo.powerups & (1 << PW_QUAD)) {
 				return qfalse;
 			}
-			// if the bot is out for revenge.
+			// if the bot is out for revenge
 			if (bs->enemy == bs->revenge_enemy && bs->revenge_kills > 0) {
 				return qtrue;
 			}
 		}
 	}
-	// if the bot has the quad damage powerup.
+	// if the bot has the quad damage powerup
 	if (bs->inventory[INVENTORY_QUAD]) {
 		return qtrue;
 	}
-	// if the bot has the invisibility powerup.
+	// if the bot has the invisibility powerup
 	if (bs->inventory[INVENTORY_INVISIBILITY]) {
 		return qtrue;
 	}
-	// if the bot has the regeneration powerup.
+	// if the bot has the regeneration powerup
 	if (bs->inventory[INVENTORY_REGEN]) {
+		return qtrue;
+	}
+	// if the bot has the guard powerup
+	if (bs->inventory[INVENTORY_GUARD]) {
 		return qtrue;
 	}
 	// if the bot is very low on health.
@@ -2422,72 +2431,68 @@ qboolean BotAggression(bot_state_t *bs) {
 	}
 	// if the bot is low on health.
 	if (bs->inventory[INVENTORY_HEALTH] < 100 * selfpreservation + 20) {
-		// if the bot has insufficient armor.
+		// if the bot has insufficient armor
 		if (bs->inventory[INVENTORY_ARMOR] < 40) {
 			return qfalse;
 		}
 	}
-	// if the bot has the ammoregen powerup.
+	// if the bot has the ammoregen powerup
 	if (bs->inventory[INVENTORY_AMMOREGEN]) {
 		return qtrue;
 	}
-	// if the bot has the guard powerup.
-	if (bs->inventory[INVENTORY_GUARD]) {
-		return qtrue;
-	}
-	// if the bot has the doubler powerup.
+	// if the bot has the doubler powerup
 	if (bs->inventory[INVENTORY_DOUBLER]) {
 		return qtrue;
 	}
-	// if the bot has the scout powerup.
+	// if the bot has the scout powerup
 	if (bs->inventory[INVENTORY_SCOUT]) {
 		return qtrue;
 	}
-	// if the bot can use the heavy machine gun.
+	// if the bot can use the heavy machine gun
 	if (bs->inventory[INVENTORY_HEAVY_MACHINEGUN] > 0 && bs->inventory[INVENTORY_HMG_BULLETS] > 80) {
 		return qtrue;
 	}
-	// if the bot can use the chain gun.
+	// if the bot can use the chain gun
 	if (bs->inventory[INVENTORY_CHAINGUN] > 0 && bs->inventory[INVENTORY_BELT] > 50) {
 		return qtrue;
 	}
-	// if the bot can use the shot gun.
+	// if the bot can use the shot gun
 	if (bs->inventory[INVENTORY_SHOTGUN] > 0 && bs->inventory[INVENTORY_SHELLS] > 5) {
 		return qtrue;
 	}
-	// if the bot can use the nail gun.
+	// if the bot can use the nail gun
 	if (bs->inventory[INVENTORY_NAILGUN] > 0 && bs->inventory[INVENTORY_NAILS] > 5) {
 		return qtrue;
 	}
-	// if the bot can use the phosphor gun.
+	// if the bot can use the phosphor gun
 	if (bs->inventory[INVENTORY_PHOSPHORGUN] > 0 && bs->inventory[INVENTORY_CAPSULES] > 30) {
 		return qtrue;
 	}
-	// if the bot can use the rocket launcher.
+	// if the bot can use the rocket launcher
 	if (bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 5) {
 		return qtrue;
 	}
-	// if the bot can use the beam gun.
+	// if the bot can use the beam gun
 	if (bs->inventory[INVENTORY_BEAMGUN] > 0 && bs->inventory[INVENTORY_BEAMGUN_AMMO] > 50) {
 		return qtrue;
 	}
-	// if the bot can use the railgun.
+	// if the bot can use the railgun
 	if (bs->inventory[INVENTORY_RAILGUN] > 0 && bs->inventory[INVENTORY_SLUGS] > 3) {
 		return qtrue;
 	}
-	// if the bot can use the plasma gun.
+	// if the bot can use the plasma gun
 	if (bs->inventory[INVENTORY_PLASMAGUN] > 0 && bs->inventory[INVENTORY_CELLS] > 40) {
 		return qtrue;
 	}
-	// if the bot can use the bfg.
+	// if the bot can use the bfg
 	if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFG_AMMO] > 5) {
 		return qtrue;
 	}
-	// if the bot can use the missile launcher.
+	// if the bot can use the missile launcher
 	if (bs->inventory[INVENTORY_MISSILELAUNCHER] > 0 && bs->inventory[INVENTORY_MISSILES] > 1) {
 		return qtrue;
 	}
-	// otherwise the bot is not feeling too good.
+	// otherwise the bot is not feeling too good
 	return qfalse;
 }
 
