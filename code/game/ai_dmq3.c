@@ -3238,7 +3238,7 @@ bot_moveresult_t BotAttackMove(bot_state_t *bs, int tfl) {
 		return moveresult;
 	}
 	// increase the strafe time
-	bs->attackstrafe_time += bs->thinktime;
+	bs->attackstrafe_time += bs->thinktime * 10;
 	// get the strafe change time
 	strafechange_time = 0.4 + (1 - attack_skill) * 0.2;
 
@@ -5436,7 +5436,7 @@ void BotRandomMove(bot_state_t *bs, bot_moveresult_t *moveresult, float speed) {
 
 		if (trap_BotMoveInDirection(bs->ms, dir, speed, MOVE_WALK)) {
 #ifdef OBSTACLEDEBUG
-			BotAI_Print(PRT_MESSAGE, S_COLOR_RED "BotRandomMove!\n");
+			BotAI_Print(PRT_MESSAGE, S_COLOR_RED "All movement failed, RANDOM MOVE! AVOIDRIGHT = %s.\n", (bs->flags & BFL_AVOIDRIGHT) ? "ON" : "OFF");
 #endif
 			break;
 		}
@@ -5600,6 +5600,9 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 	if (moveresult->type == RESULTTYPE_INSOLIDAREA) {
 		// move in a random direction in the hope to get out
 		BotRandomMove(bs, moveresult, speed);
+#ifdef OBSTACLEDEBUG
+		BotAI_Print(PRT_MESSAGE, S_COLOR_MAGENTA "IN SOLID AREA!\n");
+#endif
 		return;
 	}
 #ifdef OBSTACLEDEBUG
