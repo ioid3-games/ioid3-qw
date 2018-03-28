@@ -3063,6 +3063,10 @@ bot_moveresult_t BotAttackMove(bot_state_t *bs, int tfl) {
 	if (attack_skill > 0.7) {
 		strafechange_time += crandom() * 0.2;
 	}
+	// close combat weapons
+	if (!wi.numprojectiles && BotAggression(bs)) {
+		bs->attackstrafe_time = 0;
+	}
 	// if the strafe direction should be changed
 	if (bs->attackstrafe_time > strafechange_time) {
 		// some magic number :)
@@ -3792,6 +3796,52 @@ void BotAimAtEnemy(bot_state_t *bs) {
 
 	aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL, 0, 1);
 	aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY, 0, 1);
+	reactiontime = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_REACTIONTIME, 0, 1);
+	// get the weapon information
+	trap_BotGetWeaponInfo(bs->ws, bs->weaponnum, &wi);
+	// get the weapon specific aim accuracy and or aim skill
+	switch (wi.number) {
+		case WP_MACHINEGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_MACHINEGUN, 0, 1);
+			break;
+		case WP_CHAINGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_CHAINGUN, 0, 1);
+			break;
+		case WP_SHOTGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_SHOTGUN, 0, 1);
+			break;
+		case WP_NAILGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_NAILGUN, 0, 1);
+			aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL_NAILGUN, 0, 1);
+			break;
+		case WP_PROXLAUNCHER:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_PROXLAUNCHER, 0, 1);
+			break;
+		case WP_GRENADELAUNCHER:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_GRENADELAUNCHER, 0, 1);
+			aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL_GRENADELAUNCHER, 0, 1);
+			break;
+		case WP_ROCKETLAUNCHER:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_ROCKETLAUNCHER, 0, 1);
+			aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL_ROCKETLAUNCHER, 0, 1);
+			break;
+		case WP_BEAMGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_BEAMGUN, 0, 1);
+			break;
+		case WP_RAILGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_RAILGUN, 0, 1);
+			break;
+		case WP_PLASMAGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_PLASMAGUN, 0, 1);
+			aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL_PLASMAGUN, 0, 1);
+			break;
+		case WP_BFG:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_BFG10K, 0, 1);
+			aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL_BFG10K, 0, 1);
+			break;
+		default:
+			break;
+	}
 
 	if (aim_skill > 0.95) {
 		// don't aim too early
@@ -3805,29 +3855,9 @@ void BotAimAtEnemy(bot_state_t *bs) {
 			return;
 		}
 	}
-	// get the weapon information
-	trap_BotGetWeaponInfo(bs->ws, bs->weaponnum, &wi);
-	// get the weapon specific aim accuracy and or aim skill
-	if (wi.number == WP_MACHINEGUN) {
-		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_MACHINEGUN, 0, 1);
-	} else if (wi.number == WP_SHOTGUN) {
-		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_SHOTGUN, 0, 1);
-	} else if (wi.number == WP_GRENADELAUNCHER) {
-		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_GRENADELAUNCHER, 0, 1);
-		aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL_GRENADELAUNCHER, 0, 1);
-	} else if (wi.number == WP_ROCKETLAUNCHER) {
-		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_ROCKETLAUNCHER, 0, 1);
-		aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL_ROCKETLAUNCHER, 0, 1);
-	} else if (wi.number == WP_BEAMGUN) {
-		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_BEAMGUN, 0, 1);
-	} else if (wi.number == WP_RAILGUN) {
-		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_RAILGUN, 0, 1);
-	} else if (wi.number == WP_PLASMAGUN) {
-		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_PLASMAGUN, 0, 1);
-		aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL_PLASMAGUN, 0, 1);
-	} else if (wi.number == WP_BFG) {
-		aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_BFG10K, 0, 1);
-		aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL_BFG10K, 0, 1);
+
+	if (aim_accuracy <= 0) {
+		aim_accuracy = 0.0001f;
 	}
 
 	VectorSubtract(entinfo.origin, entinfo.lastvisorigin, enemyvelocity);
