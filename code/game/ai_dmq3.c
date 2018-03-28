@@ -2472,27 +2472,28 @@ qboolean BotAggression(bot_state_t *bs) {
 /*
 =======================================================================================================================================
 BotFeelingBad
+
+Used for collecting items and obelisk attack rules.
+
+qfalse -> bots do not collect items when they are in a hurry (carrying flag etc.).
+qtrue  -> bots no longer want to attack the obelisk.
 =======================================================================================================================================
 */
-float BotFeelingBad(bot_state_t *bs) {
-
-	if (bs->weaponnum == WP_GAUNTLET) {
-		return 100;
-	}
+qboolean BotFeelingBad(bot_state_t *bs) {
 
 	if (bs->inventory[INVENTORY_HEALTH] < 40) {
-		return 100;
+		return qtrue;
+	}
+
+	if (bs->weaponnum == WP_GAUNTLET) {
+		return qtrue;
 	}
 
 	if (bs->weaponnum == WP_MACHINEGUN) {
-		return 90;
+		return qtrue;
 	}
 
-	if (bs->inventory[INVENTORY_HEALTH] < 60) {
-		return 80;
-	}
-
-	return 0;
+	return qfalse;
 }
 
 /*
@@ -2521,7 +2522,7 @@ int BotWantsToRetreat(bot_state_t *bs) {
 			}
 		}
 
-		if (BotFeelingBad(bs) > 50) {
+		if (BotFeelingBad(bs)) {
 			return qtrue;
 		}
 
@@ -2694,7 +2695,7 @@ int BotHasPersistantPowerupAndWeapon(bot_state_t *bs) {
 		}
 	}
 	// if the bot can use the chain gun
-	if (bs->inventory[INVENTORY_CHAINGUN] > 0 && bs->inventory[INVENTORY_BELT] > 40) {
+	if (bs->inventory[INVENTORY_CHAINGUN] > 0 && bs->inventory[INVENTORY_BELT] > 60) {
 		return qtrue;
 	}
 	// if the bot can use the nail gun
