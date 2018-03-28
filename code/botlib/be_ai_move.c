@@ -2110,6 +2110,7 @@ bot_moveresult_t BotFinishTravel_Jump(bot_movestate_t *ms, aas_reachability_t *r
 	hordir2[0] = reach->end[0] - reach->start[0];
 	hordir2[1] = reach->end[1] - reach->start[1];
 	hordir2[2] = 0;
+
 	VectorNormalize(hordir2);
 
 	if (DotProduct(hordir, hordir2) < -0.5 && dist < 24) {
@@ -2249,7 +2250,9 @@ bot_moveresult_t BotTravel_Elevator(bot_movestate_t *ms, aas_reachability_t *rea
 #endif // DEBUG_ELEVATOR
 			// move to the end point
 			VectorSubtract(reach->end, ms->origin, hordir);
+
 			hordir[2] = 0;
+
 			VectorNormalize(hordir);
 
 			if (!BotCheckBarrierJump(ms, hordir, 100)) {
@@ -2372,6 +2375,7 @@ bot_moveresult_t BotTravel_Elevator(bot_movestate_t *ms, aas_reachability_t *rea
 			botimport.Print(PRT_MESSAGE, "bot moving to start\n");
 #endif // DEBUG_ELEVATOR
 			dist = dist1;
+
 			VectorCopy(dir1, dir);
 		}
 
@@ -2508,7 +2512,9 @@ bot_moveresult_t BotTravel_FuncBobbing(bot_movestate_t *ms, aas_reachability_t *
 #endif
 			// move to the end point
 			VectorSubtract(reach->end, ms->origin, hordir);
+
 			hordir[2] = 0;
+
 			VectorNormalize(hordir);
 
 			if (!BotCheckBarrierJump(ms, hordir, 100)) {
@@ -3125,7 +3131,9 @@ bot_moveresult_t BotFinishTravel_JumpPad(bot_movestate_t *ms, aas_reachability_t
 		hordir[0] = reach->end[0] - ms->origin[0];
 		hordir[1] = reach->end[1] - ms->origin[1];
 		hordir[2] = 0;
+
 		VectorNormalize(hordir);
+
 		speed = 400;
 	}
 
