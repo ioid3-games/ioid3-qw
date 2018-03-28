@@ -789,7 +789,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 		return;
 	}
 	// if the bot has enough aggression to decide what to do
-	if (BotAggression(bs) < 50) {
+	if (!BotAggression(bs)) {
 		return;
 	}
 	// set the time to send a message to the team mates
@@ -1040,7 +1040,7 @@ void Bot1FCTFSeekGoals(bot_state_t *bs) {
 		return;
 	}
 	// if the bot has enough aggression to decide what to do
-	if (BotAggression(bs) < 50) {
+	if (!BotAggression(bs)) {
 		return;
 	}
 	// set the time to send a message to the team mates
@@ -1153,7 +1153,7 @@ void BotObeliskSeekGoals(bot_state_t *bs) {
 		return;
 	}
 	// if the bot has enough aggression to decide what to do
-	if (BotAggression(bs) < 50) {
+	if (!BotAggression(bs)) {
 		return;
 	}
 	// set the time to send a message to the team mates
@@ -1303,7 +1303,7 @@ void BotHarvesterSeekGoals(bot_state_t *bs) {
 		return;
 	}
 	// if the bot has enough aggression to decide what to do
-	if (BotAggression(bs) < 50) {
+	if (!BotAggression(bs)) {
 		return;
 	}
 	// set the time to send a message to the team mates
@@ -2299,62 +2299,174 @@ qboolean BotCanCamp(bot_state_t *bs) {
 /*
 =======================================================================================================================================
 BotAggression
+
+qfalse -> bots want to retreat (not affected if the bot is carrying a flag or the enemy is carrying a flag).
+qtrue  -> bots want to chase (not affected if the bot is carrying a flag or the enemy is carrying a flag).
+qtrue  -> bots can decide what to do.
 =======================================================================================================================================
 */
-float BotAggression(bot_state_t *bs) {
+qboolean BotAggression(bot_state_t *bs) {
+	float aggression, selfpreservation;
+	aas_entityinfo_t entinfo;
 
-	// if the bot has quad
-	if (bs->inventory[INVENTORY_QUAD]) {
-		// if the bot is not holding the gauntlet or the enemy is really nearby
-		if (bs->weaponnum != WP_GAUNTLET || bs->inventory[ENEMY_HORIZONTAL_DIST] < 80) {
-			return 70;
-		}
-	}
+	aggression = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AGGRESSION, 0, 1);
+	selfpreservation = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_SELFPRESERVATION, 0, 1);
 	// if the enemy is located way higher than the bot
 	if (bs->inventory[ENEMY_HEIGHT] > 200) {
-		return 0;
+		return qfalse;
 	}
-	// if the bot is very low on health
-	if (bs->inventory[INVENTORY_HEALTH] < 60) {
-		return 0;
+	// if the bot is using the grenadelauncher
+	if (bs->weaponnum == WP_GRENADELAUNCHER) {
+		return qfalse;
 	}
-	// if the bot is low on health
-	if (bs->inventory[INVENTORY_HEALTH] < 80) {
-		// if the bot has insufficient armor
-		if (bs->inventory[INVENTORY_ARMOR] < 40) {
-			return 0;
+	// if the bot is using the proxylauncher
+	if (bs->weaponnum == WP_PROXLAUNCHER) {
+		return qfalse;
+	}
+	// current enemy
+	if (bs->enemy >= 0) {
+		BotEntityInfo(bs->enemy, &entinfo);
+
+		if (entinfo.valid) {
+			// if the bot is using the gauntlet
+			if (bs->weaponnum == WP_GAUNTLET) {
+				// if attacking an obelisk
+				if (bs->enemy >= MAX_CLIENTS && (bs->enemy == redobelisk.entitynum || bs->enemy == blueobelisk.entitynum)) {
+					return qfalse;
+				}
+				// if the enemy is located higher than the bot can jump on
+				if (bs->inventory[ENEMY_HEIGHT] > 42) {
+					return qfalse;
+				}
+				// if the enemy is using the gauntlet
+				if (entinfo.weapon == WP_GAUNTLET) {
+					return qtrue;
+				}
+				// an extremely aggressive bot will less likely retreat
+				if (aggression > 0.9) {
+					return qtrue;
+				}
+				// if the enemy is really near
+				if (bs->inventory[ENEMY_HORIZONTAL_DIST] < 200) {
+					return qtrue;
+				}
+				// if the enemy is far away, check if we can attack the enemy from behind
+				if (aggression > 0.5 && bs->inventory[ENEMY_HORIZONTAL_DIST] < 500) {
+					vec3_t dir, angles;
+
+					VectorSubtract(bs->origin, entinfo.origin, dir);
+					vectoangles(dir, angles);
+					// if not in the enemy's field of vision, attack!
+					if (!InFieldOfVision(entinfo.angles, 180, angles)) {
+						return qtrue;
+					}
+				}
+				// if currently using the gauntlet, retreat!
+				return qfalse;
+			}
+			// if the enemy is using the gauntlet
+			if (entinfo.weapon == WP_GAUNTLET) {
+				return qtrue;
+			}
+			// an extremely aggressive bot will less likely retreat
+			if (aggression > 0.9 && bs->inventory[ENEMY_HORIZONTAL_DIST] < 200) {
+				return qtrue;
+			}
+			// if the enemy is using the bfg
+			if (entinfo.weapon == WP_BFG) {
+				return qfalse;
+			}
+			// if the enemy is using the grenadelauncher
+			if (entinfo.weapon == WP_GRENADELAUNCHER) {
+				return qfalse;
+			}
+			// if the enemy is using the proxylauncher
+			if (entinfo.weapon == WP_PROXLAUNCHER) {
+				return qfalse;
+			}
+			// if the enemy has the quad damage
+			if (entinfo.powerups & (1 << PW_QUAD)) {
+				return qfalse;
+			}
+			// if the bot is out for revenge
+			if (bs->enemy == bs->revenge_enemy && bs->revenge_kills > 0) {
+				return qtrue;
+			}
 		}
 	}
-	// if the bot can use the shotgun
-	if (bs->inventory[INVENTORY_SHOTGUN] > 0 && bs->inventory[INVENTORY_SHELLS] > 10) {
-		return 50;
+	// if the bot has the quad damage powerup
+	if (bs->inventory[INVENTORY_QUAD]) {
+		return qtrue;
 	}
-	// if the bot can use the grenade launcher
-	if (bs->inventory[INVENTORY_GRENADELAUNCHER] > 0 && bs->inventory[INVENTORY_GRENADES] > 10) {
-		return 80;
+	// if the bot has the invisibility powerup
+	if (bs->inventory[INVENTORY_INVISIBILITY]) {
+		return qtrue;
+	}
+	// if the bot has the regeneration powerup
+	if (bs->inventory[INVENTORY_REGEN]) {
+		return qtrue;
+	}
+	// if the bot has the guard powerup
+	if (bs->inventory[INVENTORY_GUARD]) {
+		return qtrue;
+	}
+	// if the bot is very low on health.
+	if (bs->inventory[INVENTORY_HEALTH] < 100 * selfpreservation) {
+		return qfalse;
+	}
+	// if the bot is low on health.
+	if (bs->inventory[INVENTORY_HEALTH] < 100 * selfpreservation + 20) {
+		// if the bot has insufficient armor
+		if (bs->inventory[INVENTORY_ARMOR] < 40) {
+			return qfalse;
+		}
+	}
+	// if the bot has the ammoregen powerup
+	if (bs->inventory[INVENTORY_AMMOREGEN]) {
+		return qtrue;
+	}
+	// if the bot has the doubler powerup
+	if (bs->inventory[INVENTORY_DOUBLER]) {
+		return qtrue;
+	}
+	// if the bot has the scout powerup
+	if (bs->inventory[INVENTORY_SCOUT]) {
+		return qtrue;
+	}
+	// if the bot can use the chain gun
+	if (bs->inventory[INVENTORY_CHAINGUN] > 0 && bs->inventory[INVENTORY_BELT] > 50) {
+		return qtrue;
+	}
+	// if the bot can use the shot gun
+	if (bs->inventory[INVENTORY_SHOTGUN] > 0 && bs->inventory[INVENTORY_SHELLS] > 5) {
+		return qtrue;
+	}
+	// if the bot can use the nail gun
+	if (bs->inventory[INVENTORY_NAILGUN] > 0 && bs->inventory[INVENTORY_NAILS] > 5) {
+		return qtrue;
 	}
 	// if the bot can use the rocket launcher
 	if (bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 5) {
-		return 90;
+		return qtrue;
 	}
 	// if the bot can use the beam gun
 	if (bs->inventory[INVENTORY_BEAMGUN] > 0 && bs->inventory[INVENTORY_BEAMGUN_AMMO] > 50) {
-		return 90;
+		return qtrue;
 	}
 	// if the bot can use the railgun
-	if (bs->inventory[INVENTORY_RAILGUN] > 0 && bs->inventory[INVENTORY_SLUGS] > 5) {
-		return 95;
+	if (bs->inventory[INVENTORY_RAILGUN] > 0 && bs->inventory[INVENTORY_SLUGS] > 3) {
+		return qtrue;
 	}
 	// if the bot can use the plasma gun
 	if (bs->inventory[INVENTORY_PLASMAGUN] > 0 && bs->inventory[INVENTORY_CELLS] > 40) {
-		return 85;
+		return qtrue;
 	}
 	// if the bot can use the bfg
-	if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFG_AMMO] > 7) {
-		return 100;
+	if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFG_AMMO] > 5) {
+		return qtrue;
 	}
 	// otherwise the bot is not feeling too good
-	return 0;
+	return qfalse;
 }
 
 /*
@@ -2437,7 +2549,7 @@ int BotWantsToRetreat(bot_state_t *bs) {
 		return qtrue;
 	}
 
-	if (BotAggression(bs) < 50) {
+	if (!BotAggression(bs)) {
 		return qtrue;
 	}
 
@@ -2498,7 +2610,7 @@ int BotWantsToChase(bot_state_t *bs) {
 		return qfalse;
 	}
 
-	if (BotAggression(bs) > 50) {
+	if (BotAggression(bs)) {
 		return qtrue;
 	}
 

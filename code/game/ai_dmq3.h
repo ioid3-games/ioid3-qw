@@ -71,7 +71,7 @@ int BotSetLastOrderedTask(bot_state_t *bs);
 // selection of goals for teamplay
 void BotTeamGoals(bot_state_t *bs, int retreat);
 // returns the aggression of the bot in the range [0, 100]
-float BotAggression(bot_state_t *bs);
+qboolean BotAggression(bot_state_t *bs);
 // returns how bad the bot feels
 float BotFeelingBad(bot_state_t *bs);
 // returns true if the bot wants to retreat
