@@ -2943,7 +2943,7 @@ bot_moveresult_t BotAttackMove(bot_state_t *bs, int tfl) {
 		return moveresult;
 	}
 	// increase the strafe time
-	bs->attackstrafe_time += bs->thinktime;
+	bs->attackstrafe_time += bs->thinktime * 10;
 	// get the strafe change time
 	strafechange_time = 0.4 + (1 - attack_skill) * 0.2;
 
@@ -4887,7 +4887,9 @@ int BotGetActivateGoal(bot_state_t *bs, int entitynum, bot_activategoal_t *activ
 			}
 		}
 	}
-
+#ifdef OBSTACLEDEBUG
+	BotAI_Print(PRT_ERROR, "BotGetActivateGoal: no valid activator for entity with target \"%s\"\n", targetname[0]);
+#endif
 	return 0;
 }
 
@@ -5042,20 +5044,13 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 		}
 #ifdef OBSTACLEDEBUG
 		else {
-			BotAI_Print(PRT_MESSAGE, S_COLOR_BLUE "Blocked by teammate moving along the same direction or by a distant enemy, ignoring!\n");
+			BotAI_Print(PRT_MESSAGE, S_COLOR_BLUE "Blocked by an obstacle moving along the same direction, or blocked by a distant enemy, ignoring!\n");
 		}
 #endif
 	}
 	// if blocked by a bsp model
 	if (!ent->client) {
 		if (entinfo.modelindex > 0 && entinfo.modelindex <= max_bspmodelindex) {
-			// buttons will operate on contact
-			if (!strcmp(ent->classname, "func_button") && (ent->moverState == MOVER_POS1)) {
-#ifdef OBSTACLEDEBUG
-				BotAI_Print(PRT_MESSAGE, "%s: Blocked by model %d (Button), ignoring!\n", netname, entinfo.modelindex);
-#endif
-				return;
-			}
 			// a closed door without a targetname will operate automatically
 			if (!strcmp(ent->classname, "func_door") && (ent->moverState == MOVER_POS1)) {
 				// if no targetname and not a shootable door
@@ -5065,6 +5060,13 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 #endif
 					return;
 				}
+			}
+			// buttons will operate on contact
+			if (!strcmp(ent->classname, "func_button") && (ent->moverState == MOVER_POS1)) {
+#ifdef OBSTACLEDEBUG
+				BotAI_Print(PRT_MESSAGE, "%s: Blocked by model %d (Button), ignoring!\n", netname, entinfo.modelindex);
+#endif
+				return;
 			}
 			// if the bot wants to activate the bsp entity
 			if (activate) {
@@ -5148,13 +5150,13 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 #ifdef OBSTACLEDEBUG
 				BotAI_Print(PRT_MESSAGE, S_COLOR_YELLOW "1st sidewards movement failed, flipped direction, AVOIDRIGHT = %s.\n", (bs->flags & BFL_AVOIDRIGHT) ? "ON" : "OFF");
 #endif
-			} else {
-#ifdef OBSTACLEDEBUG
-				BotAI_Print(PRT_MESSAGE, S_COLOR_YELLOW "1st sidewards movement failed, kept AVOIDRIGHT = %s.\n", (bs->flags & BFL_AVOIDRIGHT) ? "ON" : "OFF");
-#endif
 			}
-
-			if (bs->flags & BFL_AVOIDRIGHT || (!(bs->flags & BFL_AVOIDRIGHT) && bs->notblocked_time < FloatTime() - 0.4)) { 
+#ifdef OBSTACLEDEBUG
+			else {
+				BotAI_Print(PRT_MESSAGE, S_COLOR_YELLOW "1st sidewards movement failed, kept AVOIDRIGHT = %s.\n", (bs->flags & BFL_AVOIDRIGHT) ? "ON" : "OFF");
+			}
+#endif
+			if (bs->flags & BFL_AVOIDRIGHT || (!(bs->flags & BFL_AVOIDRIGHT) && bs->notblocked_time < FloatTime() - 0.4)) {
 				if (DotProduct(bs->notblocked_dir, bs->notblocked_dir) < 0.1) {
 					VectorSet(angles, 0, 360 * random(), 0);
 					AngleVectorsForward(angles, hordir);
@@ -5173,16 +5175,10 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 					BotRandomMove(bs, moveresult, speed);
 				}
 			}
-/* Tobias NOTE: it's not clear to me if we need this or not. what if bs->notblocked_time > FloatTime() - 0.4
-			else {
-				// move in a random direction in the hope to get out
-				BotRandomMove(bs, moveresult, speed);
-			}
-*/
 		}
 	}
 
-	if (!activate && obtrusiveness < 0.9 && bs->notblocked_time < FloatTime() - 0.8) {
+	if (!activate && bs->notblocked_time < FloatTime() - (0.1 + obtrusiveness * 2)) {
 		// just reset goals and hope the bot will go into another direction?
 		if (bs->ainode == AINode_Seek_NBG && bs->flags & BFL_AVOIDRIGHT) {
 			bs->nbg_time = 0;
