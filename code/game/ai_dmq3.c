@@ -3433,6 +3433,10 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 		squaredist = VectorLengthSquared(dir);
 		// if this entity is not carrying a flag or cubes
 		if (!EntityCarriesFlag(&entinfo) && !EntityCarriesCubes(&entinfo)) {
+			// prefer targets near the goal
+			if (curenemy >= 0 && BotAggression(bs) && bs->ltgtype != 0 && 1.5 * DistanceSquared(entinfo.origin, bs->teamgoal.origin) > DistanceSquared(curenemyinfo.origin, bs->teamgoal.origin)) {
+				continue;
+			}
 			// if this enemy is further away than the current one
 			if (curenemy >= 0 && squaredist > cursquaredist) {
 				continue;
@@ -3856,10 +3860,6 @@ void BotAimAtEnemy(bot_state_t *bs) {
 		}
 	}
 
-	if (aim_accuracy <= 0) {
-		aim_accuracy = 0.0001f;
-	}
-
 	VectorSubtract(entinfo.origin, entinfo.lastvisorigin, enemyvelocity);
 	VectorScale(enemyvelocity, 1 / entinfo.update_time, enemyvelocity);
 	// enemy origin and velocity is remembered every 0.5 seconds
@@ -4035,7 +4035,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 		// if the bot is skilled enough
 		if (aim_skill > 0.5) {
 			// do prediction shots around corners
-			if (wi.number == WP_GRENADELAUNCHER || wi.number == WP_ROCKETLAUNCHER || wi.number == WP_BFG) {
+			if (wi.speed) {
 				// create the chase goal
 				goal.entitynum = bs->client;
 				goal.areanum = bs->areanum;
@@ -4049,7 +4049,10 @@ void BotAimAtEnemy(bot_state_t *bs) {
 
 					if (VectorLengthSquared(dir) > Square(80)) {
 						VectorCopy(target, bestorigin);
-						bestorigin[2] -= 20;
+						// if the projectile does large radial damage try to aim at the ground in front of the enemy
+						if (wi.proj.damagetype & DAMAGETYPE_RADIAL) {
+							bestorigin[2] -= 20;
+						}
 					}
 				}
 
@@ -4067,7 +4070,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	// get aim direction
 	VectorSubtract(bestorigin, bs->eye, dir);
 
-	if (wi.number == WP_MACHINEGUN || wi.number == WP_SHOTGUN || wi.number == WP_BEAMGUN || wi.number == WP_RAILGUN) {
+	if (!wi.speed) {
 		// distance towards the enemy
 		dist = VectorLength(dir);
 
@@ -4177,8 +4180,10 @@ void BotCheckAttack(bot_state_t *bs) {
 	}
 
 	VectorSubtract(bs->aimtarget, bs->eye, dir);
+	// get the weapon info
+	trap_BotGetWeaponInfo(bs->ws, bs->weaponnum, &wi);
 
-	if (bs->weaponnum == WP_GAUNTLET) {
+	if (!wi.numprojectiles && BotWantsToRetreat(bs)) {
 		if (VectorLengthSquared(dir) > Square(60)) {
 			return;
 		}
@@ -4201,8 +4206,6 @@ void BotCheckAttack(bot_state_t *bs) {
 	if (bsptrace.fraction < 1 && bsptrace.entityNum != attackentity) {
 		return;
 	}
-	// get the weapon info
-	trap_BotGetWeaponInfo(bs->ws, bs->weaponnum, &wi);
 	// get the start point shooting from
 	VectorCopy(bs->origin, start);
 
