@@ -213,6 +213,10 @@ static void PM_Friction(void) {
 		vel[0] = 0;
 		vel[1] = 0; // allow sinking underwater
 		// FIXME: still have z friction underwater?
+		if (pm->ps->pm_type == PM_SPECTATOR) {
+			vel[2] = 0.0f; // no slow sinking/raising movements
+		}
+
 		return;
 	}
 
