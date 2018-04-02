@@ -3818,11 +3818,11 @@ void BotTeamAI(bot_state_t *bs) {
 		}
 		case GT_CTF:
 		{
-			// if the enemy team is leading by more than 1 point, or if the enemy team leads and time limit has expired to 70%, choose the most aggressive strategy
-			if (bs->ownteamscore + 1 < bs->enemyteamscore || (bs->ownteamscore < bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.7f)) {
+			// if the enemy team is leading by more than 1 point, or if the enemy team leads and time limit has expired to 60%, choose the most aggressive strategy
+			if (bs->ownteamscore + 1 < bs->enemyteamscore || (bs->ownteamscore < bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.6f)) {
 				bs->ctfstrategy = CTFS_MAX_AGGRESSIVE;
-			// if the own team is leading by more than 1 point, or if the own team leads and time limit has expired to 70%, choose the most defensive strategy
-			} else if (bs->ownteamscore - 1 > bs->enemyteamscore || (bs->ownteamscore > bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.7f)) {
+			// if the own team is leading by more than 1 point, or if the own team leads and time limit has expired to 60%, choose the most defensive strategy
+			} else if (bs->ownteamscore - 1 > bs->enemyteamscore || (bs->ownteamscore > bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.6f)) {
 				bs->ctfstrategy = CTFS_MAX_DEFENSIVE;
 			} else {
 				// if there were no flag captures the last 4 minutes
@@ -3848,15 +3848,15 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotCTFOrders(bs);
-				// give orders again after 10 seconds
-				bs->teamgiveorders_time = FloatTime() + 10;
+				// give orders again after 30 seconds
+				bs->teamgiveorders_time = FloatTime() + 30;
 			}
 
 			break;
 		}
 		case GT_1FCTF:
 		{
-			// if the enemy team is leading by more than 2 points, or if the enemy team leads and time limit has expired to 75%, choose the most aggressive strategy
+			// if the enemy team is leading by more than 2 points, or if the enemy team leads and time limit has expired to 70%, choose the most aggressive strategy
 			if (bs->ownteamscore + 2 < bs->enemyteamscore || (bs->ownteamscore < bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.7f)) {
 				bs->ctfstrategy = CTFS_MAX_AGGRESSIVE;
 			// if the own team is leading by more than 2 points, or if the own team leads and time limit has expired to 70%, choose the most defensive strategy
@@ -3886,8 +3886,8 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				Bot1FCTFOrders(bs);
-				// give orders again after 10 seconds
-				bs->teamgiveorders_time = FloatTime() + 10;
+				// give orders again after 30 seconds
+				bs->teamgiveorders_time = FloatTime() + 30;
 			}
 
 			break;
@@ -3923,19 +3923,19 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotObeliskOrders(bs);
-				// give orders again after 10 seconds
-				bs->teamgiveorders_time = FloatTime() + 10;
+				// give orders again after 30 seconds
+				bs->teamgiveorders_time = FloatTime() + 30;
 			}
 
 			break;
 		}
 		case GT_HARVESTER:
 		{
-			// if the enemy team is leading by more than the half of the capturelimit points and time limit has expired to 70%, choose the most aggressive strategy
-			if (bs->ownteamscore + (g_capturelimit.integer * 0.5f) < bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.7f) {
+			// if the enemy team is leading by more than the half of the capturelimit points and time limit has expired to 60%, choose the most aggressive strategy
+			if (bs->ownteamscore + (g_capturelimit.integer * 0.5f) < bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.6f) {
 				bs->ctfstrategy = CTFS_MAX_AGGRESSIVE;
-			// if the own team is leading by more than the half of the capturelimit points and time limit has expired to 70%, choose the most defensive strategy
-			} else if (bs->ownteamscore - (g_capturelimit.integer * 0.5f) > bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.7f) {
+			// if the own team is leading by more than the half of the capturelimit points and time limit has expired to 60%, choose the most defensive strategy
+			} else if (bs->ownteamscore - (g_capturelimit.integer * 0.5f) > bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.6f) {
 				bs->ctfstrategy = CTFS_MAX_DEFENSIVE;
 			} else {
 				// if none of the teams scored during the last 3 minutes
@@ -3960,8 +3960,8 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotHarvesterOrders(bs);
-				// give orders again after 10 seconds
-				bs->teamgiveorders_time = FloatTime() + 10;
+				// give orders again after 30 seconds
+				bs->teamgiveorders_time = FloatTime() + 30;
 			}
 
 			break;
