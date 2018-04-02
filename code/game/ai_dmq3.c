@@ -5167,10 +5167,10 @@ BotCheckBlockedTeammates
 */
 void BotCheckBlockedTeammates(bot_state_t *bs) {
 	bot_moveresult_t moveresult;
-	int movetype, i;
+	int movetype, i, mindist;
 	aas_entityinfo_t entinfo;
 	gentity_t *ent;
-	float mindist, speed;
+	float speed, obtrusiveness;
 	vec3_t mins, maxs, end, v3, v2, v1, sideward, angles, up = {0, 0, 1};
 	bsp_trace_t trace;
 
@@ -5189,6 +5189,8 @@ void BotCheckBlockedTeammates(bot_state_t *bs) {
 	if (BotHarvesterCarryingCubes(bs)) {
 		return;
 	}
+
+	obtrusiveness = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_OBTRUSIVENESS, 0, 1);
 	// initialize the movement state
 	BotSetupForMovement(bs);
 	VectorSet(bs->notblocked_dir, 0, 0, 0);
@@ -5211,11 +5213,16 @@ void BotCheckBlockedTeammates(bot_state_t *bs) {
 		if (EntityIsDead(&entinfo) || entinfo.number == bs->entitynum) {
 			continue;
 		}
+
+		ent = &g_entities[i];
+
+		if (VectorLength(ent->client->ps.velocity) <= 0) {
+			continue;
+		}
 		// set some movement parameters
 		movetype = MOVE_WALK;
 		mindist = 8;
 		speed = 200;
-		ent = &g_entities[i];
 		// human players and facing teammates need more space
 		if ((!(ent->r.svFlags & SVF_BOT)) || BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 90, i)) {
 			mindist = 32;
@@ -5225,6 +5232,8 @@ void BotCheckBlockedTeammates(bot_state_t *bs) {
 			mindist = 128;
 			speed = 400;
 		}
+		
+		mindist += (64 - 64 * obtrusiveness);
 		// safety check, don't force to reach the goal
 		if (mindist >= bs->formation_dist) {
 			bs->formation_dist *= 2;
@@ -5442,12 +5451,14 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 		}
 	}
 
-	if (!activate && bs->notblocked_time < FloatTime() - (0.1 + obtrusiveness * 2)) {
-		// just reset goals and hope the bot will go into another direction?
-		if (bs->ainode == AINode_Seek_NBG && bs->flags & BFL_AVOIDRIGHT) {
-			bs->nbg_time = 0;
-		} else if (bs->ainode == AINode_Seek_LTG && !BotCTFCarryingFlag(bs) && !Bot1FCTFCarryingFlag(bs) && !BotHarvesterCarryingCubes(bs)) {
-			bs->ltg_time = 0;
+	if (!BotCTFCarryingFlag(bs) && !Bot1FCTFCarryingFlag(bs) && !BotHarvesterCarryingCubes(bs) && !activate) {
+		if (bs->notblocked_time < FloatTime() - (0.1 + obtrusiveness * 2)) {
+			// just reset goals and hope the bot will go into another direction?
+			if (bs->ainode == AINode_Seek_NBG) {
+				bs->nbg_time = 0;
+			} else if (bs->ainode == AINode_Seek_LTG) {
+				bs->ltg_time = 0;
+			}
 		}
 	}
 }
