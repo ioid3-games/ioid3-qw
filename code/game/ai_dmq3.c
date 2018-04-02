@@ -5407,77 +5407,37 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 		AngleVectorsForward(angles, hordir);
 	}
 
-	//if (moveresult->flags & MOVERESULT_ONTOPOFOBSTACLE) movetype = MOVE_JUMP;
-	//else
 	movetype = MOVE_WALK;
-	// if there's an obstacle at the bot's feet and head then the bot might be able to crouch through
-	//VectorCopy(bs->origin, start);
-	//start[2] += 18;
-	//VectorMA(start, 5, hordir, end);
-	//VectorSet(mins, -16, -16, -24);
-	//VectorSet(maxs, 16, 16, 4);
-
-	//bsptrace = AAS_Trace(start, mins, maxs, end, bs->entitynum, MASK_PLAYERSOLID);
-	//if (bsptrace.fraction >= 1) movetype = MOVE_CROUCH;
-	// look into the direction of the blocked teammate
-	vectoangles(v2, bs->ideal_viewangles);
 	// get the (right) sideward vector
-	CrossProduct(v2, up, sideward);
-	// flip the direction
-	if (bs->flags & BFL_AVOIDRIGHT) {
-		VectorNegate(sideward, sideward);
-	}
-	// get the direction the blocked player is moving
-	blocked_movedir[2] = 0;
-#ifdef OBSTACLEDEBUG
-	BotAI_Print(PRT_MESSAGE, "DEFAULT AVOIDRIGHT = %s.\n", (bs->flags & BFL_AVOIDRIGHT) ? "ON" : "OFF");
-#endif
-	VectorCopy(ent->client->ps.velocity, blocked_movedir);
-	// we start moving to our right side, but if the blocking entity is also moving towards our right side, flip the direction and move to the left side at first
-	if (DotProduct(blocked_movedir, sideward) > 50.0f) {
+	CrossProduct(hordir, up, sideward);
+	// get the direction the blocking obstacle is moving
+	v1[2] = 0;
+
+	VectorCopy(ent->client->ps.velocity, v1);
+	// we start moving to our right side, but if the blocking entity is also moving towards our right side flip the direction and move to the left side
+	if (DotProduct(v1, sideward) > 50.0f) {
 		// flip the direction
-		bs->flags ^= BFL_AVOIDRIGHT;
+		VectorNegate(sideward, sideward);
 #ifdef OBSTACLEDEBUG
-		BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Flipped direction because blocked_movedir = %1.1f, AVOIDRIGHT = %s.\n", DotProduct(blocked_movedir, sideward), (bs->flags & BFL_AVOIDRIGHT) ? "ON" : "OFF");
+		BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Flipped default side because v1 = %1.1f.\n");
 #endif
 	}
 	// try to crouch or jump over barrier
 	if (!trap_BotMoveInDirection(bs->ms, hordir, speed, movetype)) {
-#ifdef OBSTACLEDEBUG
-		BotAI_Print(PRT_MESSAGE, "Failed straight movement: AVOIDRIGHT = %s.\n", (bs->flags & BFL_AVOIDRIGHT) ? "ON" : "OFF");
-#endif
-		// try to move sidewards (by default this means move to the right, unless BFL_AVOIDRIGHT is set)
+		// move sidwards
 		if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
-			// if moving to the left side fails (BFL_AVOIDRIGHT is set), flip the avoid direction flag
-			if (bs->flags & BFL_AVOIDRIGHT) {
-				bs->flags ^= BFL_AVOIDRIGHT;
+			// flip the direction
+			VectorNegate(sideward, sideward);
 #ifdef OBSTACLEDEBUG
-				BotAI_Print(PRT_MESSAGE, S_COLOR_YELLOW "1st sidewards movement failed, flipped direction, AVOIDRIGHT = %s.\n", (bs->flags & BFL_AVOIDRIGHT) ? "ON" : "OFF");
+			BotAI_Print(PRT_MESSAGE, S_COLOR_YELLOW "1st sidewards movement failed, flipped direction.\n");
 #endif
-			}
+			// move in the other direction
+			if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
+				// move in a random direction in the hope to get out
+				BotRandomMove(bs, moveresult, speed);
 #ifdef OBSTACLEDEBUG
-			else {
-				BotAI_Print(PRT_MESSAGE, S_COLOR_YELLOW "1st sidewards movement failed, kept AVOIDRIGHT = %s.\n", (bs->flags & BFL_AVOIDRIGHT) ? "ON" : "OFF");
-			}
+				BotAI_Print(PRT_MESSAGE, S_COLOR_RED "2nd sidewards movement failed, ending up using random move.\n");
 #endif
-			if (bs->flags & BFL_AVOIDRIGHT || (!(bs->flags & BFL_AVOIDRIGHT) && bs->notblocked_time < FloatTime() - 0.4)) {
-				if (DotProduct(bs->notblocked_dir, bs->notblocked_dir) < 0.1) {
-					VectorSet(angles, 0, 360 * random(), 0);
-					AngleVectorsForward(angles, hordir);
-				} else {
-					VectorCopy(bs->notblocked_dir, hordir);
-				}
-
-				if (trap_BotMoveInDirection(bs->ms, hordir, speed, movetype)) {
-					VectorCopy(hordir, bs->notblocked_dir);
-#ifdef OBSTACLEDEBUG
-					BotAI_Print(PRT_MESSAGE, S_COLOR_GREEN "2nd sidewards movement failed, but moving along notblocked_dir is okay, AVOIDRIGHT = %s.\n", (bs->flags & BFL_AVOIDRIGHT) ? "ON" : "OFF");
-#endif
-				} else {
-					VectorSet(bs->notblocked_dir, 0, 0, 0);
-					// move in a random direction in the hope to get out
-					BotRandomMove(bs, moveresult, speed);
-				}
 			}
 		}
 	}
