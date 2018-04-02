@@ -3848,7 +3848,8 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotCTFOrders(bs);
-				bs->teamgiveorders_time = 0;
+				// give orders again after 10 seconds
+				bs->teamgiveorders_time = FloatTime() + 10;
 			}
 
 			break;
@@ -3885,7 +3886,8 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				Bot1FCTFOrders(bs);
-				bs->teamgiveorders_time = 0;
+				// give orders again after 10 seconds
+				bs->teamgiveorders_time = FloatTime() + 10;
 			}
 
 			break;
@@ -3921,7 +3923,8 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotObeliskOrders(bs);
-				bs->teamgiveorders_time = 0;
+				// give orders again after 10 seconds
+				bs->teamgiveorders_time = FloatTime() + 10;
 			}
 
 			break;
@@ -3957,7 +3960,8 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotHarvesterOrders(bs);
-				bs->teamgiveorders_time = 0;
+				// give orders again after 10 seconds
+				bs->teamgiveorders_time = FloatTime() + 10;
 			}
 
 			break;

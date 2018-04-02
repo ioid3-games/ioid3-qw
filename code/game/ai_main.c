@@ -1439,7 +1439,7 @@ int BotAIShutdownClient(int client, qboolean restart) {
 =======================================================================================================================================
 BotResetState
 
-called when a bot enters the intermission or observer mode and when the level is changed.
+Called when a bot enters the intermission or observer mode and when the level is changed.
 =======================================================================================================================================
 */
 void BotResetState(bot_state_t *bs) {
