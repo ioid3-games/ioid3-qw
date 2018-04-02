@@ -417,17 +417,17 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		BotEntityInfo(bs->teammate, &entinfo);
 		VectorSubtract(entinfo.origin, bs->origin, dir);
 
-		teammates = BotCountTeamMates(bs, 256);
+		teammates = BotCountAllTeamMates(bs, 256);
 
 		if (VectorLengthSquared(dir) < Square(bs->formation_dist + (teammates * bs->formation_dist))) {
 			// check if the bot wants to crouch, don't crouch if crouched less than 5 seconds ago
-				if (bs->attackcrouch_time < FloatTime() - 5) {
-					croucher = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CROUCHER, 0, 1);
+			if (bs->attackcrouch_time < FloatTime() - 5) {
+				croucher = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CROUCHER, 0, 1);
 
-					if (random() < bs->thinktime * croucher * 10) {
-						bs->attackcrouch_time = FloatTime() + 5 + croucher * 15;
-					}
+				if (random() < bs->thinktime * croucher * 10) {
+					bs->attackcrouch_time = FloatTime() + 5 + croucher * 15;
 				}
+			}
 			// don't crouch when swimming
 			if (trap_AAS_Swimming(bs->origin)) {
 				bs->attackcrouch_time = FloatTime() - 1;
@@ -644,7 +644,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		// if really near the camp spot
 		VectorSubtract(goal->origin, bs->origin, dir);
 
-		teammates = BotCountTeamMates(bs, 256);
+		teammates = BotCountAllTeamMates(bs, 256);
 
 		if (VectorLengthSquared(dir) < Square(60 + (teammates * 60))) {
 			// if not arrived yet
