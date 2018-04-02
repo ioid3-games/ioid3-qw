@@ -1720,7 +1720,7 @@ int BotAIStartFrame(int time) {
 		}
 	}
 	// execute bot user commands every frame
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (!botstates[i] || !botstates[i]->inuse) {
 			continue;
 		}
