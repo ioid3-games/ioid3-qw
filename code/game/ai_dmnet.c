@@ -319,6 +319,8 @@ int BotGetItemLongTermGoal(bot_state_t *bs, int tfl, bot_goal_t *goal) {
 			// reset the avoid goals and the avoid reach
 			trap_BotResetAvoidGoals(bs->gs);
 			trap_BotResetAvoidReach(bs->ms);
+			// check blocked teammates
+			BotCheckBlockedTeammates(bs);
 		}
 		// get the goal at the top of the stack
 		return trap_BotGetTopGoal(bs->gs, goal);
@@ -335,12 +337,12 @@ We could also create a separate AI node for every long term goal type. However, 
 =======================================================================================================================================
 */
 int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) {
-	vec3_t target, dir, dir2;
+	vec3_t target, dir;
 	char netname[MAX_NETNAME];
 	char buf[MAX_MESSAGE_SIZE];
-	int areanum;
+	int areanum, teammates;
 	float croucher;
-	aas_entityinfo_t entinfo, botinfo;
+	aas_entityinfo_t entinfo;
 	bot_waypoint_t *wp;
 
 	if (bs->ltgtype == LTG_TEAMHELP && !retreat) {
@@ -369,6 +371,8 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 
 			if (VectorLengthSquared(dir) < Square(100)) {
 				trap_BotResetAvoidReach(bs->ms);
+				// check blocked teammates
+				BotCheckBlockedTeammates(bs);
 				return qfalse;
 			}
 		} else {
@@ -411,52 +415,27 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		}
 		// get entity information of the companion
 		BotEntityInfo(bs->teammate, &entinfo);
-		// if the companion is visible
-		if (BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->teammate)) {
-			// update visible time
-			bs->teammatevisible_time = FloatTime();
-			VectorSubtract(entinfo.origin, bs->origin, dir);
+		VectorSubtract(entinfo.origin, bs->origin, dir);
 
-			if (VectorLengthSquared(dir) < Square(bs->formation_dist)) {
-				// if the client being followed bumps into this bot then the bot should back up
-				BotEntityInfo(bs->entitynum, &botinfo);
-				// if the followed client is not standing ontop of the bot
-				if (botinfo.origin[2] + botinfo.maxs[2] > entinfo.origin[2] + entinfo.mins[2]) {
-					// if the bounding boxes touch each other
-					if (botinfo.origin[0] + botinfo.maxs[0] > entinfo.origin[0] + entinfo.mins[0] - 4 && botinfo.origin[0] + botinfo.mins[0] < entinfo.origin[0] + entinfo.maxs[0] + 4) {
-						if (botinfo.origin[1] + botinfo.maxs[1] > entinfo.origin[1] + entinfo.mins[1] - 4 && botinfo.origin[1] + botinfo.mins[1] < entinfo.origin[1] + entinfo.maxs[1] + 4) {
-							if (botinfo.origin[2] + botinfo.maxs[2] > entinfo.origin[2] + entinfo.mins[2] - 4 && botinfo.origin[2] + botinfo.mins[2] < entinfo.origin[2] + entinfo.maxs[2] + 4) {
-								// if the followed client looks in the direction of this bot
-								AngleVectorsForward(entinfo.angles, dir);
+		teammates = BotCountAllTeamMates(bs, 256);
 
-								dir[2] = 0;
+		if (VectorLengthSquared(dir) < Square(bs->formation_dist + (teammates * bs->formation_dist))) {
+			// check if the bot wants to crouch, don't crouch if crouched less than 5 seconds ago
+			if (bs->attackcrouch_time < FloatTime() - 5) {
+				croucher = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CROUCHER, 0, 1);
 
-								VectorNormalize(dir);
-								//VectorSubtract(entinfo.origin, entinfo.lastvisorigin, dir);
-								VectorSubtract(bs->origin, entinfo.origin, dir2);
-								VectorNormalize(dir2);
-
-								if (DotProduct(dir, dir2) > 0.7) {
-									// back up
-									BotSetupForMovement(bs);
-									trap_BotMoveInDirection(bs->ms, dir2, 400, MOVE_WALK);
-								}
-							}
-						}
-					}
+				if (random() < bs->thinktime * croucher * 10) {
+					bs->attackcrouch_time = FloatTime() + 5 + croucher * 15;
 				}
-				// check if the bot wants to crouch, don't crouch if crouched less than 5 seconds ago
-				if (bs->attackcrouch_time < FloatTime() - 5) {
-					croucher = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CROUCHER, 0, 1);
-
-					if (random() < bs->thinktime * croucher * 10) {
-						bs->attackcrouch_time = FloatTime() + 5 + croucher * 15;
-					}
-				}
-				// don't crouch when swimming
-				if (trap_AAS_Swimming(bs->origin)) {
-					bs->attackcrouch_time = FloatTime() - 1;
-				}
+			}
+			// don't crouch when swimming
+			if (trap_AAS_Swimming(bs->origin)) {
+				bs->attackcrouch_time = FloatTime() - 1;
+			}
+			// if the companion is visible
+			if (BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->teammate)) {
+				// update visible time
+				bs->teammatevisible_time = FloatTime();
 				// if not arrived yet or arived some time ago
 				if (bs->arrive_time < FloatTime() - 2) {
 					// if not arrived yet
@@ -479,29 +458,32 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 					VectorSubtract(entinfo.origin, bs->origin, dir);
 					vectoangles(dir, bs->ideal_viewangles);
 					bs->ideal_viewangles[2] *= 0.5;
-				// else look strategically around for enemies
-				} else if (random() < bs->thinktime * 8) {
-					BotRoamGoal(bs, target);
-					VectorSubtract(target, bs->origin, dir);
-					vectoangles(dir, bs->ideal_viewangles);
-					bs->ideal_viewangles[2] *= 0.5;
 				}
-				// check if the bot wants to go for air
-				if (BotGoForAir(bs, bs->tfl, &bs->teamgoal, 400)) {
-					trap_BotResetLastAvoidReach(bs->ms);
-					// get the goal at the top of the stack
-					//trap_BotGetTopGoal(bs->gs, &tmpgoal);
-					//trap_BotGoalName(tmpgoal.number, buf, 144);
-					//BotAI_Print(PRT_MESSAGE, "new nearby goal %s\n", buf);
-					// time the bot gets to pick up the nearby goal item
-					bs->nbg_time = FloatTime() + 8;
-					AIEnter_Seek_NBG(bs, "BotLongTermGoal: go for air");
-					return qfalse;
-				}
-
-				trap_BotResetAvoidReach(bs->ms);
+			}
+			// look strategically around for enemies
+			if (random() < bs->thinktime * 8) {
+				BotRoamGoal(bs, target);
+				VectorSubtract(target, bs->origin, dir);
+				vectoangles(dir, bs->ideal_viewangles);
+				bs->ideal_viewangles[2] *= 0.5;
+			}
+			// check if the bot wants to go for air
+			if (BotGoForAir(bs, bs->tfl, &bs->teamgoal, 400)) {
+				trap_BotResetLastAvoidReach(bs->ms);
+				// get the goal at the top of the stack
+				//trap_BotGetTopGoal(bs->gs, &tmpgoal);
+				//trap_BotGoalName(tmpgoal.number, buf, 144);
+				//BotAI_Print(PRT_MESSAGE, "new nearby goal %s\n", buf);
+				// time the bot gets to pick up the nearby goal item
+				bs->nbg_time = FloatTime() + 8;
+				AIEnter_Seek_NBG(bs, "BotLongTermGoal: go for air");
 				return qfalse;
 			}
+
+			trap_BotResetAvoidReach(bs->ms);
+			// check blocked teammates
+			BotCheckBlockedTeammates(bs);
+			return qfalse;
 		}
 		// if the entity information is valid (entity in PVS)
 		if (entinfo.valid) {
@@ -660,7 +642,9 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		// if really near the camp spot
 		VectorSubtract(goal->origin, bs->origin, dir);
 
-		if (VectorLengthSquared(dir) < Square(60)) {
+		teammates = BotCountAllTeamMates(bs, 256);
+
+		if (VectorLengthSquared(dir) < Square(60 + (teammates * 60))) {
 			// if not arrived yet
 			if (!bs->arrive_time) {
 				if (bs->ltgtype == LTG_CAMPORDER) {
@@ -709,6 +693,8 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			}
 			// FIXME: move around a bit
 			trap_BotResetAvoidReach(bs->ms);
+			// check blocked teammates
+			BotCheckBlockedTeammates(bs);
 			return qfalse;
 		}
 
@@ -1007,7 +993,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 					return qfalse;
 			}
 			// if the bot no longer wants to attack the obelisk
-			if (BotFeelingBad(bs) > 50) {
+			if (BotFeelingBad(bs)) {
 				return BotGetItemLongTermGoal(bs, tfl, goal);
 			}
 			// if touching the obelisk
