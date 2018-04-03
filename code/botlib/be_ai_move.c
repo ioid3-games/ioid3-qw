@@ -1304,7 +1304,7 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			tmpdir[1] = move.endpos[1] - ms->origin[1];
 			tmpdir[2] = 0;
 			// the bot is blocked by something
-			if (VectorLength(tmpdir) < speed * ms->thinktime * 0.5) {
+			if (VectorLength(tmpdir) < speed * ms->thinktime * ms->thinktime * 0.005) { // Tobias CHECK: should we remove this completely? We randomize this a bit more for now to get rid of the 'dance-with-blocker' problem...
 				return qfalse;
 			}
 		}
