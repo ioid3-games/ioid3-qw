@@ -1066,9 +1066,9 @@ void BotUpdateInput(bot_state_t *bs, int time, int elapsed_time) {
 		bs->viewangles[j] = AngleMod(bs->viewangles[j] + SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
 	}
 	// change the bot view angles
-	BotChangeViewAngles(bs, (float)elapsed_time / 1000);
+	BotChangeViewAngles(bs, (float)elapsed_time * 0.001);
 	// retrieve the bot input
-	trap_EA_GetInput(bs->client, (float)time / 1000, &bi);
+	trap_EA_GetInput(bs->client, (float)time * 0.001, &bi);
 	// respawn hack
 	if (bi.actionflags & ACTION_RESPAWN) {
 		if (bs->lastucmd.buttons & BUTTON_ATTACK) {
@@ -1194,7 +1194,6 @@ int BotAI(int client, float thinktime) {
 		bs->viewangles[j] = AngleMod(bs->viewangles[j] + SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
 	}
 	// increase the local time of the bot
-	bs->ltime += thinktime;
 	bs->thinktime = thinktime;
 	// origin of the bot
 	VectorCopy(bs->cur_ps.origin, bs->origin);
@@ -1618,7 +1617,7 @@ int BotAIStartFrame(int time) {
 	if (botlib_residual >= thinktime) {
 		botlib_residual -= thinktime;
 
-		trap_BotLibStartFrame((float)time / 1000);
+		trap_BotLibStartFrame((float)time * 0.001);
 
 		if (!trap_AAS_Initialized()) {
 			return qfalse;
@@ -1715,7 +1714,7 @@ int BotAIStartFrame(int time) {
 			}
 
 			if (g_entities[i].client->pers.connected == CON_CONNECTED) {
-				BotAI(i, (float)thinktime / 1000);
+				BotAI(i, (float)thinktime * 0.001);
 			}
 		}
 	}
