@@ -424,7 +424,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			if (bs->attackcrouch_time < FloatTime() - 5) {
 				croucher = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CROUCHER, 0, 1);
 
-				if (random() < bs->thinktime * croucher * 10) {
+				if (random() < bs->thinktime * croucher) {
 					bs->attackcrouch_time = FloatTime() + 5 + croucher * 15;
 				}
 			}
@@ -448,7 +448,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 					} else if (bs->attackcrouch_time > FloatTime()) {
 						trap_EA_Crouch(bs->client);
 					// else do some model taunts
-					} else if (random() < bs->thinktime * 0.5) {
+					} else if (random() < bs->thinktime * 0.05) {
 						// do a gesture :)
 						trap_EA_Gesture(bs->client);
 					}
@@ -462,7 +462,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			}
 			// look strategically around for enemies
 			if (!BotHasRoamGoal(bs, target)) {
-				if (random() < bs->thinktime * 8) {
+				if (random() < bs->thinktime * 0.8) {
 					BotRoamGoal(bs, target);
 					VectorSubtract(target, bs->origin, dir);
 					vectoangles(dir, bs->ideal_viewangles);
@@ -659,7 +659,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			}
 			// look strategically around for enemies
 			if (!BotHasRoamGoal(bs, target)) {
-				if (random() < bs->thinktime * 8) {
+				if (random() < bs->thinktime * 0.8) {
 					BotRoamGoal(bs, target);
 					VectorSubtract(target, bs->origin, dir);
 					vectoangles(dir, bs->ideal_viewangles);
@@ -670,7 +670,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			if (bs->attackcrouch_time < FloatTime() - 5) {
 				croucher = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CROUCHER, 0, 1);
 
-				if (random() < bs->thinktime * croucher * 10) {
+				if (random() < bs->thinktime * croucher) {
 					bs->attackcrouch_time = FloatTime() + 5 + croucher * 15;
 				}
 			}
@@ -1713,7 +1713,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 	// if waiting for something
 	} else if (moveresult.flags & MOVERESULT_WAITING) {
 		if (!BotHasRoamGoal(bs, target)) {
-			if (random() < bs->thinktime * 8) {
+			if (random() < bs->thinktime * 0.8) {
 				BotRoamGoal(bs, target);
 				VectorSubtract(target, bs->origin, dir);
 				vectoangles(dir, bs->ideal_viewangles);
@@ -1852,7 +1852,7 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 	// if waiting for something
 	} else if (moveresult.flags & MOVERESULT_WAITING) {
 		if (!BotHasRoamGoal(bs, target)) {
-			if (random() < bs->thinktime * 8) {
+			if (random() < bs->thinktime * 0.8) {
 				BotRoamGoal(bs, target);
 				VectorSubtract(target, bs->origin, dir);
 				vectoangles(dir, bs->ideal_viewangles);
@@ -1963,7 +1963,7 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 	bs->enemy = -1;
 
 	if (bs->killedenemy_time > FloatTime() - 2) {
-		if (random() < bs->thinktime * 10) {
+		if (random() < bs->thinktime) {
 			trap_EA_Gesture(bs->client);
 		}
 	}
@@ -2051,7 +2051,7 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 	// if waiting for something
 	} else if (moveresult.flags & MOVERESULT_WAITING) {
 		if (!BotHasRoamGoal(bs, target)) {
-			if (random() < bs->thinktime * 8) {
+			if (random() < bs->thinktime * 0.8) {
 				BotRoamGoal(bs, target);
 				VectorSubtract(target, bs->origin, dir);
 				vectoangles(dir, bs->ideal_viewangles);
@@ -2066,7 +2066,7 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 		} else if (VectorLengthSquared(moveresult.movedir)) {
 			vectoangles(moveresult.movedir, bs->ideal_viewangles);
 		} else if (!BotHasRoamGoal(bs, target)) {
-			if (random() < bs->thinktime * 8) {
+			if (random() < bs->thinktime * 0.8) {
 				BotRoamGoal(bs, target);
 				VectorSubtract(target, bs->origin, dir);
 				vectoangles(dir, bs->ideal_viewangles);
