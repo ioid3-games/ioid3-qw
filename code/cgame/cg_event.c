@@ -279,10 +279,15 @@ static void CG_Obituary(entityState_t *ent) {
 				message = "was too close to";
 				message2 = "'s prox mine";
 				break;
+			case MOD_GRENADE:
+				message = "ate";
+				message2 = "'s grenade";
+				break;
 			case MOD_GRENADE_SPLASH:
 				message = "was shredded by";
 				message2 = "'s shrapnel";
 				break;
+			case MOD_NAPALM:
 			case MOD_NAPALM_SPLASH:
 				message = "roasted to a nice golden brown by";
 				message2 = "'s napalm launcher";
