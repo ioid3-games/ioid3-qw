@@ -438,8 +438,8 @@ name:						default:	module(s):		description:
 "bot_reloadcharacters"		"0"			-				reload bot character files
 "ai_gametype"				"0"			be_ai_goal.c	game type
 "droppedweight"				"1000"		be_ai_goal.c	additional dropped item weight
-"weapindex_rocketlauncher"	"8"			be_ai_move.c	rl weapon index for rocket jumping
-"weapindex_bfg10k"			"12"		be_ai_move.c	bfg weapon index for bfg jumping
+"weapindex_rocketlauncher"	"9"			be_ai_move.c	rl weapon index for rocket jumping
+"weapindex_bfg10k"			"13"		be_ai_move.c	bfg weapon index for bfg jumping
 "itemconfig"				"items.c"	be_ai_goal.c	item configuration file
 "weaponconfig"				"weapons.c"	be_ai_weap.c	weapon configuration file
 "synfile"					"syn.c"		be_ai_chat.c	file with synonyms
@@ -447,8 +447,8 @@ name:						default:	module(s):		description:
 "matchfile"					"match.c"	be_ai_chat.c	file with match strings
 "nochat"					"0"			be_ai_chat.c	disable chats
 "max_messages"				"1024"		be_ai_chat.c	console message heap size
-"max_weaponinfo"			"64"		be_ai_weap.c	maximum number of weapon info
-"max_projectileinfo"		"64"		be_ai_weap.c	maximum number of projectile info
+"max_weaponinfo"			"32"		be_ai_weap.c	maximum number of weapon info
+"max_projectileinfo"		"32"		be_ai_weap.c	maximum number of projectile info
 "max_iteminfo"				"256"		be_ai_goal.c	maximum number of item info
 "max_levelitems"			"256"		be_ai_goal.c	maximum number of level items
 */

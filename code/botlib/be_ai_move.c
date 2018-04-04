@@ -3648,8 +3648,8 @@ int BotSetupMoveAI(void) {
 	sv_maxstep = LibVar("sv_step", "18");
 	sv_maxbarrier = LibVar("sv_maxbarrier", "42");
 
-	weapindex_rocketlauncher = LibVar("weapindex_rocketlauncher", "8");
-	weapindex_bfg10k = LibVar("weapindex_bfg10k", "12");
+	weapindex_rocketlauncher = LibVar("weapindex_rocketlauncher", "9");
+	weapindex_bfg10k = LibVar("weapindex_bfg10k", "13");
 	return BLERR_NOERROR;
 }
 

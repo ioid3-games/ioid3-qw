@@ -527,7 +527,7 @@ gentity_t *fire_grenade(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->damage = 100;
 	bolt->splashDamage = 200;
 	bolt->splashRadius = 200;
-	bolt->methodOfDeath = MOD_GRENADE_SPLASH;
+	bolt->methodOfDeath = MOD_GRENADE;
 	bolt->splashMethodOfDeath = MOD_GRENADE_SPLASH;
 	bolt->clipmask = MASK_SHOT;
 	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
@@ -571,7 +571,7 @@ gentity_t *fire_napalm(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->damage = 0;
 	bolt->splashDamage = 10;
 	bolt->splashRadius = 300;
-	bolt->methodOfDeath = MOD_NAPALM_SPLASH;
+	bolt->methodOfDeath = MOD_NAPALM;
 	bolt->splashMethodOfDeath = MOD_NAPALM_SPLASH;
 	bolt->clipmask = MASK_SHOT;
 	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
