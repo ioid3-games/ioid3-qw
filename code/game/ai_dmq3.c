@@ -2326,6 +2326,10 @@ qboolean BotAggression(bot_state_t *bs) {
 	if (bs->inventory[ENEMY_HEIGHT] > 200) {
 		return qfalse;
 	}
+	// if the bot is using the napalmlauncher
+	if (bs->weaponnum == WP_NAPALMLAUNCHER) {
+		return qfalse;
+	}
 	// if the bot is using the grenadelauncher
 	if (bs->weaponnum == WP_GRENADELAUNCHER) {
 		return qfalse;
@@ -2389,6 +2393,10 @@ qboolean BotAggression(bot_state_t *bs) {
 			}
 			// if the enemy is using the bfg
 			if (entinfo.weapon == WP_BFG) {
+				return qfalse;
+			}
+			// if the enemy is using the napalmlauncher
+			if (entinfo.weapon == WP_NAPALMLAUNCHER) {
 				return qfalse;
 			}
 			// if the enemy is using the grenadelauncher
@@ -3992,7 +4000,7 @@ BotAimAtEnemy
 void BotAimAtEnemy(bot_state_t *bs) {
 	int i, enemyvisible;
 	float dist, f, aim_skill, aim_accuracy, speed, reactiontime;
-	vec3_t dir, bestorigin, end, start, groundtarget, cmdmove, enemyvelocity;
+	vec3_t dir, bestorigin, end, start, groundtarget, cmdmove, enemyvelocity, middleOfArc, topOfArc;
 	vec3_t mins = {-4, -4, -4}, maxs = {4, 4, 4};
 	weaponinfo_t wi;
 	aas_entityinfo_t entinfo;
@@ -4290,6 +4298,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 			}
 		}
 	}
+// Tobias NOTE: for developers...
 /*
 		(o = botai trace line)
 		(* = projectile travel line)
@@ -4327,30 +4336,32 @@ WARNING 1: Accuracy is nearly 100% even with very fast projectiled weapons (e.g.
 WARNING 2: Bots will also throw grenades through windows even from distance, so be careful!
 */
 	if (wi.proj.gravity) {
-		vec3_t middleOfArc, topOfArc;
-		// direction towards the enemy.
+		// direction towards the enemy
 		VectorSubtract(bestorigin, bs->origin, dir);
-		// distance towards the enemy.
+		// distance towards the enemy
 		dist = VectorNormalize(dir);
-		// get the start point shooting from, for safety sake take overhead ledges into account (so we trace along the highest point of the arc, from start to middle).
+		// get the start point shooting from, for safety sake take overhead ledges into account (so we trace along the highest point of the arc, from start to middle)
 		VectorCopy(bs->origin, start);
+
 		start[2] += bs->cur_ps.viewheight + 20;
-		// half the distance will be the middle of the projectile arc (highest point the projectile will travel).
+		// half the distance will be the middle of the projectile arc (highest point the projectile will travel)
 		VectorMA(start, dist * 0.5, dir, middleOfArc);
 		VectorCopy(middleOfArc, topOfArc);
+
 		topOfArc[2] += (dist * wi.proj.gravity) + (bs->inventory[ENEMY_HEIGHT] > 0 ? bs->inventory[ENEMY_HEIGHT] * 0.1 : 0);
-		// trace from start to middle, check if the projectile will be blocked by something.
+		// trace from start to middle, check if the projectile will be blocked by something
 		BotAI_Trace(&trace, start, mins, maxs, topOfArc, entinfo.number, MASK_SHOT);
-		// if the projectile will not be blocked.
+		// if the projectile will not be blocked
 		if (trace.fraction >= 1) {
-			// get the end point (the projectiles impact point), for safety sake take overhead ledges into account (so we trace along the highest point of the arc, from middle to end).
+			// get the end point (the projectiles impact point), for safety sake take overhead ledges into account (so we trace along the highest point of the arc, from middle to end)
 			VectorCopy(entinfo.origin, end);
+
 			end[2] += 20;
-			// trace from middle to end, check if the projectile will be blocked by something.
+			// trace from middle to end, check if the projectile will be blocked by something
 			BotAI_Trace(&trace, topOfArc, mins, maxs, end, entinfo.number, MASK_SHOT);
-			// if the projectile will not be blocked.
+			// if the projectile will not be blocked
 			if (trace.fraction >= 1) {
-				// take projectile speed, gravity and enemy height into account.
+				// take projectile speed, gravity and enemy height into account
 				bestorigin[2] += (dist * dist / wi.speed * wi.proj.gravity) + (bs->inventory[ENEMY_HEIGHT] > 0 ? bs->inventory[ENEMY_HEIGHT] * 0.1 : 0);
 			}
 		}
