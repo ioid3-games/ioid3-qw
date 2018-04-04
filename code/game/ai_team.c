@@ -3785,18 +3785,19 @@ void BotTeamAI(bot_state_t *bs) {
 
 	bs->askteamleader_time = 0;
 	bs->becometeamleader_time = 0;
-	// return if this bot is NOT the team leader
+	// set default strategy
 	ClientName(bs->client, netname, sizeof(netname));
-
+	// return if this bot is NOT the team leader
 	if (Q_stricmp(netname, bs->teamleader) != 0) {
+		bs->ctfstrategy = CTFS_DEFENSIVE;
 		return;
+	}
+	// if this bot IS the team leader
+	if (!Q_stricmp(netname, bs->teamleader)) {
+		bs->ctfstrategy = trap_Characteristic_BInteger(bs->character, CHARACTERISTIC_LEADER_STRATEGY, 1, 4);
 	}
 
 	numteammates = BotNumTeamMates(bs);
-	// set default strategy
-	if (bs->ctfstrategy < 1 || bs->ctfstrategy > 4) {
-		bs->ctfstrategy = trap_Characteristic_BInteger(bs->character, CHARACTERISTIC_LEADER_STRATEGY, 1, 4);
-	}
 	// give orders
 	switch (gametype) {
 		case GT_TEAM:
