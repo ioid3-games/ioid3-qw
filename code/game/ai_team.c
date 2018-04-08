@@ -1757,12 +1757,13 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 				case 2:
 					// both defend the base
 					ClientName(teammates[0], name, sizeof(name));
-				BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
-				BotSayTeamOrder(bs, teammates[0]);
-				BotSayVoiceTeamOrder(bs, teammates[0], VOICECHAT_DEFEND);
-				ClientName(teammates[1], name, sizeof(name));
-				BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
-				BotSayTeamOrder(bs, teammates[1]);
+					BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
+					BotSayTeamOrder(bs, teammates[0]);
+					BotSayVoiceTeamOrder(bs, teammates[0], VOICECHAT_DEFEND);
+
+					ClientName(teammates[1], name, sizeof(name));
+					BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
+					BotSayTeamOrder(bs, teammates[1]);
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_DEFEND);
 					break;
 				case 3:
@@ -2727,13 +2728,13 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 				case 2:
 					// keep one near the base for when the flag is returned
 					ClientName(teammates[0], name, sizeof(name));
-				BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
-				BotSayTeamOrder(bs, teammates[0]);
-				BotSayVoiceTeamOrder(bs, teammates[0], VOICECHAT_DEFEND);
-				// the other will get the flag
-				ClientName(teammates[1], name, sizeof(name));
-				BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
-				BotSayTeamOrder(bs, teammates[1]);
+					BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
+					BotSayTeamOrder(bs, teammates[0]);
+					BotSayVoiceTeamOrder(bs, teammates[0], VOICECHAT_DEFEND);
+					// the other will get the flag
+					ClientName(teammates[1], name, sizeof(name));
+					BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
+					BotSayTeamOrder(bs, teammates[1]);
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				case 3:

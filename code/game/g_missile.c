@@ -44,7 +44,7 @@ qboolean G_BounceMissile(gentity_t *ent, trace_t *trace) {
 	dot = DotProduct(velocity, trace->plane.normal);
 
 	VectorMA(velocity, -2 * dot, trace->plane.normal, ent->s.pos.trDelta);
-// Tobias FIXME: do some simplifications here (like 'isSoftMaterial' etc.), after everything is done...
+// Tobias FIXME: do some simplifications and use a 'jumptable' here (like 'case: isSoftMaterial' etc.)...
 	if ((trace->surfaceFlags & SURF_MATERIAL_MASK) == MAT_SAND_GR_COL_01 || (trace->surfaceFlags & SURF_MATERIAL_MASK) == MAT_SAND_GR_COL_02 || (trace->surfaceFlags & SURF_MATERIAL_MASK) == MAT_SAND_GR_COL_03 || (trace->surfaceFlags & SURF_MATERIAL_MASK) == MAT_SAND_GR_COL_04) {
 		ent->s.pos.trDelta[2] *= 0.65f;
 	}
@@ -452,7 +452,6 @@ gentity_t *fire_nail(gentity_t *self, vec3_t start, vec3_t forward, vec3_t right
 	bolt->methodOfDeath = MOD_NAIL;
 	bolt->splashMethodOfDeath = MOD_NAIL;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_LINEAR;
@@ -510,7 +509,6 @@ gentity_t *fire_prox(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->methodOfDeath = MOD_PROXIMITY_MINE;
 	bolt->splashMethodOfDeath = MOD_PROXIMITY_MINE;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_GRAVITY;
@@ -555,7 +553,6 @@ gentity_t *fire_grenade(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->methodOfDeath = MOD_GRENADE_SPLASH;
 	bolt->splashMethodOfDeath = MOD_GRENADE_SPLASH;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_GRAVITY;
@@ -596,10 +593,9 @@ gentity_t *fire_napalm(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->damage = 0;
 	bolt->splashDamage = 10;
 	bolt->splashRadius = 300;
-	bolt->methodOfDeath = MOD_NAPALM_SPLASH;
+	bolt->methodOfDeath = MOD_NAPALM;
 	bolt->splashMethodOfDeath = MOD_NAPALM_SPLASH;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_GRAVITY;
@@ -643,7 +639,6 @@ gentity_t *fire_rocket(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->methodOfDeath = MOD_ROCKET;
 	bolt->splashMethodOfDeath = MOD_ROCKET_SPLASH;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_LINEAR;
@@ -687,7 +682,6 @@ gentity_t *fire_plasma(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->methodOfDeath = MOD_PLASMA;
 	bolt->splashMethodOfDeath = MOD_PLASMA_SPLASH;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_LINEAR;
@@ -731,7 +725,6 @@ gentity_t *fire_bfg(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->methodOfDeath = MOD_BFG;
 	bolt->splashMethodOfDeath = MOD_BFG_SPLASH;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_LINEAR;

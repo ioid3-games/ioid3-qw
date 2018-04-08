@@ -128,14 +128,14 @@ static void CG_EntityEffects(centity_t *cent) {
 	CG_SetEntitySoundPosition(cent);
 	// add loop sound
 	if (cent->currentState.loopSound) {
-		if (cent->currentState.eType == ET_SPEAKER) {
+		if (cent->currentState.eType != ET_SPEAKER) {
+			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[cent->currentState.loopSound], cent->currentState.soundRange, cent->currentState.soundVolume);
+		} else {
 			if (cent->currentState.soundRange) { // range is set
 				trap_S_AddRealLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[cent->currentState.loopSound], cent->currentState.soundRange, cent->currentState.soundVolume);
 			} else {
 				trap_S_AddRealLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[cent->currentState.loopSound], SOUND_RANGE_DEFAULT, cent->currentState.soundVolume);
 			}
-		} else {
-			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[cent->currentState.loopSound], cent->currentState.soundRange, cent->currentState.soundVolume);
 		}
 	}
 	// constant light glow
