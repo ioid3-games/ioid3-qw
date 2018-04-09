@@ -3296,16 +3296,16 @@ Check whether any of the original pak files is present.
 static void FS_CheckPak0(void) {
 	searchpath_t *path;
 	pack_t *curpack;
+	const char *pakBasename;
 	unsigned int foundPak = 0;
 
 	for (path = fs_searchpaths; path; path = path->next) {
-		const char *pakBasename = path->pack->pakBasename;
-
 		if (!path->pack) {
 			continue;
 		}
 
 		curpack = path->pack;
+		pakBasename = curpack->pakBasename;
 
 		if (!Q_stricmpn(curpack->pakGamename, BASEGAME, MAX_OSPATH) && strlen(pakBasename) == 4 && !Q_stricmpn(pakBasename, "pak", 3) && pakBasename[3] >= '0' && pakBasename[3] <= '0' + NUM_QW_PAKS - 1) {
 			if (curpack->checksum != pak_checksums[pakBasename[3] - '0']) {
