@@ -1023,7 +1023,6 @@ int AAS_ClientMovementPrediction(struct aas_clientmove_s *move, int entnum, vec3
 	move->endcontents = 0;
 	move->time = n * frametime;
 	move->frames = n;
-
 	return qtrue;
 }
 

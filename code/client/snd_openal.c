@@ -815,7 +815,7 @@ static void S_AL_NewLoopMaster(src_t *rmSource, qboolean iskilled) {
 				// it makes more sense to have sounds for weapons/projectiles unsynced
 				S_AL_SaveLoopPos(rmSource, rmSource->alSource);
 			}
-		} else if (rmSource == &srcList[curSfx->masterLoopSrc]) {
+		} else if (curSfx->masterLoopSrc != -1 && rmSource == &srcList[curSfx->masterLoopSrc]) {
 			int firstInactive = -1;
 
 			// only if rmSource was the master and if there are still playing loops for this sound will we need to find a new master.
