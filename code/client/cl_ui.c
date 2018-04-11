@@ -759,6 +759,9 @@ intptr_t CL_UISystemCalls(intptr_t *args) {
 		case UI_CVAR_VARIABLE_STRING_BUFFER:
 			Cvar_VariableStringBuffer(VMA(1), VMA(2), args[3]);
 			return 0;
+		case UI_CVAR_RESET:
+			Cvar_Reset(VMA(1));
+			return 0;
 		case UI_FS_FOPENFILE:
 			return FS_FOpenFileByMode(VMA(1), VMA(2), args[3]);
 		case UI_FS_READ:
