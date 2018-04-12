@@ -318,6 +318,7 @@ int UI_AdjustTimeByGame(int time);
 void UI_ShowPostGame(qboolean newHigh);
 void UI_ClearScores(void);
 void UI_LoadArenas(void);
+void UI_LoadArenasIntoMapList(void);
 // ui_menu.c
 extern void MainMenu_Cache(void);
 extern void UI_MainMenu(void);
