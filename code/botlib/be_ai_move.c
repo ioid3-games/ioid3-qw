@@ -1210,7 +1210,7 @@ BotWalkInDirection
 */
 int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 	vec3_t hordir, cmdmove, velocity, tmpdir, origin;
-	int presencetype, maxframes, cmdframes;
+	int presencetype, maxframes, cmdframes, stopevent;
 	aas_clientmove_t move;
 	qboolean predictSuccess;
 
@@ -1246,6 +1246,7 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			cmdmove[2] = 400;
 			maxframes = PREDICTIONTIME_JUMP / 0.1;
 			cmdframes = 1;
+			stopevent = SE_HITGROUND|SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA|SE_GAP;
 		} else {
 			if (type & MOVE_CROUCH) {
 				cmdmove[2] = -400;
@@ -1253,6 +1254,7 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 
 			maxframes = 2;
 			cmdframes = 2;
+			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA|SE_GAP;
 		}
 
 		//AAS_ClearShownDebugLines();
@@ -1260,7 +1262,7 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 		VectorCopy(ms->origin, origin);
 
 		origin[2] += 0.5;
-		predictSuccess = AAS_PredictClientMovement(&move, ms->entitynum, origin, presencetype, qtrue, velocity, cmdmove, cmdframes, maxframes, 0.1f, SE_HITGROUND|SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_GAP, 0, qfalse); // qtrue
+		predictSuccess = AAS_PredictClientMovement(&move, ms->entitynum, origin, presencetype, qtrue, velocity, cmdmove, cmdframes, maxframes, 0.1f, stopevent, 0, qfalse); // qtrue
 		// check if prediction failed
 		if (!predictSuccess) {
 			//botimport.Print(PRT_MESSAGE, "client %d: prediction was stuck in loop\n", ms->client);
