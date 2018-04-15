@@ -117,7 +117,6 @@ field_t fields[] = {
 	{"message", FOFS(message), F_STRING},
 	{"team", FOFS(team), F_STRING},
 	{"radius", FOFS(radius), F_INT},
-	{"volume", FOFS(volume), F_INT},
 	{"wait", FOFS(wait), F_FLOAT},
 	{"random", FOFS(random), F_FLOAT},
 	{"count", FOFS(count), F_INT},

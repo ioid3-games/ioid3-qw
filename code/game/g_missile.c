@@ -380,11 +380,11 @@ void G_RunMissile(gentity_t *ent) {
 	// get current position
 	BG_EvaluateTrajectory(&ent->s.pos, level.time, origin, qfalse, ent->s.effect2Time);
 	// missiles that left the owner bbox will interact with anything, even the owner
-	if (ent->count) {
-		passent = ENTITYNUM_NONE;
-	} else {
+	if (!ent->count) {
 		// ignore interactions with the missile owner
 		passent = ent->r.ownerNum;
+	} else {
+		passent = ENTITYNUM_NONE;
 	}
 	// trace a line from the previous position to the current position
 	trap_Trace(&tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin, passent, ent->clipmask);
@@ -393,7 +393,7 @@ void G_RunMissile(gentity_t *ent) {
 		// make sure the tr.entityNum is set to the entity we're stuck in
 		trap_Trace(&tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, ent->r.currentOrigin, passent, ent->clipmask);
 		tr.fraction = 0;
-		ent->clipmask &= ~CONTENTS_BODY;
+		ent->count = 0;
 	} else {
 		VectorCopy(tr.endpos, ent->r.currentOrigin);
 	}
@@ -414,7 +414,7 @@ void G_RunMissile(gentity_t *ent) {
 		}
 	}
 	// if the missile wasn't yet outside the player body
-	if (!ent->count && ent->s.pos.trType == TR_GRAVITY) {
+	if (!ent->count) {
 		// check if the missile is outside the owner bbox
 		trap_Trace(&tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, ent->r.currentOrigin, ENTITYNUM_NONE, ent->clipmask);
 

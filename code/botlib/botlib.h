@@ -200,7 +200,6 @@ typedef struct aas_export_s {
 	// be_aas_reach.c
 	//--------------------------------------------
 	int (*AAS_AreaReachability)(int areanum);
-	int (*AAS_BestReachableArea)(vec3_t origin, vec3_t mins, vec3_t maxs, vec3_t goalorigin);
 	//--------------------------------------------
 	// be_aas_route.c
 	//--------------------------------------------
@@ -360,11 +359,9 @@ typedef struct botlib_export_s {
 	int (*BotLibVarGet)(const char *var_name, char *value, int size);
 	// sets a C-like define returns BLERR_
 	int (*PC_AddGlobalDefine)(char *string);
-	void (*PC_RemoveAllGlobalDefines)(void);
 	int (*PC_LoadSourceHandle)(const char *filename);
 	int (*PC_FreeSourceHandle)(int handle);
 	int (*PC_ReadTokenHandle)(int handle, pc_token_t *pc_token);
-	void (*PC_UnreadLastTokenHandle)(int handle);
 	int (*PC_SourceFileAndLine)(int handle, char *filename, int *line);
 	// start a frame in the bot library
 	int (*BotLibStartFrame)(float time);

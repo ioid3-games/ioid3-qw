@@ -9,7 +9,7 @@ equ atan2									-6
 equ sqrt									-7
 equ floor									-8
 equ ceil									-9
-equ Q_acos									-10
+equ acos									-10
 equ Q_asin									-11
 equ tan										-12
 equ atan									-13
@@ -46,12 +46,11 @@ equ trap_FS_Seek							-45
 equ trap_FS_FCloseFile						-46
 equ trap_FS_GetFileList						-47
 equ trap_PC_AddGlobalDefine					-48
-equ trap_PC_RemoveAllGlobalDefines			-49
-equ trap_PC_LoadSource						-50
-equ trap_PC_FreeSource						-51
-equ trap_PC_ReadToken						-52
-equ trap_PC_UnreadToken						-53
-equ trap_PC_SourceFileAndLine				-54
+equ trap_PC_LoadSource						-49
+equ trap_PC_FreeSource						-50
+equ trap_PC_ReadToken						-51
+equ trap_PC_UnreadToken						-52
+equ trap_PC_SourceFileAndLine				-53
 
 equ trap_GetClipboardData					-101
 equ trap_GetGlconfig						-102

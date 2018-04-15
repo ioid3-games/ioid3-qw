@@ -274,7 +274,7 @@ void CG_MissileHitWall(int weapon, int clientNum, vec3_t origin, vec3_t dir) {
 	}
 	// impact sound
 	if (sfx) {
-		trap_S_StartSound(origin, ENTITYNUM_WORLD, CHAN_AUTO, sfx, sfxRadius, 255);
+		trap_S_StartSound(origin, ENTITYNUM_WORLD, CHAN_AUTO, sfx, sfxRadius);
 	}
 }
 
@@ -370,7 +370,7 @@ void CG_PhosphorTrail(vec3_t start, vec3_t end) {
 	midpoint[1] = (start[1] + end[1]) * 0.5;
 	midpoint[2] = (start[2] + end[2]) * 0.5;
 	// add the tracer sound
-	trap_S_StartSound(midpoint, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.tracerSound, 64, 255);
+	trap_S_StartSound(midpoint, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.tracerSound, 64);
 }
 
 /*
@@ -1147,7 +1147,7 @@ void CG_Tracer(vec3_t source, vec3_t dest) {
 	midpoint[1] = (start[1] + finish[1]) * 0.5;
 	midpoint[2] = (start[2] + finish[2]) * 0.5;
 	// add the tracer sound
-	trap_S_StartSound(midpoint, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.tracerSound, 64, 255);
+	trap_S_StartSound(midpoint, ENTITYNUM_WORLD, CHAN_AUTO, cgs.media.tracerSound, 64);
 }
 
 /*
@@ -1323,7 +1323,7 @@ CG_ShotgunFire
 =======================================================================================================================================
 */
 void CG_ShotgunFire(entityState_t *es) {
-	vec3_t v;
+	vec3_t v, up;
 	int contents;
 
 	VectorSubtract(es->origin2, es->pos.trBase, v);
@@ -1331,16 +1331,11 @@ void CG_ShotgunFire(entityState_t *es) {
 	VectorScale(v, 32, v);
 	VectorAdd(es->pos.trBase, v, v);
 
-	if (cgs.glconfig.hardwareType != GLHW_RAGEPRO) {
-		// ragepro can't alpha fade, so don't even bother with smoke
-		vec3_t up;
+	contents = CG_PointContents(es->pos.trBase, 0);
 
-		contents = CG_PointContents(es->pos.trBase, 0);
-
-		if (!(contents & CONTENTS_WATER)) {
-			VectorSet(up, 0, 0, 8);
-			CG_SmokePuff(v, up, 32, 1, 1, 1, 0.33f, 900, cg.time, 0, LEF_PUFF_DONT_SCALE, cgs.media.shotgunSmokePuffShader);
-		}
+	if (!(contents & CONTENTS_WATER)) {
+		VectorSet(up, 0, 0, 8);
+		CG_SmokePuff(v, up, 32, 1, 1, 1, 0.33f, 900, cg.time, 0, LEF_PUFF_DONT_SCALE, cgs.media.shotgunSmokePuffShader);
 	}
 
 	CG_ShotgunPattern(es->pos.trBase, es->origin2, es->eventParm, es->otherEntityNum);
@@ -1384,7 +1379,7 @@ void CG_FireWeapon(centity_t *cent) {
 	}
 	// play quad sound if needed
 	if (cent->currentState.powerups & (1 << PW_QUAD)) {
-		trap_S_StartSound(NULL, cent->currentState.number, CHAN_ITEM, cgs.media.quadSound, 128, 255);
+		trap_S_StartSound(NULL, cent->currentState.number, CHAN_ITEM, cgs.media.quadSound, 128);
 	}
 	// play a sound
 	for (c = 0; c < 4; c++) {
@@ -1397,7 +1392,7 @@ void CG_FireWeapon(centity_t *cent) {
 		c = rand() % c;
 
 		if (weap->flashSound[c]) {
-			trap_S_StartSound(NULL, ent->number, CHAN_WEAPON, weap->flashSound[c], 128, 255);
+			trap_S_StartSound(NULL, ent->number, CHAN_WEAPON, weap->flashSound[c], 128);
 		}
 	}
 	// do brass ejection
@@ -1804,11 +1799,11 @@ static float CG_MachinegunSpinAngle(centity_t *cent) {
 		cent->pe.barrelSpinning = !!(cent->currentState.eFlags & EF_FIRING);
 
 		if (cent->currentState.weapon == WP_CHAINGUN && !cent->pe.barrelSpinning) {
-			trap_S_StartSound(NULL, cent->currentState.number, CHAN_WEAPON, cgs.media.sfx_chgstop, 64, 255);
+			trap_S_StartSound(NULL, cent->currentState.number, CHAN_WEAPON, cgs.media.sfx_chgstop, 64);
 		}
 
 		if (cent->currentState.weapon == WP_HEAVY_MACHINEGUN && !cent->pe.barrelSpinning) {
-			trap_S_StartSound(NULL, cent->currentState.number, CHAN_WEAPON, cgs.media.sfx_hmgstop, 64, 255);
+			trap_S_StartSound(NULL, cent->currentState.number, CHAN_WEAPON, cgs.media.sfx_hmgstop, 64);
 		}
 	}
 
@@ -1907,10 +1902,10 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent,
 
 		if ((cent->currentState.eFlags & EF_FIRING) && weapon->firingSound) {
 			// beam gun and gauntlet make a different sound when fire is held down
-			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->firingSound, 128, 255);
+			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->firingSound, 128);
 			cent->pe.beamgunFiring = qtrue;
 		} else if (weapon->readySound) {
-			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->readySound, 32, 255);
+			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->readySound, 32);
 		}
 	}
 

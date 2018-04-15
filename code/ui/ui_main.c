@@ -3837,15 +3837,10 @@ static void UI_RunMenuScript(char **args) {
 					trap_Cmd_ExecuteText(EXEC_APPEND, buff);
 				}
 			}
-		// Tobias NOTE: currently this is EXACTLY the same as the "StartServer" script (above)!
-		//				Do we want a simplified script for in-game server setup?
-
-		//				1: I changed SV_Map_f to kick bots, otherwise bots are added continuously (I have no idea if removing bots in this case will cause some problems)!
-		//				2: Waiting for too long before starting a new server will CRASH!
-		//				3: Changing the gametype will switch teams for connected players!
-		//				4: There is a pause before starting the new server (drawing a black screen), this is ugly, and this was not the case with baseq3 UI!
+// Tobias FIXME: 1: Changing the gametype from > GT_TOURNAMENT ->GT_FFA ->> GT_TOURNAMENT will switch teams for connected players, and also displays the wrong HUD(Free for all HUD in team gametypes and vice versa, etc.)!
+//				 2: Waiting for too long before starting a new server will CRASH! Is this still the case?
 		} else if (Q_stricmp(name, "StartServerIngame") == 0) {
-			int i, clients, oldclients;
+			int i, delay, clients, oldclients;
 			float skill;
 
 			trap_Cvar_SetValue("cg_thirdPerson", 0);
@@ -3855,22 +3850,23 @@ static void UI_RunMenuScript(char **args) {
 			trap_Cvar_SetValue("g_gametype", Com_Clamp(0, GT_MAX_GAME_TYPE - 1, uiInfo.gameTypes[ui_netGameType.integer].gtEnum));
 			trap_Cvar_Set("g_redTeam", UI_Cvar_VariableString("ui_opponentName"));
 			trap_Cvar_Set("g_blueTeam", UI_Cvar_VariableString("ui_teamName"));
-
-			trap_Cmd_ExecuteText(EXEC_APPEND, va("wait; wait; map %s\n", uiInfo.mapList[ui_currentNetMap.integer].mapLoadName));
-
-			skill = trap_Cvar_VariableValue("g_spSkill");
+			trap_Cmd_ExecuteText(EXEC_APPEND, va("map %s\n", uiInfo.mapList[ui_currentNetMap.integer].mapLoadName));
+			// Tobias FIXME: this script will add bots and doesn't check if there are already enough bots, so we must kick already connected bots, otherwise bots are added to the existing ones continuously with each new map(FIXME?).
+			// Tobias NOTE: we must kick bots before executing the map command otherwise bots become 'invisible'(FIXME?).
+			// Tobias FIXME: unfortunately kicking bots AFTER map loading spawns some extra skulls again, https:// github.com / ioquake / ioq3 / commit / f7c3276fe803388bd613ab6bf6ad8e0a6647b740#diff - 08c7587b3da3e294c50c64c1024339d7
+			trap_Cmd_ExecuteText(EXEC_APPEND, "kickbots\n");
 			// set max clients based on spots
 			oldclients = trap_Cvar_VariableValue("sv_maxClients");
 			clients = 0;
 
 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
-				int bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
+				int bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
 
 				if (bot >= 0) {
 					clients++;
 				}
 
-				bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
+				bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
 
 				if (bot >= 0) {
 					clients++;
@@ -3887,17 +3883,20 @@ static void UI_RunMenuScript(char **args) {
 
 			trap_Cvar_SetValue("sv_maxClients", clients);
 
+			skill = trap_Cvar_VariableValue("g_spSkill");
+			delay = 500;
+
 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
 				int bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
 
 				if (bot > 1) {
 					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s\n", uiInfo.characterList[bot - 2].name, skill, "Red");
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s %i\n", uiInfo.characterList[bot - 2].name, skill, "Red", delay);
 					} else {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f \n", UI_GetBotNameByNumber(bot - 2), skill);
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %i\n", UI_GetBotNameByNumber(bot - 2), skill, delay);
 					}
-
 					trap_Cmd_ExecuteText(EXEC_APPEND, buff);
+					delay += 500;
 				}
 
 				bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
@@ -6545,8 +6544,6 @@ typedef struct {
 	int cvarFlags;
 } cvarTable_t;
 
-vmCvar_t ui_team_fraglimit;
-vmCvar_t ui_team_timelimit;
 vmCvar_t ui_arenasFile;
 vmCvar_t ui_botsFile;
 vmCvar_t ui_spSkill;
@@ -6618,13 +6615,9 @@ vmCvar_t ui_findPlayer;
 vmCvar_t ui_Q3Model;
 vmCvar_t ui_hudFiles;
 vmCvar_t ui_recordSPDemo;
-vmCvar_t ui_realCaptureLimit;
-vmCvar_t ui_realWarmUp;
 vmCvar_t ui_serverStatusTimeOut;
 
 static cvarTable_t cvarTable[] = {
-	{&ui_team_fraglimit, "ui_team_fraglimit", "0", CVAR_ARCHIVE},
-	{&ui_team_timelimit, "ui_team_timelimit", "15", CVAR_ARCHIVE},
 	{&ui_arenasFile, "g_arenasFile", "", CVAR_INIT|CVAR_ROM},
 	{&ui_botsFile, "g_botsFile", "", CVAR_INIT|CVAR_ROM},
 	{&ui_spSkill, "g_spSkill", "3", CVAR_ARCHIVE},
@@ -6699,10 +6692,15 @@ static cvarTable_t cvarTable[] = {
 	{&ui_hudFiles, "cg_hudFiles", "ui/hud.txt", CVAR_ARCHIVE},
 	{&ui_recordSPDemo, "ui_recordSPDemo", "0", CVAR_ARCHIVE},
 	{&ui_teamArenaFirstRun, "ui_teamArenaFirstRun", "0", CVAR_ARCHIVE},
-	{&ui_realWarmUp, "g_warmup", "10", CVAR_ARCHIVE},
-	{&ui_realCaptureLimit, "capturelimit", "8", CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_NORESTART},
+	{NULL, "g_friendlyFire", "1", CVAR_ARCHIVE},
+	{NULL, "g_allowVote", "1", CVAR_ARCHIVE},
+	{NULL, "g_teamAutoJoin", "1", CVAR_ARCHIVE},
+	{NULL, "g_teamForceBalance", "1", CVAR_ARCHIVE},
+	{NULL, "g_warmup", "10", CVAR_ARCHIVE},
+	{NULL, "fraglimit", "0", CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_NORESTART},
+	{NULL, "timelimit", "15", CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_NORESTART},
+	{NULL, "capturelimit", "8", CVAR_SERVERINFO|CVAR_ARCHIVE|CVAR_NORESTART},
 	{&ui_serverStatusTimeOut, "ui_serverStatusTimeOut", "7000", CVAR_ARCHIVE},
-	{NULL, "g_localTeamPref", "", 0},
 };
 
 static int cvarTableSize = ARRAY_LEN(cvarTable);

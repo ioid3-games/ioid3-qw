@@ -2020,8 +2020,8 @@ static void CG_DrawTeamVote(void) {
 	CG_KeysStringForBinding("vote no", noKeys, sizeof(noKeys));
 
 	lineHeight = CG_DrawStringLineHeight(UI_SMALLFONT);
-
 	s = va("TEAMVOTE (%i): %s. Yes: %i, No: %i. Press %s to vote for Yes or %s to vote for No (or press ESC then click Vote).", sec, cgs.teamVoteString[cs_offset], cgs.teamVoteYes[cs_offset], cgs.teamVoteNo[cs_offset], yesKeys, noKeys);
+
 	CG_DrawSmallString(0, 90 + lineHeight, s, 1.0f);
 }
 

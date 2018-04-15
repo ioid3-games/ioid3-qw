@@ -250,7 +250,6 @@ NO_PVS - this sound will not turn off when not in the player's PVS.
 "wait" : Seconds between auto triggerings, 0 = don't auto trigger.
 "random" wait variance, default is 0.
 "radius" radius control, 1250 is default.
-"volume" volume control, 255 is default.
 */
 void SP_target_speaker(gentity_t *ent) {
 	char buffer[MAX_QPATH];
@@ -302,12 +301,6 @@ void SP_target_speaker(gentity_t *ent) {
 
 	if (!ent->s.soundRange) {
 		ent->s.soundRange = SOUND_RANGE_DEFAULT;
-	}
-	// volume control
-	G_SpawnInt("volume", "0", &ent->s.soundVolume);
-
-	if (!ent->s.soundVolume) {
-		ent->s.soundVolume = SOUND_VOLUME_DEFAULT;
 	}
 
 	VectorCopy(ent->s.origin, ent->s.pos.trBase);

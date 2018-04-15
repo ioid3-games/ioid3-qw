@@ -217,7 +217,7 @@ weaponinfo
 //===========================================================================
 projectileinfo
 {
-	name			"proxmine"
+	name			"prox mine"
 	gravity			0.45 // 0.06
 	damage			0
 	damagetype		DAMAGETYPE_IMPACT
@@ -227,7 +227,7 @@ weaponinfo
 {
 	name			"Proximity Launcher"
 	number			WEAPONINDEX_PROXLAUNCHER
-	projectile		"proxmine"
+	projectile		"prox mine"
 	numprojectiles	1
 	hspread			0
 	vspread			0
@@ -300,7 +300,7 @@ weaponinfo
 	numprojectiles	1
 	hspread			0
 	vspread			0
-	speed			1000
+	speed			1100
 }
 
 //===========================================================================

@@ -9,7 +9,7 @@ equ atan2									-6
 equ sqrt									-7
 equ floor									-8
 equ ceil									-9
-equ Q_acos									-10
+equ acos									-10
 equ Q_asin									-11
 equ tan										-12
 equ atan									-13

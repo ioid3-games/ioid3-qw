@@ -221,7 +221,7 @@ static cvarTable_t cvarTable[] = {
 	{&cg_fovAspectAdjust, "cg_fovAspectAdjust", "0", CVAR_ARCHIVE},
 	{&cg_viewsize, "cg_viewsize", "100", CVAR_ARCHIVE},
 	{&cg_shadows, "cg_shadows", "1", CVAR_ARCHIVE},
-	{&cg_statusScale, "cg_statusScale", "0.5", CVAR_ARCHIVE},
+	{&cg_statusScale, "cg_statusScale", "1", CVAR_ARCHIVE},
 	{&cg_stretch, "cg_stretch", "0", CVAR_ARCHIVE},
 	{&cg_gibs, "cg_gibs", "1", CVAR_ARCHIVE},
 	{&cg_draw2D, "cg_draw2D", "1", CVAR_ARCHIVE},
@@ -238,9 +238,9 @@ static cvarTable_t cvarTable[] = {
 	{&cg_drawScores, "cg_drawScores", "1", CVAR_ARCHIVE},
 	{&cg_drawPickups, "cg_drawPickups", "1", CVAR_ARCHIVE},
 	{&cg_drawStatusHead, "cg_drawStatusHead", "1", CVAR_ARCHIVE},
-	{&cg_drawCrosshair, "cg_drawCrosshair", "2", CVAR_ARCHIVE},
+	{&cg_drawCrosshair, "cg_drawCrosshair", "4", CVAR_ARCHIVE},
 	{&cg_drawCrosshairNames, "cg_drawCrosshairNames", "0", CVAR_ARCHIVE},
-	{&cg_crosshairSize, "cg_crosshairSize", "11", CVAR_ARCHIVE},
+	{&cg_crosshairSize, "cg_crosshairSize", "12", CVAR_ARCHIVE},
 	{&cg_crosshairHealth, "cg_crosshairHealth", "0", CVAR_ARCHIVE},
 	{&cg_crosshairX, "cg_crosshairX", "0", CVAR_ARCHIVE},
 	{&cg_crosshairY, "cg_crosshairY", "0", CVAR_ARCHIVE},
@@ -281,7 +281,7 @@ static cvarTable_t cvarTable[] = {
 	{&cg_predictItems, "cg_predictItems", "1", CVAR_ARCHIVE},
 	{&cg_deferPlayers, "cg_deferPlayers", "0", CVAR_ARCHIVE},
 	{&cg_drawTeamOverlay, "cg_drawTeamOverlay", "0", CVAR_ARCHIVE},
-	{&cg_teamOverlayUserinfo, "teamoverlay", "0", CVAR_ROM|CVAR_USERINFO},
+	{&cg_teamOverlayUserinfo, "teamoverlay", "1", CVAR_ROM|CVAR_USERINFO},
 	{&cg_stats, "cg_stats", "0", 0},
 	{&cg_drawFriend, "cg_drawFriend", "1", CVAR_ARCHIVE},
 	{&cg_teamChatsOnly, "cg_teamChatsOnly", "0", CVAR_ARCHIVE},
@@ -2017,7 +2017,7 @@ CG_AssetCache
 void CG_AssetCache(void) {
 
 	//if (Assets.textFont == NULL) {
-	//	trap_R_RegisterFont("fonts/arial.ttf", 72, &Assets.textFont);
+	//	trap_R_RegisterFont("fonts/arial.ttf", 72, 0, qfalse, &Assets.textFont);
 	//}
 
 	//Assets.background = trap_R_RegisterShaderNoMip(ASSET_BACKGROUND);
@@ -2171,38 +2171,7 @@ Called before every level change or subsystem restart.
 void CG_Shutdown(void) {
 	// some mods may need to do cleanup work here, like closing files or archiving session data
 }
-#ifndef MISSIONPACK
-/*
-=======================================================================================================================================
-CG_EventHandling
 
- type 0 - no event handling
-      1 - team menu
-      2 - hud editor
-=======================================================================================================================================
-*/
-void CG_EventHandling(int type) {
-
-}
-
-/*
-=======================================================================================================================================
-CG_KeyEvent
-=======================================================================================================================================
-*/
-void CG_KeyEvent(int key, qboolean down) {
-
-}
-
-/*
-=======================================================================================================================================
-CG_MouseEvent
-=======================================================================================================================================
-*/
-void CG_MouseEvent(int x, int y) {
-
-}
-#endif
 /*
 =======================================================================================================================================
 CG_VoIPString

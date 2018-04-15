@@ -181,7 +181,7 @@ void CG_FragmentBounceSound(localEntity_t *le, trace_t *trace) {
 				s = cgs.media.gibBounce3Sound;
 			}
 
-			trap_S_StartSound(trace->endpos, ENTITYNUM_WORLD, CHAN_AUTO, s, 48, 255);
+			trap_S_StartSound(trace->endpos, ENTITYNUM_WORLD, CHAN_AUTO, s, 48);
 		}
 	} else if (le->leBounceSoundType == LEBS_BRASS) {
 
@@ -251,6 +251,7 @@ void CG_AddFragment(localEntity_t *le) {
 		if (t < SINK_TIME) {
 			// we must use an explicit lighting origin, otherwise the lighting would be lost as soon as the origin went into the ground
 			VectorCopy(le->refEntity.origin, le->refEntity.lightingOrigin);
+
 			le->refEntity.renderfx |= RF_LIGHTING_ORIGIN;
 			oldZ = le->refEntity.origin[2];
 			le->refEntity.origin[2] -= 16 * (1.0 - (float)t / SINK_TIME);

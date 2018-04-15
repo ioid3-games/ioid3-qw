@@ -562,18 +562,12 @@ intptr_t CL_CgameSystemCalls(intptr_t *args) {
 			return FS_GetFileList(VMA(1), VMA(2), VMA(3), args[4]);
 		case CG_PC_ADD_GLOBAL_DEFINE:
 			return botlib_export->PC_AddGlobalDefine(VMA(1));
-		case CG_PC_REMOVE_ALL_GLOBAL_DEFINES:
-			botlib_export->PC_RemoveAllGlobalDefines();
-			return 0;
 		case CG_PC_LOAD_SOURCE:
 			return botlib_export->PC_LoadSourceHandle(VMA(1));
 		case CG_PC_FREE_SOURCE:
 			return botlib_export->PC_FreeSourceHandle(args[1]);
 		case CG_PC_READ_TOKEN:
 			return botlib_export->PC_ReadTokenHandle(args[1], VMA(2));
-		case CG_PC_UNREAD_TOKEN:
-			botlib_export->PC_UnreadLastTokenHandle(args[1]);
-			return 0;
 		case CG_PC_SOURCE_FILE_AND_LINE:
 			return botlib_export->PC_SourceFileAndLine(args[1], VMA(2), VMA(3));
 		case CG_GETGLCONFIG:
@@ -721,13 +715,13 @@ intptr_t CL_CgameSystemCalls(intptr_t *args) {
 			S_StopBackgroundTrack();
 			return 0;
 		case CG_S_STARTSOUND:
-			S_StartSound(VMA(1), args[2], args[3], args[4], args[5], args[6]);
+			S_StartSound(VMA(1), args[2], args[3], args[4], args[5]);
 			return 0;
 		case CG_S_CLEARLOOPINGSOUNDS:
 			S_ClearLoopingSounds(args[1]);
 			return 0;
 		case CG_S_ADDLOOPINGSOUND:
-			S_AddLoopingSound(args[1], VMA(2), VMA(3), args[4], args[5], args[6]);
+			S_AddLoopingSound(args[1], VMA(2), VMA(3), args[4], args[5]);
 			return 0;
 		case CG_S_UPDATEENTITYPOSITION:
 			S_UpdateEntityPosition(args[1], VMA(2));
@@ -736,7 +730,7 @@ intptr_t CL_CgameSystemCalls(intptr_t *args) {
 			S_Respatialize(args[1], VMA(2), VMA(3), args[4]);
 			return 0;
 		case CG_S_ADDREALLOOPINGSOUND:
-			S_AddRealLoopingSound(args[1], VMA(2), VMA(3), args[4], args[5], args[6]);
+			S_AddRealLoopingSound(args[1], VMA(2), VMA(3), args[4], args[5]);
 			return 0;
 		case CG_S_STOPLOOPINGSOUND:
 			S_StopLoopingSound(args[1]);

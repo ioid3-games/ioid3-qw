@@ -41,7 +41,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #include "be_interface.h"
 #include "be_ai_char.h"
 
-#define MAX_CHARACTERISTICS 64 // Tobias TODO: Reduce this to an adequate amount after we've added all the necessary characteristics.
+#define MAX_CHARACTERISTICS 80 // Tobias TODO: Reduce this to an adequate amount after we've added all the necessary characteristics.
 
 #define CT_INTEGER	1
 #define CT_FLOAT	2

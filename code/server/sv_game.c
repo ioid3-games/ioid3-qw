@@ -436,18 +436,12 @@ intptr_t SV_GameSystemCalls(intptr_t *args) {
 			return FS_GetFileList(VMA(1), VMA(2), VMA(3), args[4]);
 		case G_PC_ADD_GLOBAL_DEFINE:
 			return botlib_export->PC_AddGlobalDefine(VMA(1));
-		case G_PC_REMOVE_ALL_GLOBAL_DEFINES:
-			botlib_export->PC_RemoveAllGlobalDefines();
-			return 0;
 		case G_PC_LOAD_SOURCE:
 			return botlib_export->PC_LoadSourceHandle(VMA(1));
 		case G_PC_FREE_SOURCE:
 			return botlib_export->PC_FreeSourceHandle(args[1]);
 		case G_PC_READ_TOKEN:
 			return botlib_export->PC_ReadTokenHandle(args[1], VMA(2));
-		case G_PC_UNREAD_TOKEN:
-			botlib_export->PC_UnreadLastTokenHandle(args[1]);
-			return 0;
 		case G_PC_SOURCE_FILE_AND_LINE:
 			return botlib_export->PC_SourceFileAndLine(args[1], VMA(2), VMA(3));
 		case G_LOCATE_GAME_DATA:
@@ -611,8 +605,6 @@ intptr_t SV_GameSystemCalls(intptr_t *args) {
 			return botlib_export->aas.AAS_PredictRoute(VMA(1), args[2], VMA(3), args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]);
 		case BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX:
 			return botlib_export->aas.AAS_PointReachabilityAreaIndex(VMA(1));
-		case BOTLIB_AAS_BEST_REACHABLE_AREA:
-			return botlib_export->aas.AAS_BestReachableArea(VMA(1), VMA(2), VMA(3), VMA(4));
 		case BOTLIB_EA_SAY:
 			botlib_export->ea.EA_Say(args[1], VMA(2));
 			return 0;

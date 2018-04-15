@@ -94,7 +94,6 @@ typedef struct loopSound_s {
 	float oldDopplerScale;
 	int framenum;
 	int range;
-	int volume;
 } loopSound_t;
 
 typedef struct {
@@ -113,7 +112,6 @@ typedef struct {
 	int entchannel;			// to allow overriding a specific sound
 	int master_vol;			// 0-255 volume before spatialization
 	int range;
-	int volume;
 	float dopplerScale;
 	float oldDopplerScale;
 	vec3_t origin;			// only use if fixed_origin is set
@@ -148,15 +146,15 @@ typedef struct {
 // Interface between Q3 sound "api" and the sound backend
 typedef struct {
 	void (*Shutdown)(void);
-	void (*StartSound)(vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, int range, int volume);
+	void (*StartSound)(vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, int range);
 	void (*StartLocalSound)(sfxHandle_t sfx, int channelNum);
 	void (*StartBackgroundTrack)(const char *intro, const char *loop);
 	void (*StopBackgroundTrack)(void);
 	void (*RawSamples)(int stream, int samples, int rate, int width, int channels, const byte *data, float volume, int entityNum);
 	void (*StopAllSounds)(void);
 	void (*ClearLoopingSounds)(qboolean killall);
-	void (*AddLoopingSound)(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range, int volume);
-	void (*AddRealLoopingSound)(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range, int volume);
+	void (*AddLoopingSound)(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range);
+	void (*AddRealLoopingSound)(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range);
 	void (*StopLoopingSound)(int entityNum);
 	void (*Respatialize)(int entityNum, const vec3_t origin, vec3_t axis[3], int inwater);
 	void (*UpdateEntityPosition)(int entityNum, const vec3_t origin);

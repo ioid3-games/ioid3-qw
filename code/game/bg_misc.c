@@ -667,7 +667,7 @@ gitem_t bg_itemlist[] = {
 	{
 		"holdable_medkit",
 		"snd/i/puh.wav",
-		{"models/powerups/holdable/medkit.md3", "models/powerups/holdable/medkit_sphere.md3", NULL, NULL},
+		{"models/powerups/holdable/medkit.md3", NULL, NULL, NULL},
 /* icon */		"icons/medkit",
 /* pickup */	"Medkit",
 		60,

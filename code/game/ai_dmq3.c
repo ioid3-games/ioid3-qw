@@ -5547,7 +5547,6 @@ void BotCheckBlockedTeammates(bot_state_t *bs) {
 
 		VectorSubtract(entinfo.origin, bs->origin, v2);
 		VectorNormalize(v2);
-		VectorNormalize2(ent->client->ps.velocity, v1);
 		// now check if the teammate is blocked, increase the distance accordingly
 		trap_AAS_PresenceTypeBoundingBox(PRESENCE_NORMAL, mins, maxs);
 		VectorMA(bs->origin, mindist, v2, end);
@@ -5563,6 +5562,7 @@ void BotCheckBlockedTeammates(bot_state_t *bs) {
 			// get the direction the blocked player is moving
 			v1[2] = 0;
 
+			VectorNormalize2(ent->client->ps.velocity, v1);
 			VectorCopy(ent->client->ps.velocity, v1);
 			// the blocked player is moving to his left side, so move to his right side (and vice versa)
 			if (DotProduct(v1, sideward) > -50.0f) {

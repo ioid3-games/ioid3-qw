@@ -26,7 +26,6 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #include "snd_local.h"
 #include "snd_codec.h"
 #include "client.h"
-#include "../qcommon/qcommon.h"
 #ifdef USE_OPENAL
 #include "qal.h"
 // console variables specific to OpenAL
@@ -54,7 +53,7 @@ static ALCcontext *alContext;
 static ALCdevice *alCaptureDevice;
 static cvar_t *s_alCapture;
 #endif
-#if defined(_WIN64)
+#if defined(_WIN32) && defined(_WIN64)
 #define ALDRIVER_DEFAULT "OpenAL64.dll"
 #elif defined(_WIN32)
 #define ALDRIVER_DEFAULT "OpenAL32.dll"
@@ -200,7 +199,6 @@ typedef struct src_s {
 	float lastTimePos;			// on stopped loops, the last position in the buffer
 	int lastSampleTime;			// time when this was stopped
 	int range;
-	int volume;
 	vec3_t loopSpeakerPos;		// origin of the loop speaker
 	qboolean local;				// is this local (relative to the cam)
 } src_t;
@@ -221,7 +219,6 @@ typedef struct sentity_s {
 	qboolean srcAllocated; // if a src_t has been allocated to this entity
 	int srcIndex;
 	int range;
-	int volume;
 	qboolean loopAddedThisFrame;
 	alSrcPriority_t loopPriority;
 	sfxHandle_t loopSfx;
@@ -882,7 +879,7 @@ static void S_AL_SrcShutdown(void) {
 S_AL_SrcSetup
 =======================================================================================================================================
 */
-static void S_AL_SrcSetup(srcHandle_t src, sfxHandle_t sfx, alSrcPriority_t priority, int entity, int channel, qboolean local, int range, int volume) {
+static void S_AL_SrcSetup(srcHandle_t src, sfxHandle_t sfx, alSrcPriority_t priority, int entity, int channel, qboolean local, int range) {
 	src_t *curSource;
 
 	// set up src struct
@@ -1291,7 +1288,7 @@ static void S_AL_StartLocalSound(sfxHandle_t sfx, int channel) {
 		return;
 	}
 	// set up the effect
-	S_AL_SrcSetup(src, sfx, SRCPRI_LOCAL, -1, channel, qtrue, SOUND_RANGE_DEFAULT, SOUND_VOLUME_DEFAULT);
+	S_AL_SrcSetup(src, sfx, SRCPRI_LOCAL, -1, channel, qtrue, SOUND_RANGE_DEFAULT);
 	// start it playing
 	srcList[src].isPlaying = qtrue;
 	qalSourcePlay(srcList[src].alSource);
@@ -1304,7 +1301,7 @@ S_AL_StartSound
 Play a one-shot sound effect.
 =======================================================================================================================================
 */
-static void S_AL_StartSound(vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, int range, int volume) {
+static void S_AL_StartSound(vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, int range) {
 	vec3_t sorigin;
 	srcHandle_t src;
 	src_t *curSource;
@@ -1341,7 +1338,7 @@ static void S_AL_StartSound(vec3_t origin, int entnum, int entchannel, sfxHandle
 		return;
 	}
 
-	S_AL_SrcSetup(src, sfx, SRCPRI_ONESHOT, entnum, entchannel, qfalse, range, volume);
+	S_AL_SrcSetup(src, sfx, SRCPRI_ONESHOT, entnum, entchannel, qfalse, range);
 
 	curSource = &srcList[src];
 
@@ -1376,7 +1373,7 @@ static void S_AL_ClearLoopingSounds(qboolean killall) {
 S_AL_SrcLoop
 =======================================================================================================================================
 */
-static void S_AL_SrcLoop(alSrcPriority_t priority, sfxHandle_t sfx, const vec3_t origin, const vec3_t velocity, int entityNum, int range, int volume) {
+static void S_AL_SrcLoop(alSrcPriority_t priority, sfxHandle_t sfx, const vec3_t origin, const vec3_t velocity, int entityNum, int range) {
 	int src;
 	sentity_t *sent = &entityList[entityNum];
 	src_t *curSource;
@@ -1413,7 +1410,6 @@ static void S_AL_SrcLoop(alSrcPriority_t priority, sfxHandle_t sfx, const vec3_t
 	sent->loopPriority = priority;
 	sent->loopSfx = sfx;
 	sent->range = range;
-	sent->volume = volume;
 	// if this is not set then the looping sound is stopped.
 	sent->loopAddedThisFrame = qtrue;
 	// these lines should be called via S_AL_SrcSetup, but we can't call that yet as it buffers sfxes that may change
@@ -1426,16 +1422,8 @@ static void S_AL_SrcLoop(alSrcPriority_t priority, sfxHandle_t sfx, const vec3_t
 
 		VectorClear(sorigin);
 
-		if (volume > 255) {
-			volume = 255;
-		} else if (volume < 0) {
-			volume = 0;
-		}
-
 		qalSourcefv(curSource->alSource, AL_POSITION, sorigin);
 		qalSourcefv(curSource->alSource, AL_VELOCITY, vec3_origin);
-
-		S_AL_Gain(curSource->alSource, volume / 255.0f);
 	} else {
 		curSource->local = qfalse;
 
@@ -1465,8 +1453,8 @@ static void S_AL_SrcLoop(alSrcPriority_t priority, sfxHandle_t sfx, const vec3_t
 S_AL_AddLoopingSound
 =======================================================================================================================================
 */
-static void S_AL_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range, int volume) {
-	S_AL_SrcLoop(SRCPRI_ENTITY, sfx, origin, velocity, entityNum, range, volume);
+static void S_AL_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range) {
+	S_AL_SrcLoop(SRCPRI_ENTITY, sfx, origin, velocity, entityNum, range);
 }
 
 /*
@@ -1474,8 +1462,8 @@ static void S_AL_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_
 S_AL_AddRealLoopingSound
 =======================================================================================================================================
 */
-static void S_AL_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range, int volume) {
-	S_AL_SrcLoop(SRCPRI_AMBIENT, sfx, origin, velocity, entityNum, range, volume);
+static void S_AL_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range) {
+	S_AL_SrcLoop(SRCPRI_AMBIENT, sfx, origin, velocity, entityNum, range);
 }
 
 /*
@@ -1539,7 +1527,7 @@ static void S_AL_SrcUpdate(void) {
 				}
 				// the sound hasn't been started yet
 				if (sent->startLoopingSound) {
-					S_AL_SrcSetup(i, sent->loopSfx, sent->loopPriority, entityNum, -1, curSource->local, sent->range, sent->volume);
+					S_AL_SrcSetup(i, sent->loopSfx, sent->loopPriority, entityNum, -1, curSource->local, sent->range);
 					curSource->isLooping = qtrue;
 					knownSfx[curSource->sfx].loopCnt++;
 					sent->startLoopingSound = qfalse;
@@ -1696,7 +1684,7 @@ static void S_AL_AllocateStreamChannel(int stream, int entityNum) {
 			return;
 		}
 
-		S_AL_SrcSetup(cursrc, -1, SRCPRI_ENTITY, entityNum, 0, qfalse, SOUND_RANGE_DEFAULT, SOUND_VOLUME_DEFAULT);
+		S_AL_SrcSetup(cursrc, -1, SRCPRI_ENTITY, entityNum, 0, qfalse, SOUND_RANGE_DEFAULT);
 
 		alsrc = S_AL_SrcGet(cursrc);
 		srcList[cursrc].isTracking = qtrue;
@@ -2808,7 +2796,11 @@ qboolean S_AL_Init(soundInterface_t *si) {
 	// new console variables
 	s_alPrecache = Cvar_Get("s_alPrecache", "1", CVAR_ARCHIVE);
 	s_alGain = Cvar_Get("s_alGain", "1.0", CVAR_ARCHIVE);
+#ifdef __APPLE__
+	s_alSources = Cvar_Get("s_alSources", "128", CVAR_ARCHIVE);
+#else
 	s_alSources = Cvar_Get("s_alSources", "256", CVAR_ARCHIVE); // Tobias FIXME: Increase this!
+#endif
 	s_alDopplerFactor = Cvar_Get("s_alDopplerFactor", "1.0", CVAR_ARCHIVE);
 	s_alDopplerSpeed = Cvar_Get("s_alDopplerSpeed", "9000", CVAR_ARCHIVE);
 	s_alRolloff = Cvar_Get("s_alRolloff", "1", CVAR_CHEAT);

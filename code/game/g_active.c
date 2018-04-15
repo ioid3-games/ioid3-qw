@@ -414,7 +414,7 @@ void ClientTimerActions(gentity_t *ent, int msec) {
 					break;
 				case WP_MACHINEGUN:
 					max = 50;
-					inc = 4;
+					inc = 5;
 					t = 1000;
 					break;
 				case WP_HEAVY_MACHINEGUN:
@@ -424,7 +424,7 @@ void ClientTimerActions(gentity_t *ent, int msec) {
 					break;
 				case WP_CHAINGUN:
 					max = 100;
-					inc = 5;
+					inc = 10;
 					t = 1000;
 					break;
 				case WP_SHOTGUN:

@@ -119,4 +119,5 @@ double log(double x);
 double log10(double x);
 int abs(int n);
 double fabs(double x);
+double acos(double x);
 #endif // BG_LIB_H

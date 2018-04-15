@@ -129,12 +129,12 @@ static void CG_EntityEffects(centity_t *cent) {
 	// add loop sound
 	if (cent->currentState.loopSound) {
 		if (cent->currentState.eType != ET_SPEAKER) {
-			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[cent->currentState.loopSound], cent->currentState.soundRange, cent->currentState.soundVolume);
+			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[cent->currentState.loopSound], cent->currentState.soundRange);
 		} else {
 			if (cent->currentState.soundRange) { // range is set
-				trap_S_AddRealLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[cent->currentState.loopSound], cent->currentState.soundRange, cent->currentState.soundVolume);
+				trap_S_AddRealLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[cent->currentState.loopSound], cent->currentState.soundRange);
 			} else {
-				trap_S_AddRealLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[cent->currentState.loopSound], SOUND_RANGE_DEFAULT, cent->currentState.soundVolume);
+				trap_S_AddRealLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.gameSounds[cent->currentState.loopSound], SOUND_RANGE_DEFAULT);
 			}
 		}
 	}
@@ -205,7 +205,7 @@ static void CG_Speaker(centity_t *cent) {
 		return;
 	}
 
-	trap_S_StartSound(NULL, cent->currentState.number, CHAN_ITEM, cgs.gameSounds[cent->currentState.eventParm], cent->currentState.soundRange, cent->currentState.soundVolume);
+	trap_S_StartSound(NULL, cent->currentState.number, CHAN_ITEM, cgs.gameSounds[cent->currentState.eventParm], cent->currentState.soundRange);
 
 	//ent->s.frame = ent->wait * 10;
 	//ent->s.clientNum = ent->random * 10;
@@ -307,15 +307,25 @@ static void CG_Item(centity_t *cent) {
 	if ((item->giType == IT_WEAPON) || (item->giType == IT_ARMOR)) {
 		ent.renderfx |= RF_MINLIGHT;
 	}
-	// add the weapon ready sound
-	if (item->giType == IT_WEAPON) {
-		ent.nonNormalizedAxes = qtrue;
-
-		if (wi->readySound) {
-			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, wi->readySound, 32, 255);
-		}
+// Tobias HACK: decrease the size of some models until we have new models...
+	if (item->giType == IT_AMMO) {
+		VectorScale(ent.axis[0], 0.35, ent.axis[0]);
+		VectorScale(ent.axis[1], 0.35, ent.axis[1]);
+		VectorScale(ent.axis[2], 0.35, ent.axis[2]);
 	}
 
+	if (item->giType == IT_ARMOR) {
+		VectorScale(ent.axis[0], 0.6, ent.axis[0]);
+		VectorScale(ent.axis[1], 0.6, ent.axis[1]);
+		VectorScale(ent.axis[2], 0.6, ent.axis[2]);
+	}
+
+	if (item->giType == IT_HEALTH) {
+		VectorScale(ent.axis[0], 0.5, ent.axis[0]);
+		VectorScale(ent.axis[1], 0.5, ent.axis[1]);
+		VectorScale(ent.axis[2], 0.5, ent.axis[2]);
+	}
+// Tobias END
 	if (item->giType == IT_HOLDABLE && item->giTag == HI_KAMIKAZE) {
 		ent.nonNormalizedAxes = qtrue;
 	}
@@ -378,6 +388,12 @@ static void CG_Item(centity_t *cent) {
 			}
 		}
 	}
+	// add the weapon ready sound
+	if (item->giType == IT_WEAPON) {
+		if (wi->readySound) {
+			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, wi->readySound, 32);
+		}
+	}
 }
 
 /*
@@ -426,7 +442,7 @@ static void CG_Missile(centity_t *cent) {
 		vec3_t velocity;
 
 		BG_EvaluateTrajectoryDelta(&cent->currentState.pos, cg.time, velocity, qfalse, -1);
-		trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, velocity, weapon->missileSound, 64, 255);
+		trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, velocity, weapon->missileSound, 64);
 	}
 	// create the render entity
 	memset(&ent, 0, sizeof(ent));
@@ -761,13 +777,13 @@ static void CG_TeamBase(centity_t *cent) {
 			// show the target
 			if (t > h) {
 				if (!cent->muzzleFlashTime) {
-					trap_S_StartSound(cent->lerpOrigin, ENTITYNUM_NONE, CHAN_BODY, cgs.media.obeliskRespawnSound[rand()&2], 52, 255);
+					trap_S_StartSound(cent->lerpOrigin, ENTITYNUM_NONE, CHAN_BODY, cgs.media.obeliskRespawnSound[rand()&2], 64);
 					cent->muzzleFlashTime = 1;
 				}
 
 				VectorCopy(cent->currentState.angles, angles);
 
-				angles[YAW] += (float)16 * Q_acos(1 - c) * 180 / M_PI;
+				angles[YAW] += (float)16 * acos(1 - c) * 180 / M_PI;
 
 				AnglesToAxis(angles, model.axis);
 

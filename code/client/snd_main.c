@@ -157,10 +157,10 @@ static qboolean S_ValidSoundInterface(soundInterface_t *si) {
 S_StartSound
 =======================================================================================================================================
 */
-void S_StartSound(vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, int range, int volume) {
+void S_StartSound(vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, int range) {
 
 	if (si.StartSound) {
-		si.StartSound(origin, entnum, entchannel, sfx, range, volume);
+		si.StartSound(origin, entnum, entchannel, sfx, range);
 	}
 }
 
@@ -241,10 +241,10 @@ void S_ClearLoopingSounds(qboolean killall) {
 S_AddLoopingSound
 =======================================================================================================================================
 */
-void S_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range, int volume) {
+void S_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range) {
 
 	if (si.AddLoopingSound) {
-		si.AddLoopingSound(entityNum, origin, velocity, sfx, range, volume);
+		si.AddLoopingSound(entityNum, origin, velocity, sfx, range);
 	}
 }
 
@@ -253,10 +253,10 @@ void S_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity
 S_AddRealLoopingSound
 =======================================================================================================================================
 */
-void S_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range, int volume) {
+void S_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range) {
 
 	if (si.AddRealLoopingSound) {
-		si.AddRealLoopingSound(entityNum, origin, velocity, sfx, range, volume);
+		si.AddRealLoopingSound(entityNum, origin, velocity, sfx, range);
 	}
 }
 

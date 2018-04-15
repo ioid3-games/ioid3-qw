@@ -486,15 +486,16 @@ S_SpatializeOrigin
 Used for spatializing s_channels.
 =======================================================================================================================================
 */
-void S_SpatializeOrigin(vec3_t origin, int master_vol, int *left_vol, int *right_vol, int range, int volume) {
+void S_SpatializeOrigin(vec3_t origin, int master_vol, int *left_vol, int *right_vol, int range) {
 	vec_t dot;
 	vec_t dist;
 	vec_t lscale, rscale, scale;
 	vec3_t source_vec;
 	vec3_t vec;
+	float dist_fullvol;
 
 	range *= 16;
-	float dist_fullvol = range * 0.064f;
+	dist_fullvol = range * 0.064f;
 	// calculate stereo separation and distance attenuation
 	VectorSubtract(origin, listener_origin, source_vec);
 
@@ -591,7 +592,7 @@ Validates the parms and ques the sound up. If origin is NULL, the sound will be 
 Entchannel 0 will never override a playing sound.
 =======================================================================================================================================
 */
-static void S_Base_StartSoundEx(vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle, qboolean localSound, int range, int volume) {
+static void S_Base_StartSoundEx(vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle, qboolean localSound, int range) {
 	channel_t *ch;
 	sfx_t *sfx;
 	int i, oldest, chosen, time;
@@ -714,7 +715,6 @@ static void S_Base_StartSoundEx(vec3_t origin, int entityNum, int entchannel, sf
 	}
 
 	ch->range = range ? range : SOUND_RANGE_DEFAULT;
-	ch->volume = volume ? volume : SOUND_VOLUME_DEFAULT;
 	ch->master_vol = 127;
 	ch->entnum = entityNum;
 	ch->thesfx = sfx;
@@ -733,8 +733,8 @@ S_Base_StartSound
 If origin is NULL, the sound will be dynamically sourced from the entity.
 =======================================================================================================================================
 */
-void S_Base_StartSound(vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle, int range, int volume) {
-	S_Base_StartSoundEx(origin, entityNum, entchannel, sfxHandle, qfalse, range, volume);
+void S_Base_StartSound(vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle, int range) {
+	S_Base_StartSoundEx(origin, entityNum, entchannel, sfxHandle, qfalse, range);
 }
 
 /*
@@ -753,7 +753,7 @@ void S_Base_StartLocalSound(sfxHandle_t sfxHandle, int channelNum) {
 		return;
 	}
 
-	S_Base_StartSoundEx(NULL, listener_number, channelNum, sfxHandle, qtrue, 0, 0);
+	S_Base_StartSoundEx(NULL, listener_number, channelNum, sfxHandle, qtrue, 0);
 }
 
 /*
@@ -853,7 +853,7 @@ S_Base_AddLoopingSound
 Called during entity generation for a frame. Include velocity in case I get around to doing doppler...
 =======================================================================================================================================
 */
-void S_Base_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int range, int volume) {
+void S_Base_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int range) {
 	sfx_t *sfx;
 
 	if (!s_soundStarted || s_soundMuted) {
@@ -885,7 +885,6 @@ void S_Base_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t vel
 	loopSounds[entityNum].dopplerScale = 1.0;
 	loopSounds[entityNum].sfx = sfx;
 	loopSounds[entityNum].range = range ? range : SOUND_RANGE_DEFAULT;
-	loopSounds[entityNum].volume = volume ? volume : SOUND_VOLUME_DEFAULT;
 
 	if (s_doppler->integer && VectorLengthSquared(velocity) > 0.0) {
 		vec3_t out;
@@ -921,7 +920,7 @@ S_Base_AddRealLoopingSound
 Called during entity generation for a frame. Include velocity in case I get around to doing doppler...
 =======================================================================================================================================
 */
-void S_Base_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int range, int volume) {
+void S_Base_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int range) {
 	sfx_t *sfx;
 
 	if (!s_soundStarted || s_soundMuted) {
@@ -948,7 +947,6 @@ void S_Base_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t
 
 	loopSounds[entityNum].sfx = sfx;
 	loopSounds[entityNum].range = range ? range : SOUND_RANGE_DEFAULT;
-	loopSounds[entityNum].volume = volume ? volume : SOUND_VOLUME_DEFAULT;
 	loopSounds[entityNum].active = qtrue;
 	loopSounds[entityNum].kill = qfalse;
 	loopSounds[entityNum].doppler = qfalse;
@@ -981,13 +979,10 @@ void S_AddLoopSounds(void) {
 		}
 
 		if (loop->kill) {
-			S_SpatializeOrigin(loop->origin, 127, &left_total, &right_total, loop->range, loop->volume); // 3d
+			S_SpatializeOrigin(loop->origin, 127, &left_total, &right_total, loop->range); // 3d
 		} else {
-			S_SpatializeOrigin(loop->origin, 90, &left_total, &right_total, loop->range, loop->volume); // sphere
+			S_SpatializeOrigin(loop->origin, 90, &left_total, &right_total, loop->range); // sphere
 		}
-		// adjust according to volume
-		left_total = (int)((float)loop->volume * (float)left_total / 256.0);
-		right_total = (int)((float)loop->volume * (float)right_total / 256.0);
 
 		loop->sfx->lastTimeUsed = time;
 
@@ -1001,13 +996,10 @@ void S_AddLoopSounds(void) {
 			loop2->mergeFrame = loopFrame;
 
 			if (loop2->kill) {
-				S_SpatializeOrigin(loop2->origin, 127, &left, &right, loop->range, loop->volume); // 3d
+				S_SpatializeOrigin(loop2->origin, 127, &left, &right, loop->range); // 3d
 			} else {
-				S_SpatializeOrigin(loop2->origin, 90, &left, &right, loop->range, loop->volume); // sphere
+				S_SpatializeOrigin(loop2->origin, 90, &left, &right, loop->range); // sphere
 			}
-			// adjust according to volume
-			left = (int)((float)loop2->volume * (float)left / 256.0);
-			right = (int)((float)loop2->volume * (float)right / 256.0);
 
 			loop2->sfx->lastTimeUsed = time;
 			left_total += left;
@@ -1104,7 +1096,7 @@ void S_Base_RawSamples(int stream, int samples, int rate, int width, int s_chann
 
 		if (entityNum >= 0 && entityNum < MAX_GENTITIES) {
 			// support spatialized raw streams, e.g. for VoIP
-			S_SpatializeOrigin(loopSounds[entityNum].origin, 256, &leftvol, &rightvol, 0, 0);
+			S_SpatializeOrigin(loopSounds[entityNum].origin, 256, &leftvol, &rightvol, 0);
 		} else {
 			leftvol = rightvol = 256;
 		}
@@ -1252,7 +1244,7 @@ void S_Base_Respatialize(int entityNum, const vec3_t head, vec3_t axis[3], int i
 				VectorCopy(loopSounds[ch->entnum].origin, origin);
 			}
 
-			S_SpatializeOrigin(origin, ch->master_vol, &ch->leftvol, &ch->rightvol, ch->range, ch->volume);
+			S_SpatializeOrigin(origin, ch->master_vol, &ch->leftvol, &ch->rightvol, ch->range);
 		}
 	}
 	// add loopsounds
