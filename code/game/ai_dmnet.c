@@ -190,11 +190,11 @@ int BotNearbyGoal(bot_state_t *bs, int tfl, bot_goal_t *ltg, float range) {
 		return qtrue;
 	}
 	// if the bot is carrying a flag or cubes
-	if (BotCTFCarryingFlag(bs) || Bot1FCTFCarryingFlag(bs) || BotHarvesterCarryingCubes(bs)) {
+	if (BotHasEmergencyGoal(bs)) {
 		// if the bot is just a few secs away from the base
 		if (trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin, bs->teamgoal.areanum, TFL_DEFAULT) < 300) {
 			// make the range really small
-			range = 50;
+			range = 20;
 		}
 	}
 
@@ -1996,23 +1996,11 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 
 		if (bs->ltgtype == LTG_DEFENDKEYAREA) {
 			range = 400;
+		// if carrying a flag and the own flag is at base, or if the bot is trying to get the flag and the own flag is NOT at base the bot shouldn't be distracted too much and should ignore some items
+		} else if (BotHasEmergencyGoal(bs)) {
+			range = 50;
 		} else {
 			range = 150;
-		}
-
-		if (gametype == GT_CTF) {
-			// if carrying a flag the bot shouldn't be distracted too much
-			if (BotCTFCarryingFlag(bs)) {
-				range = 50;
-			}
-		} else if (gametype == GT_1FCTF) {
-			if (Bot1FCTFCarryingFlag(bs)) {
-				range = 50;
-			}
-		} else if (gametype == GT_HARVESTER) {
-			if (BotHarvesterCarryingCubes(bs)) {
-				range = 80;
-			}
 		}
 
 		if (BotNearbyGoal(bs, bs->tfl, &goal, range)) {
@@ -2527,21 +2515,11 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 	// check for nearby goals periodicly
 	if (bs->check_time < FloatTime()) {
 		bs->check_time = FloatTime() + 1;
-		range = 150;
-
-		if (gametype == GT_CTF) {
-			// if carrying a flag the bot shouldn't be distracted too much
-			if (BotCTFCarryingFlag(bs)) {
-				range = 50;
-			}
-		} else if (gametype == GT_1FCTF) {
-			if (Bot1FCTFCarryingFlag(bs)) {
-				range = 50;
-			}
-		} else if (gametype == GT_HARVESTER) {
-			if (BotHarvesterCarryingCubes(bs)) {
-				range = 80;
-			}
+		// if carrying a flag and the own flag is at base, or if the bot is trying to get the flag and the own flag is NOT at base the bot shouldn't be distracted too much and should ignore some items
+		if (BotHasEmergencyGoal(bs)) {
+			range = 50;
+		} else {
+			range = 150;
 		}
 
 		if (BotNearbyGoal(bs, bs->tfl, &goal, range)) {
