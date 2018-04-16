@@ -387,6 +387,11 @@ void BotReportStatus(bot_state_t *bs) {
 			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: harvesting\n", netname, leader, flagstatus);
 			break;
 		}
+		case LTG_WAIT:
+		{
+			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: waiting\n", netname, leader, flagstatus);
+			break;
+		}
 		default:
 		{
 			BotAI_Print(PRT_MESSAGE, "%-20s%s%s: roaming\n", netname, leader, flagstatus);
@@ -546,6 +551,11 @@ void BotSetInfoConfigString(bot_state_t *bs) {
 		{
 			ClientName(bs->teamgoal.entitynum, goalname, sizeof(goalname));
 			Com_sprintf(action, sizeof(action), "killing %s", goalname);
+			break;
+		}
+		case LTG_WAIT:
+		{
+			Com_sprintf(action, sizeof(action), "waiting");
 			break;
 		}
 		default:

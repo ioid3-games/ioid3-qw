@@ -46,6 +46,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define LTG_PATROL			11 // patrol
 #define LTG_GETITEM			12 // get an item
 #define LTG_KILL			13 // kill someone
+#define LTG_WAIT			16 // used if the bot should wait for some time
 // some goal dedication times
 #define TEAM_HELP_TIME				 60 // 1 minute teamplay help time
 #define TEAM_ACCOMPANY_TIME			600 // 10 minutes teamplay accompany time

@@ -700,6 +700,19 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 
 		return qtrue;
 	}
+	// if waiting for something
+	if (bs->ltgtype == LTG_WAIT) { // NOTE: we are not checking 'retreat' flag
+		memset(goal, 0, sizeof(*goal)); // not really needed
+		trap_BotResetAvoidReach(bs->ms);
+		// check blocked teammates
+		BotCheckBlockedTeammates(bs);
+
+		if (bs->teamgoal_time < FloatTime()) {
+			bs->ltgtype = 0;
+		}
+
+		return qfalse;
+	}
 	// patrolling along several waypoints
 	if (bs->ltgtype == LTG_PATROL && !retreat) {
 		// check for bot typing status message
@@ -1977,6 +1990,8 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 		// if carrying a flag and the own flag is at base, or if the bot is trying to get the flag and the own flag is NOT at base the bot shouldn't be distracted too much and should ignore some items
 		} else if (BotHasEmergencyGoal(bs)) {
 			range = 50;
+		} else if (bs->ltgtype == LTG_WAIT) {
+			range = 0;
 		} else {
 			range = 150;
 		}
