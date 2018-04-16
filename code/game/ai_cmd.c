@@ -122,6 +122,11 @@ void BotPrintTeamGoal(bot_state_t *bs) {
 			BotAI_Print(PRT_MESSAGE, "%s: I'm gonna kill someone for %1.0f secs\n", netname, t);
 			break;
 		}
+		case LTG_WAIT:
+		{
+			BotAI_Print(PRT_MESSAGE, "%s: I'm gonna wait for %1.0f secs\n", netname, t);
+			break;
+		}
 		default:
 		{
 			if (bs->ctfroam_time > FloatTime()) {
@@ -1602,6 +1607,12 @@ void BotMatch_WhatAreYouDoing(bot_state_t *bs, bot_match_t *match) {
 		{
 			ClientName(bs->teamgoal.entitynum, netname, sizeof(netname));
 			BotAI_BotInitialChat(bs, "killing", netname, NULL);
+			break;
+		}
+		case LTG_WAIT:
+		{
+			ClientName(bs->teamgoal.entitynum, netname, sizeof(netname));
+			BotAI_BotInitialChat(bs, "waiting", netname, NULL);
 			break;
 		}
 		default:
