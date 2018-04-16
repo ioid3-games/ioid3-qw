@@ -74,6 +74,8 @@ void BotTeamGoals(bot_state_t *bs, int retreat);
 qboolean BotAggression(bot_state_t *bs);
 // returns how bad the bot feels
 qboolean BotFeelingBad(bot_state_t *bs);
+// returns true if the bot is in hurry
+qboolean BotHasEmergencyGoal(bot_state_t *bs);
 // returns true if the bot wants to retreat
 int BotWantsToRetreat(bot_state_t *bs);
 // returns true if the bot wants to chase

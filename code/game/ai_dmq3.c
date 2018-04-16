@@ -1922,6 +1922,7 @@ void BotUpdateBattleInventory(bot_state_t *bs, int enemy) {
 	BotEntityInfo(enemy, &entinfo);
 	VectorSubtract(entinfo.origin, bs->origin, dir);
 
+	bs->inventory[BOT_IS_IN_HURRY] = BotHasEmergencyGoal(bs);
 	bs->inventory[ENEMY_HEIGHT] = (int)dir[2];
 	dir[2] = 0;
 	bs->inventory[ENEMY_HORIZONTAL_DIST] = (int)VectorLength(dir);
@@ -2502,6 +2503,61 @@ qboolean BotFeelingBad(bot_state_t *bs) {
 	}
 
 	return qfalse;
+}
+
+/*
+=======================================================================================================================================
+BotHasEmergencyGoal
+=======================================================================================================================================
+*/
+qboolean BotHasEmergencyGoal(bot_state_t *bs) {
+
+	if (BotFeelingBad(bs)) {
+		return qfalse;
+	}
+
+	if (gametype == GT_CTF) {
+		// if the bot carries a flag and the own flag is at base
+		if (BotCTFCarryingFlag(bs)) {
+			if (BotTeam(bs) == TEAM_RED) {
+				if (bs->redflagstatus == 0) {
+					return qtrue;
+				}
+			} else {
+				if (bs->blueflagstatus == 0) {
+					return qtrue;
+				}
+			}
+		}
+		// if the bot is trying to get the flag and the own flag is NOT at base
+		if (bs->ltgtype == LTG_GETFLAG) {
+			if (BotTeam(bs) == TEAM_RED) {
+				if (bs->redflagstatus == 1) {
+					return qtrue;
+				}
+			} else {
+				if (bs->blueflagstatus == 1) {
+					return qtrue;
+				}
+			}
+		}
+		// otherwise the bot has no emergency goal
+		return qfalse;
+	} else if (gametype == GT_1FCTF) {
+		if (Bot1FCTFCarryingFlag(bs)) {
+			return qtrue;
+		}
+		// otherwise the bot has no emergency goal
+		return qfalse;
+	} else if (gametype == GT_HARVESTER) {
+		if (BotHarvesterCarryingCubes(bs)) {
+			return qtrue;
+		}
+		// otherwise the bot has no emergency goal
+		return qfalse;
+	} else {
+		return qfalse;
+	}
 }
 
 /*
