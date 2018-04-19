@@ -2320,6 +2320,7 @@ qtrue  -> bots can decide what to do.
 qboolean BotAggression(bot_state_t *bs) {
 	float aggression, selfpreservation;
 	aas_entityinfo_t entinfo;
+	vec3_t dir, angles;
 
 	aggression = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AGGRESSION, 0, 1);
 	selfpreservation = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_SELFPRESERVATION, 0, 1);
@@ -2368,8 +2369,6 @@ qboolean BotAggression(bot_state_t *bs) {
 				}
 				// if the enemy is far away, check if we can attack the enemy from behind
 				if (aggression > 0.5 && bs->inventory[ENEMY_HORIZONTAL_DIST] < 500) {
-					vec3_t dir, angles;
-
 					VectorSubtract(bs->origin, entinfo.origin, dir);
 					vectoangles(dir, angles);
 					// if not in the enemy's field of vision, attack!
