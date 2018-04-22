@@ -3572,8 +3572,8 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 	//alertness = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_ALERTNESS, 0, 1);
 	easyfragger = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_EASY_FRAGGER, 0, 1);
 	aggression = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AGGRESSION, 0, 1);
-	// check if the health decreased
-	healthdecrease = bs->lasthealth > bs->inventory[INVENTORY_HEALTH];
+	// check if the health decreased by a reliable method (consider automatic decrease if health > max. health!)
+	healthdecrease = g_entities[bs->entitynum].client->lasthurt_time > level.time - 1000;
 	// remember the current health value
 	bs->lasthealth = bs->inventory[INVENTORY_HEALTH];
 

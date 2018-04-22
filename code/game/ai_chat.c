@@ -433,6 +433,10 @@ int BotValidChatPosition(bot_state_t *bs) {
 	if (BotIsDead(bs)) {
 		return qtrue;
 	}
+
+	if (level.clients[bs->client].lasthurt_time > level.time - 3000) {
+		return qfalse;
+	}
 	// never start chatting with a powerup
 	if (bs->inventory[INVENTORY_QUAD] || bs->inventory[INVENTORY_INVISIBILITY] || bs->inventory[INVENTORY_REGEN]) {
 		return qfalse;
