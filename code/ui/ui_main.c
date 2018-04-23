@@ -2036,6 +2036,8 @@ static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
 		case UI_BLUETEAM3:
 		case UI_BLUETEAM4:
 		case UI_BLUETEAM5:
+		case UI_BLUETEAM6:
+		case UI_BLUETEAM7:
 			value = trap_Cvar_VariableValue(va("ui_blueteam%i", ownerDraw - UI_BLUETEAM1 + 1));
 
 			if (value <= 0) {
@@ -2059,6 +2061,8 @@ static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
 		case UI_REDTEAM3:
 		case UI_REDTEAM4:
 		case UI_REDTEAM5:
+		case UI_REDTEAM6:
+		case UI_REDTEAM7:
 			value = trap_Cvar_VariableValue(va("ui_redteam%i", ownerDraw - UI_REDTEAM1 + 1));
 
 			if (value <= 0) {
@@ -2455,6 +2459,8 @@ static void UI_OwnerDraw(float x, float y, float w, float h, float text_x, float
 		case UI_BLUETEAM3:
 		case UI_BLUETEAM4:
 		case UI_BLUETEAM5:
+		case UI_BLUETEAM6:
+		case UI_BLUETEAM7:
 			UI_DrawTeamMember(&rect, scale, color, qtrue, ownerDraw - UI_BLUETEAM1 + 1, textStyle);
 			break;
 		case UI_REDTEAM1:
@@ -2462,6 +2468,8 @@ static void UI_OwnerDraw(float x, float y, float w, float h, float text_x, float
 		case UI_REDTEAM3:
 		case UI_REDTEAM4:
 		case UI_REDTEAM5:
+		case UI_REDTEAM6:
+		case UI_REDTEAM7:
 			UI_DrawTeamMember(&rect, scale, color, qfalse, ownerDraw - UI_REDTEAM1 + 1, textStyle);
 			break;
 		case UI_NETSOURCE:
@@ -3217,6 +3225,8 @@ static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, 
 		case UI_BLUETEAM3:
 		case UI_BLUETEAM4:
 		case UI_BLUETEAM5:
+		case UI_BLUETEAM6:
+		case UI_BLUETEAM7:
 			UI_TeamMember_HandleKey(flags, special, key, qtrue, ownerDraw - UI_BLUETEAM1 + 1);
 			break;
 		case UI_REDTEAM1:
@@ -3224,6 +3234,8 @@ static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, 
 		case UI_REDTEAM3:
 		case UI_REDTEAM4:
 		case UI_REDTEAM5:
+		case UI_REDTEAM6:
+		case UI_REDTEAM7:
 			UI_TeamMember_HandleKey(flags, special, key, qfalse, ownerDraw - UI_REDTEAM1 + 1);
 			break;
 		case UI_NETSOURCE:
@@ -6568,12 +6580,16 @@ vmCvar_t ui_redteam2;
 vmCvar_t ui_redteam3;
 vmCvar_t ui_redteam4;
 vmCvar_t ui_redteam5;
+vmCvar_t ui_redteam6;
+vmCvar_t ui_redteam7;
 vmCvar_t ui_blueteam;
 vmCvar_t ui_blueteam1;
 vmCvar_t ui_blueteam2;
 vmCvar_t ui_blueteam3;
 vmCvar_t ui_blueteam4;
 vmCvar_t ui_blueteam5;
+vmCvar_t ui_blueteam6;
+vmCvar_t ui_blueteam7;
 vmCvar_t ui_teamName;
 vmCvar_t ui_dedicated;
 vmCvar_t ui_gameType;
@@ -6662,11 +6678,15 @@ static cvarTable_t cvarTable[] = {
 	{&ui_redteam3, "ui_redteam3", "0", CVAR_ARCHIVE},
 	{&ui_redteam4, "ui_redteam4", "0", CVAR_ARCHIVE},
 	{&ui_redteam5, "ui_redteam5", "0", CVAR_ARCHIVE},
+	{&ui_redteam6, "ui_redteam6", "0", CVAR_ARCHIVE},
+	{&ui_redteam7, "ui_redteam7", "0", CVAR_ARCHIVE},
 	{&ui_blueteam1, "ui_blueteam1", "0", CVAR_ARCHIVE},
 	{&ui_blueteam2, "ui_blueteam2", "0", CVAR_ARCHIVE},
 	{&ui_blueteam3, "ui_blueteam3", "0", CVAR_ARCHIVE},
 	{&ui_blueteam4, "ui_blueteam4", "0", CVAR_ARCHIVE},
 	{&ui_blueteam5, "ui_blueteam5", "0", CVAR_ARCHIVE},
+	{&ui_blueteam6, "ui_blueteam6", "0", CVAR_ARCHIVE},
+	{&ui_blueteam7, "ui_blueteam7", "0", CVAR_ARCHIVE},
 	{&ui_netSource, "ui_netSource", "0", CVAR_ARCHIVE},
 	{&ui_menuFiles, "ui_menuFiles", "ui/menus.txt", CVAR_ARCHIVE},
 	{&ui_currentTier, "ui_currentTier", "0", CVAR_ARCHIVE},
