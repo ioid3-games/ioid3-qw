@@ -2355,10 +2355,6 @@ qboolean BotAggression(bot_state_t *bs) {
 				if (bs->inventory[ENEMY_HEIGHT] > 42) {
 					return qfalse;
 				}
-				// if the enemy is using the gauntlet
-				if (entinfo.weapon == WP_GAUNTLET) {
-					return qtrue;
-				}
 				// an extremely aggressive bot will less likely retreat
 				if (aggression > 0.9) {
 					return qtrue;
@@ -5574,10 +5570,11 @@ void BotCheckBlockedTeammates(bot_state_t *bs) {
 		}
 
 		ent = &g_entities[i];
-
+/*
 		if (VectorLength(ent->client->ps.velocity) <= 0) {
 			continue;
 		}
+*/
 		// set some movement parameters
 		movetype = MOVE_WALK;
 		mindist = 8;
@@ -5591,11 +5588,11 @@ void BotCheckBlockedTeammates(bot_state_t *bs) {
 			mindist = 128;
 			speed = 400;
 		}
-		
-		mindist += (64 - 64 * obtrusiveness);
+
+		mindist += 128 - (128 * obtrusiveness);
 		// safety check, don't force to reach the goal
 		if (mindist >= bs->formation_dist) {
-			bs->formation_dist *= 2;
+			bs->formation_dist = mindist;
 		}
 		// calculate the direction towards the teammate
 		v2[2] = 0;
@@ -5632,19 +5629,22 @@ void BotCheckBlockedTeammates(bot_state_t *bs) {
 				VectorNegate(sideward, sideward);
 				// move in the other direction
 				if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
-					if (DotProduct(bs->notblocked_dir, bs->notblocked_dir) < 0.1) {
-						VectorSet(angles, 0, 360 * random(), 0);
-						AngleVectorsForward(angles, v3);
-					} else {
-						VectorCopy(bs->notblocked_dir, v3);
-					}
+					// try to step back
+					if (!trap_BotMoveInDirection(bs->ms, v2, speed, movetype)) {
+						if (DotProduct(bs->notblocked_dir, bs->notblocked_dir) < 0.1) {
+							VectorSet(angles, 0, 360 * random(), 0);
+							AngleVectorsForward(angles, v3);
+						} else {
+							VectorCopy(bs->notblocked_dir, v3);
+						}
 
-					if (!trap_BotMoveInDirection(bs->ms, v3, speed, movetype)) {
-						VectorSet(bs->notblocked_dir, 0, 0, 0);
-						// move in a random direction in the hope to get out
-						BotRandomMove(bs, &moveresult, speed);
-					} else {
-						VectorCopy(v3, bs->notblocked_dir);
+						if (!trap_BotMoveInDirection(bs->ms, v3, speed, movetype)) {
+							VectorSet(bs->notblocked_dir, 0, 0, 0);
+							// move in a random direction in the hope to get out
+							BotRandomMove(bs, &moveresult, speed);
+						} else {
+							VectorCopy(v3, bs->notblocked_dir);
+						}
 					}
 				}
 			}
@@ -5811,7 +5811,7 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 	}
 
 	if (!BotCTFCarryingFlag(bs) && !Bot1FCTFCarryingFlag(bs) && !BotHarvesterCarryingCubes(bs) && !activate) {
-		if (bs->notblocked_time < FloatTime() - (0.1 + obtrusiveness * 2)) {
+		if (bs->notblocked_time < FloatTime() - obtrusiveness) {
 			// just reset goals and hope the bot will go into another direction?
 			if (bs->ainode == AINode_Seek_NBG) {
 				bs->nbg_time = 0;

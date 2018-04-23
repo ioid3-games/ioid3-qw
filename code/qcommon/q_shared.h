@@ -303,6 +303,8 @@ void *Hunk_Alloc(int size, ha_pref preference);
 #define CIN_silent	 8
 #define CIN_shader	16
 
+#define SOUND_RANGE_DEFAULT 128
+
 /*
 =======================================================================================================================================
 
