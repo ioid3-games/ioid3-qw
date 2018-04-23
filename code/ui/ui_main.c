@@ -3067,16 +3067,16 @@ static qboolean UI_BotName_HandleKey(int flags, float *special, int key) {
 		value += select;
 
 		if (game > GT_TOURNAMENT) {
-			if (value >= uiInfo.characterCount + 2) {
+			if (value >= uiInfo.characterCount) {
 				value = 0;
 			} else if (value < 0) {
-				value = uiInfo.characterCount + 2 - 1;
+				value = uiInfo.characterCount - 1;
 			}
 		} else {
-			if (value >= UI_GetNumBots() + 2) {
+			if (value >= UI_GetNumBots()) {
 				value = 0;
 			} else if (value < 0) {
-				value = UI_GetNumBots() + 2 - 1;
+				value = UI_GetNumBots() - 1;
 			}
 		}
 
