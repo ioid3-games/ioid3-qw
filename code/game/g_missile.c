@@ -31,10 +31,10 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 G_BounceMissile
 =======================================================================================================================================
 */
-void G_BounceMissile(gentity_t *ent, trace_t *trace) {
+qboolean G_BounceMissile(gentity_t *ent, trace_t *trace) {
 	vec3_t velocity;
+	int hitTime, contents;
 	float dot;
-	int hitTime;
 
 	// reflect the velocity on the trace plane
 	hitTime = level.previousTime + (level.time - level.previousTime) * trace->fraction;
@@ -44,14 +44,29 @@ void G_BounceMissile(gentity_t *ent, trace_t *trace) {
 	dot = DotProduct(velocity, trace->plane.normal);
 
 	VectorMA(velocity, -2 * dot, trace->plane.normal, ent->s.pos.trDelta);
+// Tobias FIXME: do some simplifications and use a 'jumptable' here (like 'case: isSoftMaterial' etc.)...
+	if ((trace->surfaceFlags & SURF_MATERIAL_MASK) == MAT_SAND_GR_COL_01 || (trace->surfaceFlags & SURF_MATERIAL_MASK) == MAT_SAND_GR_COL_02 || (trace->surfaceFlags & SURF_MATERIAL_MASK) == MAT_SAND_GR_COL_03 || (trace->surfaceFlags & SURF_MATERIAL_MASK) == MAT_SAND_GR_COL_04) {
+		ent->s.pos.trDelta[2] *= 0.65f;
+	}
+// Tobias: end
+	contents = trap_PointContents(ent->r.currentOrigin, -1);
+
+	if (contents & (CONTENTS_WATER|CONTENTS_SLIME|CONTENTS_LAVA)) {
+		ent->s.pos.trDelta[2] *= 0.25f;
+	}
 
 	if (ent->s.eFlags & EF_BOUNCE_HALF) {
-		VectorScale(ent->s.pos.trDelta, 0.65, ent->s.pos.trDelta);
-		// check for stop
-		if (trace->plane.normal[2] > 0.2 && VectorLength(ent->s.pos.trDelta) < 40) {
-			G_SetOrigin(ent, trace->endpos);
-			ent->s.time = level.time / 4;
-			return;
+		// if it hit a client then barely bounce off of them since they are "soft"
+		if (trace->entityNum >= 0 && trace->entityNum < MAX_CLIENTS) {
+			VectorScale(ent->s.pos.trDelta, 0.02f, ent->s.pos.trDelta);
+		} else {
+			VectorScale(ent->s.pos.trDelta, 0.65, ent->s.pos.trDelta);
+			// check for stop
+			if (trace->plane.normal[2] > 0.2 && VectorLength(ent->s.pos.trDelta) < 40) {
+				G_SetOrigin(ent, trace->endpos);
+				ent->s.time = level.time / 4;
+				return qfalse;
+			}
 		}
 	}
 
@@ -59,6 +74,7 @@ void G_BounceMissile(gentity_t *ent, trace_t *trace) {
 	VectorCopy(ent->r.currentOrigin, ent->s.pos.trBase);
 
 	ent->s.pos.trTime = level.time;
+	return qtrue;
 }
 
 /*
@@ -258,9 +274,11 @@ void G_MissileImpact(gentity_t *ent, trace_t *trace) {
 
 	other = &g_entities[trace->entityNum];
 	// check for bounce
-	if (!other->takedamage && (ent->s.eFlags & (EF_BOUNCE|EF_BOUNCE_HALF))) {
-		G_BounceMissile(ent, trace);
-		G_AddEvent(ent, EV_GRENADE_BOUNCE, 0);
+	if (ent->s.eFlags & (EF_BOUNCE|EF_BOUNCE_HALF)) {
+		if (G_BounceMissile(ent, trace) && !trace->startsolid) { // no bounce, no bounce sound
+			G_AddEvent(ent, EV_GRENADE_BOUNCE, 0);
+		}
+
 		return;
 	}
 	// impact damage
@@ -355,15 +373,12 @@ void G_RunMissile(gentity_t *ent) {
 
 	// get current position
 	BG_EvaluateTrajectory(&ent->s.pos, level.time, origin);
-	// if this missile bounced off
-	if (ent->target_ent) {
-		passent = ent->target_ent->s.number;
-	// prox mines that left the owner bbox will attach to anything, even the owner
-	} else if (ent->s.weapon == WP_PROXLAUNCHER && ent->count) {
-		passent = ENTITYNUM_NONE;
-	} else {
+	// missiles that left the owner bbox will interact with anything, even the owner
+	if (!ent->count) {
 		// ignore interactions with the missile owner
 		passent = ent->r.ownerNum;
+	} else {
+		passent = ENTITYNUM_NONE;
 	}
 	// trace a line from the previous position to the current position
 	trap_Trace(&tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin, passent, ent->clipmask);
@@ -372,6 +387,7 @@ void G_RunMissile(gentity_t *ent) {
 		// make sure the tr.entityNum is set to the entity we're stuck in
 		trap_Trace(&tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, ent->r.currentOrigin, passent, ent->clipmask);
 		tr.fraction = 0;
+		ent->count = 0;
 	} else {
 		VectorCopy(tr.endpos, ent->r.currentOrigin);
 	}
@@ -392,7 +408,7 @@ void G_RunMissile(gentity_t *ent) {
 		}
 	}
 	// if the missile wasn't yet outside the player body
-	if (ent->s.weapon == WP_PROXLAUNCHER && !ent->count) {
+	if (!ent->count) {
 		// check if the missile is outside the owner bbox
 		trap_Trace(&tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, ent->r.currentOrigin, ENTITYNUM_NONE, ent->clipmask);
 
@@ -427,7 +443,6 @@ gentity_t *fire_nail(gentity_t *self, vec3_t start, vec3_t forward, vec3_t right
 	bolt->damage = 20;
 	bolt->methodOfDeath = MOD_NAIL;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_LINEAR;
@@ -485,7 +500,6 @@ gentity_t *fire_prox(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->methodOfDeath = MOD_PROXIMITY_MINE;
 	bolt->splashMethodOfDeath = MOD_PROXIMITY_MINE;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_GRAVITY;
@@ -524,13 +538,12 @@ gentity_t *fire_grenade(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->s.eFlags = EF_BOUNCE_HALF;
 	bolt->r.ownerNum = self->s.number;
 	bolt->parent = self;
-	bolt->damage = 100;
+	bolt->damage = 0;
 	bolt->splashDamage = 200;
 	bolt->splashRadius = 200;
-	bolt->methodOfDeath = MOD_GRENADE;
+	bolt->methodOfDeath = MOD_GRENADE_SPLASH;
 	bolt->splashMethodOfDeath = MOD_GRENADE_SPLASH;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_GRAVITY;
@@ -574,7 +587,6 @@ gentity_t *fire_napalm(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->methodOfDeath = MOD_NAPALM;
 	bolt->splashMethodOfDeath = MOD_NAPALM_SPLASH;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_GRAVITY;
@@ -618,7 +630,6 @@ gentity_t *fire_rocket(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->methodOfDeath = MOD_ROCKET;
 	bolt->splashMethodOfDeath = MOD_ROCKET_SPLASH;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_LINEAR;
@@ -662,7 +673,6 @@ gentity_t *fire_plasma(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->methodOfDeath = MOD_PLASMA;
 	bolt->splashMethodOfDeath = MOD_PLASMA_SPLASH;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_LINEAR;
@@ -706,7 +716,6 @@ gentity_t *fire_bfg(gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->methodOfDeath = MOD_BFG;
 	bolt->splashMethodOfDeath = MOD_BFG_SPLASH;
 	bolt->clipmask = MASK_SHOT;
-	bolt->target_ent = NULL; // Tobias CHECK: no longer needed?
 	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
 	bolt->count = 0;
 	bolt->s.pos.trType = TR_LINEAR;

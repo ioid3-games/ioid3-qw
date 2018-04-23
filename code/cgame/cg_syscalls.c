@@ -767,8 +767,8 @@ void trap_S_StopBackgroundTrack(void) {
 trap_S_StartSound
 =======================================================================================================================================
 */
-void trap_S_StartSound(vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx) {
-	syscall(CG_S_STARTSOUND, origin, entityNum, entchannel, sfx);
+void trap_S_StartSound(vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx, int range) {
+	syscall(CG_S_STARTSOUND, origin, entityNum, entchannel, sfx, range);
 }
 
 /*
@@ -785,8 +785,8 @@ void trap_S_ClearLoopingSounds(qboolean killall) {
 trap_S_AddLoopingSound
 =======================================================================================================================================
 */
-void trap_S_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx) {
-	syscall(CG_S_ADDLOOPINGSOUND, entityNum, origin, velocity, sfx);
+void trap_S_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range) {
+	syscall(CG_S_ADDLOOPINGSOUND, entityNum, origin, velocity, sfx, range);
 }
 
 /*
@@ -812,8 +812,8 @@ void trap_S_Respatialize(int entityNum, const vec3_t origin, vec3_t axis[3], int
 trap_S_AddRealLoopingSound
 =======================================================================================================================================
 */
-void trap_S_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx) {
-	syscall(CG_S_ADDREALLOOPINGSOUND, entityNum, origin, velocity, sfx);
+void trap_S_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range) {
+	syscall(CG_S_ADDREALLOOPINGSOUND, entityNum, origin, velocity, sfx, range);
 }
 
 /*

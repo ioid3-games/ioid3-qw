@@ -34,10 +34,7 @@ cvar_t *s_alGain;
 cvar_t *s_alSources;
 cvar_t *s_alDopplerFactor;
 cvar_t *s_alDopplerSpeed;
-cvar_t *s_alMinDistance;
-cvar_t *s_alMaxDistance;
 cvar_t *s_alRolloff;
-cvar_t *s_alGraceDistance;
 cvar_t *s_alDriver;
 cvar_t *s_alDevice;
 cvar_t *s_alInputDevice;
@@ -56,17 +53,111 @@ static ALCcontext *alContext;
 static ALCdevice *alCaptureDevice;
 static cvar_t *s_alCapture;
 #endif
-#if defined(_WIN64)
+#if defined(_WIN32) && defined(_WIN64)
 #define ALDRIVER_DEFAULT "OpenAL64.dll"
 #elif defined(_WIN32)
 #define ALDRIVER_DEFAULT "OpenAL32.dll"
 #elif defined(__APPLE__)
-#define ALDRIVER_DEFAULT "/System/Library/Frameworks/OpenAL.framework/OpenAL"
+#define ALDRIVER_DEFAULT "libopenal.dylib"
 #elif defined(__OpenBSD__)
 #define ALDRIVER_DEFAULT "libopenal.so"
 #else
 #define ALDRIVER_DEFAULT "libopenal.so.1"
 #endif
+
+typedef struct {
+	float flDensity;
+	float flDiffusion;
+	float flGain;
+	float flGainHF;
+	float flGainLF;
+	float flDecayTime;
+	float flDecayHFRatio;
+	float flDecayLFRatio;
+	float flReflectionsGain;
+	float flReflectionsDelay;
+	float flReflectionsPan[3];
+	float flLateReverbGain;
+	float flLateReverbDelay;
+	float flLateReverbPan[3];
+	float flEchoTime;
+	float flEchoDepth;
+	float flModulationTime;
+	float flModulationDepth;
+	float flAirAbsorptionGainHF;
+	float flHFReference;
+	float flLFReference;
+	float flRoomRolloffFactor;
+	int iDecayHFLimit;
+} reverb_t;
+
+typedef struct {
+	float gain;
+	float gainHF;
+} lowPass_t;
+
+typedef struct {
+	reverb_t current;
+	reverb_t from;
+	reverb_t to;
+	int changeTime;
+	ALuint alEffect;
+	ALuint alEffectSlot;
+} env_t;
+
+typedef struct {
+	lowPass_t current;
+	lowPass_t from;
+	lowPass_t to;
+	int changeTime;
+	ALuint alFilter;
+} water_t;
+
+typedef struct {
+	qboolean initialized;
+	env_t env;
+	water_t water;
+	int lastContents;
+} effects_t;
+
+static effects_t s_alEffects;
+
+#include "snd_alreverbs.h"
+
+typedef struct {
+	const char *name;
+	reverb_t data;
+} namedReverb_t;
+
+static const reverb_t s_alReverbUnderwater = REVERB_PRESET_UNDERWATER;
+
+static const namedReverb_t s_alReverbPresets[] = {
+	{"default", REVERB_PRESET_MIN,},
+	{"city", REVERB_PRESET_CITY,},
+	{"subway", REVERB_PRESET_CITY_SUBWAY,},
+	{"underpass", REVERB_PRESET_CITY_UNDERPASS,},
+	{"abandoned", REVERB_PRESET_CITY_ABANDONED,},
+	{"alley", REVERB_PRESET_ALLEY,},
+	{"parkinglot", REVERB_PRESET_PARKINGLOT,},
+	{"sewerpipe", REVERB_PRESET_SEWERPIPE,},
+	{"bathroom", REVERB_PRESET_BATHROOM,},
+	{"stoneroom", REVERB_PRESET_STONEROOM,},
+	{"dustyroom", REVERB_PRESET_DUSTYROOM,},
+	{"hallway", REVERB_PRESET_HALLWAY,},
+	{"chapel", REVERB_PRESET_CHAPEL,},
+	{"auditorium", REVERB_PRESET_AUDITORIUM,},
+	{"gymnasium", REVERB_PRESET_SPORT_GYMNASIUM,},
+	{"stadium", REVERB_PRESET_SPORT_EMPTYSTADIUM,},
+	{"arena", REVERB_PRESET_ARENA,},
+	{"hangar", REVERB_PRESET_HANGAR,},
+	{"tunnel", REVERB_PRESET_DRIVING_TUNNEL,},
+	{"mountains", REVERB_PRESET_MOUNTAINS,},
+	{"forest", REVERB_PRESET_FOREST,},
+	{"underwater", REVERB_PRESET_UNDERWATER,},
+	{"mood_heaven", REVERB_PRESET_MOOD_HEAVEN,},
+	{"mood_hell", REVERB_PRESET_MOOD_HELL,},
+	{"mood_memory", REVERB_PRESET_MOOD_MEMORY,},
+};
 
 typedef struct alSfx_s {
 	char filename[MAX_QPATH];
@@ -106,13 +197,14 @@ typedef struct src_s {
 	float scaleGain;			// last gain value for this source. 0 if muted.
 	float lastTimePos;			// on stopped loops, the last position in the buffer
 	int lastSampleTime;			// time when this was stopped
+	int range;
 	vec3_t loopSpeakerPos;		// origin of the loop speaker
 	qboolean local;				// is this local (relative to the cam)
 } src_t;
 #ifdef __APPLE__
-#define MAX_SRC 64
-#else
 #define MAX_SRC 128
+#else
+#define MAX_SRC 255 // Tobias FIXME: 256 and 64 bots will CRASH the game! So, why can't we set this at least to 256 (which is still not enough). Eventually try 1.17.3 -> https://github.com/kcat/openal-soft/commit/d9bf4f7620c1e13846a53ee9df5c8c9eb2fcfe7d
 #endif
 static src_t srcList[MAX_SRC];
 static int srcCount = 0;
@@ -125,6 +217,7 @@ typedef struct sentity_s {
 	vec3_t origin;
 	qboolean srcAllocated; // if a src_t has been allocated to this entity
 	int srcIndex;
+	int range;
 	qboolean loopAddedThisFrame;
 	alSrcPriority_t loopPriority;
 	sfxHandle_t loopSfx;
@@ -458,7 +551,7 @@ static void S_AL_BufferLoad(sfxHandle_t sfx, qboolean cache) {
 		// we have no data to buffer, so buffer silence
 		byte dummyData[2] = {0};
 
-		qalBufferData(curSfx->buffer, AL_FORMAT_MONO16, (void *)dummyData, 2, 22050);
+		qalBufferData(curSfx->buffer, AL_FORMAT_MONO16, (void *)dummyData, 2, 48000);
 	} else {
 		qalBufferData(curSfx->buffer, format, data, info.size, info.rate);
 	}
@@ -632,17 +725,19 @@ Adapt the gain if necessary to get a quicker fadeout when the source is too far 
 static void S_AL_ScaleGain(src_t *chksrc, vec3_t origin) {
 	float distance;
 
+	distance = 0.0f;
+
 	if (!chksrc->local) {
 		distance = Distance(origin, lastListenerOrigin);
 	}
 	// if we exceed a certain distance, scale the gain linearly until the sound vanishes into nothingness.
-	if (!chksrc->local && (distance -= s_alMaxDistance->value) > 0) {
+	if (!chksrc->local && (distance -= chksrc->range * 4) > 0) {
 		float scaleFactor;
 
-		if (distance >= s_alGraceDistance->value) {
+		if (distance >= chksrc->range * 16) {
 			scaleFactor = 0.0f;
 		} else {
-			scaleFactor = 1.0f - distance / s_alGraceDistance->value;
+			scaleFactor = 1.0f - distance / (chksrc->range * 16);
 		}
 
 		scaleFactor *= chksrc->curGain;
@@ -717,8 +812,7 @@ static qboolean S_AL_SrcInit(void) {
 
 		srcCount++;
 	}
-	// all done. Print this for informational purposes
-	Com_Printf("Allocated %d sources.\n", srcCount);
+
 	alSourcesInitialised = qtrue;
 	return qtrue;
 }
@@ -740,7 +834,8 @@ static void S_AL_SrcShutdown(void) {
 		curSource = &srcList[i];
 
 		if (curSource->isLocked) {
-			Com_DPrintf(S_COLOR_YELLOW "WARNING: Source %d is locked\n", i);
+			srcList[i].isLocked = qfalse;
+			Com_DPrintf(S_COLOR_YELLOW "WARNING: Source %d was locked\n", i);
 		}
 
 		if (curSource->entity > 0) {
@@ -761,7 +856,7 @@ static void S_AL_SrcShutdown(void) {
 S_AL_SrcSetup
 =======================================================================================================================================
 */
-static void S_AL_SrcSetup(srcHandle_t src, sfxHandle_t sfx, alSrcPriority_t priority, int entity, int channel, qboolean local) {
+static void S_AL_SrcSetup(srcHandle_t src, sfxHandle_t sfx, alSrcPriority_t priority, int entity, int channel, qboolean local, int range) {
 	src_t *curSource;
 
 	// set up src struct
@@ -776,6 +871,7 @@ static void S_AL_SrcSetup(srcHandle_t src, sfxHandle_t sfx, alSrcPriority_t prio
 	curSource->isLooping = qfalse;
 	curSource->isTracking = qfalse;
 	curSource->isStream = qfalse;
+	curSource->range = range ? range : SOUND_RANGE_DEFAULT;
 	curSource->curGain = s_alGain->value * s_volume->value;
 	curSource->scaleGain = curSource->curGain;
 	curSource->local = local;
@@ -787,13 +883,12 @@ static void S_AL_SrcSetup(srcHandle_t src, sfxHandle_t sfx, alSrcPriority_t prio
 	}
 
 	qalSourcef(curSource->alSource, AL_PITCH, 1.0f);
-
-	S_AL_Gain(curSource->alSource, curSource->curGain);
-
 	qalSourcefv(curSource->alSource, AL_POSITION, vec3_origin);
 	qalSourcefv(curSource->alSource, AL_VELOCITY, vec3_origin);
 	qalSourcei(curSource->alSource, AL_LOOPING, AL_FALSE);
-	qalSourcef(curSource->alSource, AL_REFERENCE_DISTANCE, s_alMinDistance->value);
+	qalSourcef(curSource->alSource, AL_REFERENCE_DISTANCE, curSource->range);
+
+	S_AL_Gain(curSource->alSource, curSource->curGain);
 
 	if (local) {
 		qalSourcei(curSource->alSource, AL_SOURCE_RELATIVE, AL_TRUE);
@@ -802,6 +897,44 @@ static void S_AL_SrcSetup(srcHandle_t src, sfxHandle_t sfx, alSrcPriority_t prio
 		qalSourcei(curSource->alSource, AL_SOURCE_RELATIVE, AL_FALSE);
 		qalSourcef(curSource->alSource, AL_ROLLOFF_FACTOR, s_alRolloff->value);
 	}
+
+	if (s_alEffects.initialized) {
+		if (entity == -1) {
+			qalSourcei(curSource->alSource, AL_DIRECT_FILTER, AL_FILTER_NULL);
+			qalSource3i(curSource->alSource, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
+			//Com_Printf("%s: no effect (%d)\n", knownSfx[sfx].filename, entity);
+		} else {
+			qalSource3i(curSource->alSource, AL_AUXILIARY_SEND_FILTER, s_alEffects.env.alEffectSlot, 0, AL_FILTER_NULL);
+			qalSourcei(curSource->alSource, AL_DIRECT_FILTER, s_alEffects.water.alFilter);
+			//Com_Printf("%s: with effect (%d)\n", knownSfx[sfx].filename, entity);
+		}
+	}
+}
+
+/*
+=======================================================================================================================================
+S_AL_ShutDownEffects
+=======================================================================================================================================
+*/
+static void S_AL_ShutDownEffects(void) {
+
+	if (!s_alEffects.initialized) {
+		return;
+	}
+	// delete effect
+	if (s_alEffects.env.alEffect) {
+		qalDeleteEffects(1, &s_alEffects.env.alEffect);
+	}
+	// delete Auxiliary effect slot
+	if (s_alEffects.env.alEffectSlot) {
+		qalDeleteAuxiliaryEffectSlots(1, &s_alEffects.env.alEffectSlot);
+	}
+	// delete filter
+	if (s_alEffects.water.alFilter) {
+		qalDeleteFilters(1, &s_alEffects.water.alFilter);
+	}
+
+	Com_Memset(&s_alEffects, 0, sizeof(s_alEffects));
 }
 
 /*
@@ -965,7 +1098,7 @@ static srcHandle_t S_AL_SrcAlloc(alSrcPriority_t priority, int entnum, int chann
 	int weakest = -1;
 	int weakest_time = Sys_Milliseconds();
 	int weakest_pri = 999;
-	float weakest_gain = 1000.0;
+	float weakest_gain = 1000.0f;
 	qboolean weakest_isplaying = qtrue;
 	int weakest_numloops = 0;
 	src_t *curSource;
@@ -1132,7 +1265,7 @@ static void S_AL_StartLocalSound(sfxHandle_t sfx, int channel) {
 		return;
 	}
 	// set up the effect
-	S_AL_SrcSetup(src, sfx, SRCPRI_LOCAL, -1, channel, qtrue);
+	S_AL_SrcSetup(src, sfx, SRCPRI_LOCAL, -1, channel, qtrue, SOUND_RANGE_DEFAULT);
 	// start it playing
 	srcList[src].isPlaying = qtrue;
 	qalSourcePlay(srcList[src].alSource);
@@ -1145,7 +1278,7 @@ S_AL_StartSound
 Play a one-shot sound effect.
 =======================================================================================================================================
 */
-static void S_AL_StartSound(vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx) {
+static void S_AL_StartSound(vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx, int range) {
 	vec3_t sorigin;
 	srcHandle_t src;
 	src_t *curSource;
@@ -1171,7 +1304,7 @@ static void S_AL_StartSound(vec3_t origin, int entnum, int entchannel, sfxHandle
 
 	S_AL_SanitiseVector(sorigin);
 
-	if ((srcActiveCnt > 5 * srcCount / 3) && (DistanceSquared(sorigin, lastListenerOrigin) >= (s_alMaxDistance->value + s_alGraceDistance->value) * (s_alMaxDistance->value + s_alGraceDistance->value))) {
+	if ((srcActiveCnt > 5 * srcCount / 3) && (DistanceSquared(sorigin, lastListenerOrigin) >= (range * 20) * (range * 20))) {
 		// we're getting tight on sources and source is not within hearing distance so don't add it
 		return;
 	}
@@ -1182,7 +1315,7 @@ static void S_AL_StartSound(vec3_t origin, int entnum, int entchannel, sfxHandle
 		return;
 	}
 
-	S_AL_SrcSetup(src, sfx, SRCPRI_ONESHOT, entnum, entchannel, qfalse);
+	S_AL_SrcSetup(src, sfx, SRCPRI_ONESHOT, entnum, entchannel, qfalse, range);
 
 	curSource = &srcList[src];
 
@@ -1217,11 +1350,15 @@ static void S_AL_ClearLoopingSounds(qboolean killall) {
 S_AL_SrcLoop
 =======================================================================================================================================
 */
-static void S_AL_SrcLoop(alSrcPriority_t priority, sfxHandle_t sfx, const vec3_t origin, const vec3_t velocity, int entityNum) {
+static void S_AL_SrcLoop(alSrcPriority_t priority, sfxHandle_t sfx, const vec3_t origin, const vec3_t velocity, int entityNum, int range) {
 	int src;
 	sentity_t *sent = &entityList[entityNum];
 	src_t *curSource;
 	vec3_t sorigin, svelocity;
+
+	if (entityNum < 0 || entityNum >= MAX_GENTITIES) {
+		return;
+	}
 
 	if (S_AL_CheckInput(entityNum, sfx)) {
 		return;
@@ -1249,6 +1386,7 @@ static void S_AL_SrcLoop(alSrcPriority_t priority, sfxHandle_t sfx, const vec3_t
 	sent->srcIndex = src;
 	sent->loopPriority = priority;
 	sent->loopSfx = sfx;
+	sent->range = range;
 	// if this is not set then the looping sound is stopped.
 	sent->loopAddedThisFrame = qtrue;
 	// these lines should be called via S_AL_SrcSetup, but we can't call that yet as it buffers sfxes that may change
@@ -1292,8 +1430,8 @@ static void S_AL_SrcLoop(alSrcPriority_t priority, sfxHandle_t sfx, const vec3_t
 S_AL_AddLoopingSound
 =======================================================================================================================================
 */
-static void S_AL_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx) {
-	S_AL_SrcLoop(SRCPRI_ENTITY, sfx, origin, velocity, entityNum);
+static void S_AL_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range) {
+	S_AL_SrcLoop(SRCPRI_ENTITY, sfx, origin, velocity, entityNum, range);
 }
 
 /*
@@ -1301,8 +1439,8 @@ static void S_AL_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_
 S_AL_AddRealLoopingSound
 =======================================================================================================================================
 */
-static void S_AL_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx) {
-	S_AL_SrcLoop(SRCPRI_AMBIENT, sfx, origin, velocity, entityNum);
+static void S_AL_AddRealLoopingSound(int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, int range) {
+	S_AL_SrcLoop(SRCPRI_AMBIENT, sfx, origin, velocity, entityNum, range);
 }
 
 /*
@@ -1350,10 +1488,6 @@ static void S_AL_SrcUpdate(void) {
 			qalSourcef(curSource->alSource, AL_ROLLOFF_FACTOR, s_alRolloff->value);
 		}
 
-		if (s_alMinDistance->modified) {
-			qalSourcef(curSource->alSource, AL_REFERENCE_DISTANCE, s_alMinDistance->value);
-		}
-
 		if (curSource->isLooping) {
 			sentity_t *sent = &entityList[entityNum];
 			// if a looping effect hasn't been touched this frame, pause or kill it
@@ -1370,7 +1504,7 @@ static void S_AL_SrcUpdate(void) {
 				}
 				// the sound hasn't been started yet
 				if (sent->startLoopingSound) {
-					S_AL_SrcSetup(i, sent->loopSfx, sent->loopPriority, entityNum, -1, curSource->local);
+					S_AL_SrcSetup(i, sent->loopSfx, sent->loopPriority, entityNum, -1, curSource->local, sent->range);
 					curSource->isLooping = qtrue;
 					knownSfx[curSource->sfx].loopCnt++;
 					sent->startLoopingSound = qfalse;
@@ -1527,7 +1661,7 @@ static void S_AL_AllocateStreamChannel(int stream, int entityNum) {
 			return;
 		}
 
-		S_AL_SrcSetup(cursrc, -1, SRCPRI_ENTITY, entityNum, 0, qfalse);
+		S_AL_SrcSetup(cursrc, -1, SRCPRI_ENTITY, entityNum, 0, qfalse, SOUND_RANGE_DEFAULT);
 
 		alsrc = S_AL_SrcGet(cursrc);
 		srcList[cursrc].isTracking = qtrue;
@@ -1853,7 +1987,7 @@ static void S_AL_MusicProcess(ALuint b) {
 		// we have no data to buffer, so buffer silence
 		byte dummyData[2] = {0};
 
-		qalBufferData(b, AL_FORMAT_MONO16, (void *)dummyData, 2, 22050);
+		qalBufferData(b, AL_FORMAT_MONO16, (void *)dummyData, 2, 48000);
 	} else {
 		qalBufferData(b, format, decode_buffer, l, curstream->info.rate);
 	}
@@ -1967,6 +2101,18 @@ static void S_AL_MusicUpdate(void) {
 
 /*
 =======================================================================================================================================
+S_AL_ClearSoundBuffer
+=======================================================================================================================================
+*/
+static void S_AL_ClearSoundBuffer(void) {
+
+	S_AL_StopBackgroundTrack();
+	S_AL_SrcShutdown();
+	S_AL_SrcInit();
+}
+
+/*
+=======================================================================================================================================
 S_AL_StopAllSounds
 =======================================================================================================================================
 */
@@ -1979,6 +2125,60 @@ static void S_AL_StopAllSounds(void) {
 	for (i = 0; i < MAX_RAW_STREAMS; i++) {
 		S_AL_StreamDie(i);
 	}
+
+	S_AL_ClearSoundBuffer();
+}
+
+/*
+=======================================================================================================================================
+S_AL_ChangeUnderWater
+=======================================================================================================================================
+*/
+static void S_AL_ChangeUnderWater(void) {
+
+	s_alEffects.water.from = s_alEffects.water.current;
+
+	if (s_alEffects.lastContents & CONTENTS_LIQUID_MASK) {
+		s_alEffects.water.to.gain = 0.25f;
+		s_alEffects.water.to.gainHF = 0.0625f;
+	} else {
+		s_alEffects.water.to.gain = 1.0f;
+		s_alEffects.water.to.gainHF = 1.0f;
+	}
+
+	s_alEffects.water.changeTime = Sys_Milliseconds();
+}
+
+/*
+=======================================================================================================================================
+S_AL_ChangeEnvironment
+=======================================================================================================================================
+*/
+static void S_AL_ChangeEnvironment(const reverb_t *env) {
+
+	s_alEffects.env.from = s_alEffects.env.current;
+	s_alEffects.env.to = *env;
+	s_alEffects.env.changeTime = Sys_Milliseconds();
+}
+
+/*
+=======================================================================================================================================
+S_AL_GetReverbForContents
+=======================================================================================================================================
+*/
+static const reverb_t *S_AL_GetReverbForContents(int contents) {
+
+	if (contents & CONTENTS_LIQUID_MASK) {
+		return &s_alReverbUnderwater;
+	} else {
+		int index = 0;
+
+		if (index >= ARRAY_LEN(s_alReverbPresets)) {
+			index = 0;
+		}
+
+		return &s_alReverbPresets[index].data;
+	}
 }
 
 /*
@@ -1989,6 +2189,7 @@ S_AL_Respatialize
 static void S_AL_Respatialize(int entityNum, const vec3_t origin, vec3_t axis[3], int inwater) {
 	float orientation[6];
 	vec3_t sorigin;
+	int contents, changedContents;
 
 	VectorCopy(origin, sorigin);
 
@@ -2007,10 +2208,170 @@ static void S_AL_Respatialize(int entityNum, const vec3_t origin, vec3_t axis[3]
 	lastListenerNumber = entityNum;
 
 	VectorCopy(sorigin, lastListenerOrigin);
+
+	contents = CM_PointContents(sorigin, 0);
+	changedContents = contents ^ s_alEffects.lastContents;
+	s_alEffects.lastContents = contents;
+
+	if (changedContents & CONTENTS_LIQUID_MASK) {
+		S_AL_ChangeUnderWater();
+		S_AL_ChangeEnvironment(S_AL_GetReverbForContents(contents));
+	}
 	// set OpenAL listener parameters
 	qalListenerfv(AL_POSITION, (ALfloat *)sorigin);
 	qalListenerfv(AL_VELOCITY, vec3_origin);
 	qalListenerfv(AL_ORIENTATION, orientation);
+}
+
+/*
+=======================================================================================================================================
+S_AL_LerpReverb
+=======================================================================================================================================
+*/
+static void S_AL_LerpReverb(const reverb_t *from, const reverb_t *to, float fraction, reverb_t *out) {
+#define LERP_FIELD(field) out->field = from->field + (to->field - from->field) * fraction
+#define LOG_LERP_FIELD(field) out->field = from->field * powf(to->field / from->field, fraction)
+
+	*out = *to;
+
+	LERP_FIELD (flDensity);
+	LERP_FIELD (flDiffusion);
+	LOG_LERP_FIELD (flGain);
+	LOG_LERP_FIELD (flGainHF);
+	LOG_LERP_FIELD (flGainLF);
+	LERP_FIELD (flDecayTime);
+	LERP_FIELD (flDecayHFRatio);
+	LERP_FIELD (flDecayLFRatio);
+	LOG_LERP_FIELD (flReflectionsGain);
+	LERP_FIELD (flReflectionsDelay);
+	LERP_FIELD (flReflectionsPan[0]);
+	LERP_FIELD (flReflectionsPan[1]);
+	LERP_FIELD (flReflectionsPan[2]);
+	LOG_LERP_FIELD (flLateReverbGain);
+	LERP_FIELD (flLateReverbDelay);
+	LERP_FIELD (flLateReverbPan[0]);
+	LERP_FIELD (flLateReverbPan[1]);
+	LERP_FIELD (flLateReverbPan[2]);
+	LERP_FIELD (flEchoTime);
+	LERP_FIELD (flEchoDepth);
+	LERP_FIELD (flModulationTime);
+	LERP_FIELD (flModulationDepth);
+	LOG_LERP_FIELD (flAirAbsorptionGainHF);
+	LERP_FIELD (flHFReference);
+	LERP_FIELD (flLFReference);
+	LERP_FIELD (flRoomRolloffFactor);
+
+	out->iDecayHFLimit = fraction < 0.5f ? from->iDecayHFLimit : to->iDecayHFLimit;
+#undef LERP_FIELD
+}
+
+/*
+=======================================================================================================================================
+S_AL_SetReverbParameters
+=======================================================================================================================================
+*/
+static qboolean S_AL_SetReverbParameters(const reverb_t *pEFXEAXReverb, ALuint uiEffect) {
+	qboolean bReturn = qfalse;
+
+	if (pEFXEAXReverb) {
+		// clear AL Error code
+		qalGetError();
+
+#define SET_FLOAT_PARM(parm, field) \
+			qalEffectf(uiEffect, parm, field); if (qalGetError() != AL_NO_ERROR) Com_Printf(S_COLOR_YELLOW "Error setting " #parm " to %g \n", field)
+
+		SET_FLOAT_PARM(AL_REVERB_DENSITY, pEFXEAXReverb->flDensity);
+		SET_FLOAT_PARM(AL_REVERB_DIFFUSION, pEFXEAXReverb->flDiffusion);
+		SET_FLOAT_PARM(AL_REVERB_GAIN, pEFXEAXReverb->flGain);
+		SET_FLOAT_PARM(AL_REVERB_GAINHF, pEFXEAXReverb->flGainHF);
+		SET_FLOAT_PARM(AL_REVERB_DECAY_TIME, pEFXEAXReverb->flDecayTime);
+		SET_FLOAT_PARM(AL_REVERB_DECAY_HFRATIO, pEFXEAXReverb->flDecayHFRatio);
+		SET_FLOAT_PARM(AL_REVERB_REFLECTIONS_GAIN, pEFXEAXReverb->flReflectionsGain);
+		SET_FLOAT_PARM(AL_REVERB_REFLECTIONS_DELAY, pEFXEAXReverb->flReflectionsDelay);
+		SET_FLOAT_PARM(AL_REVERB_LATE_REVERB_GAIN, pEFXEAXReverb->flLateReverbGain);
+		SET_FLOAT_PARM(AL_REVERB_LATE_REVERB_DELAY, pEFXEAXReverb->flLateReverbDelay);
+		SET_FLOAT_PARM(AL_REVERB_AIR_ABSORPTION_GAINHF, pEFXEAXReverb->flAirAbsorptionGainHF);
+		SET_FLOAT_PARM(AL_REVERB_ROOM_ROLLOFF_FACTOR, pEFXEAXReverb->flRoomRolloffFactor);
+		qalEffecti(uiEffect, AL_REVERB_DECAY_HFLIMIT, pEFXEAXReverb->iDecayHFLimit);
+
+		if (qalGetError() == AL_NO_ERROR) {
+			bReturn = qtrue;
+		}
+	}
+
+	return bReturn;
+}
+
+/*
+=======================================================================================================================================
+S_AL_UpdateEnvironment
+=======================================================================================================================================
+*/
+static void S_AL_UpdateEnvironment(void) {
+
+	if (!s_alEffects.initialized) {
+		return;
+	}
+
+	if (s_alEffects.env.changeTime >= 0) {
+		qboolean interpolate = qtrue;
+		const int ENV_CHANGE_TIME = 1000; // ms
+		int now = Sys_Milliseconds();
+
+		if (!interpolate || now > s_alEffects.env.changeTime + ENV_CHANGE_TIME) {
+			s_alEffects.env.current = s_alEffects.env.to;
+			s_alEffects.env.changeTime = -1;
+		} else {
+			float frac = Com_Clamp(0.0f, 1.0f, (now - s_alEffects.env.changeTime) / ((float)ENV_CHANGE_TIME));
+
+			S_AL_LerpReverb(&s_alEffects.env.from, &s_alEffects.env.to, frac, &s_alEffects.env.current);
+		}
+
+		S_AL_SetReverbParameters(&s_alEffects.env.current, s_alEffects.env.alEffect);
+		qalAuxiliaryEffectSloti(s_alEffects.env.alEffectSlot, AL_EFFECTSLOT_EFFECT, s_alEffects.env.alEffect);
+	}
+}
+
+/*
+=======================================================================================================================================
+S_AL_UpdateUnderwater
+=======================================================================================================================================
+*/
+static void S_AL_UpdateUnderwater(void) {
+
+	if (!s_alEffects.initialized) {
+		return;
+	}
+
+	if (s_alEffects.water.changeTime >= 0) {
+		int i;
+		qboolean interpolate = qtrue;
+		const int WATER_CHANGE_TIME = 500; // ms
+		int now = Sys_Milliseconds();
+		const lowPass_t *from = &s_alEffects.water.from;
+		const lowPass_t *to = &s_alEffects.water.to;
+
+		if (!interpolate || now > s_alEffects.water.changeTime + WATER_CHANGE_TIME) {
+			s_alEffects.water.changeTime = -1;
+			s_alEffects.water.current = *to;
+		} else {
+			float frac = Com_Clamp(0.0f, 1.0f, (now - s_alEffects.water.changeTime) / ((float)WATER_CHANGE_TIME));
+
+			s_alEffects.water.current.gain = from->gain + (to->gain - from->gain) * frac;
+			s_alEffects.water.current.gainHF = from->gainHF + (to->gainHF - from->gainHF) * frac;
+		}
+
+		qalFilterf(s_alEffects.water.alFilter, AL_LOWPASS_GAIN, s_alEffects.water.current.gain);
+		qalFilterf(s_alEffects.water.alFilter, AL_LOWPASS_GAINHF, s_alEffects.water.current.gainHF);
+
+		for (i = 0; i < srcCount; ++i) {
+			src_t *src = &srcList[i];
+
+			if (src->isActive && !src->local) {
+				qalSourcei(src->alSource, AL_DIRECT_FILTER, s_alEffects.water.alFilter);
+			}
+		}
+	}
 }
 
 /*
@@ -2031,6 +2392,9 @@ static void S_AL_Update(void) {
 
 		s_muted->modified = qfalse;
 	}
+
+	S_AL_UpdateEnvironment();
+	S_AL_UpdateUnderwater();
 	// update SFX channels
 	S_AL_SrcUpdate();
 	// update streams
@@ -2063,7 +2427,6 @@ static void S_AL_Update(void) {
 	s_alGain->modified = qfalse;
 	s_volume->modified = qfalse;
 	s_musicVolume->modified = qfalse;
-	s_alMinDistance->modified = qfalse;
 	s_alRolloff->modified = qfalse;
 }
 
@@ -2086,15 +2449,6 @@ static void S_AL_BeginRegistration(void) {
 	if (!numSfx) {
 		S_AL_BufferInit();
 	}
-}
-
-/*
-=======================================================================================================================================
-S_AL_ClearSoundBuffer
-=======================================================================================================================================
-*/
-static void S_AL_ClearSoundBuffer(void) {
-
 }
 
 /*
@@ -2192,7 +2546,11 @@ static void S_AL_SoundInfo(void) {
 	}
 #ifdef USE_VOIP
 	if (capture_ext) {
+#ifdef __APPLE__
+		Com_Printf("  Input Device:   %s\n", qalcGetString(alCaptureDevice, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER));
+#else
 		Com_Printf("  Input Device:   %s\n", qalcGetString(alCaptureDevice, ALC_CAPTURE_DEVICE_SPECIFIER));
+#endif
 		Com_Printf("  Available Input Devices:\n%s", s_alAvailableInputDevices->string);
 	}
 #endif
@@ -2206,6 +2564,8 @@ S_AL_Shutdown
 static void S_AL_Shutdown(void) {
 	// shut down everything
 	int i;
+
+	S_AL_ShutDownEffects();
 
 	for (i = 0; i < MAX_RAW_STREAMS; i++) {
 		S_AL_StreamDie(i);
@@ -2236,6 +2596,160 @@ static void S_AL_Shutdown(void) {
 #endif
 /*
 =======================================================================================================================================
+S_AL_InitEFX
+=======================================================================================================================================
+*/
+static qboolean S_AL_InitEFX(ALCdevice *alDevice) {
+
+	if (!qalcIsExtensionPresent(alDevice, "ALC_EXT_EFX")) {
+		return qfalse;
+	}
+
+#define INIT_FUNCTION(name) q##name = qalGetProcAddress(#name); if (!q##name) return qfalse
+	// get function pointers
+	INIT_FUNCTION(alGenEffects);
+	INIT_FUNCTION(alDeleteEffects);
+	INIT_FUNCTION(alIsEffect);
+	INIT_FUNCTION(alEffecti);
+	INIT_FUNCTION(alEffectiv);
+	INIT_FUNCTION(alEffectf);
+	INIT_FUNCTION(alEffectfv);
+	INIT_FUNCTION(alGetEffecti);
+	INIT_FUNCTION(alGetEffectiv);
+	INIT_FUNCTION(alGetEffectf);
+	INIT_FUNCTION(alGetEffectfv);
+	INIT_FUNCTION(alGenFilters);
+	INIT_FUNCTION(alDeleteFilters);
+	INIT_FUNCTION(alIsFilter);
+	INIT_FUNCTION(alFilteri);
+	INIT_FUNCTION(alFilteriv);
+	INIT_FUNCTION(alFilterf);
+	INIT_FUNCTION(alFilterfv);
+	INIT_FUNCTION(alGetFilteri);
+	INIT_FUNCTION(alGetFilteriv);
+	INIT_FUNCTION(alGetFilterf);
+	INIT_FUNCTION(alGetFilterfv);
+	INIT_FUNCTION(alGenAuxiliaryEffectSlots);
+	INIT_FUNCTION(alDeleteAuxiliaryEffectSlots);
+	INIT_FUNCTION(alIsAuxiliaryEffectSlot);
+	INIT_FUNCTION(alAuxiliaryEffectSloti);
+	INIT_FUNCTION(alAuxiliaryEffectSlotiv);
+	INIT_FUNCTION(alAuxiliaryEffectSlotf);
+	INIT_FUNCTION(alAuxiliaryEffectSlotfv);
+	INIT_FUNCTION(alGetAuxiliaryEffectSloti);
+	INIT_FUNCTION(alGetAuxiliaryEffectSlotiv);
+	INIT_FUNCTION(alGetAuxiliaryEffectSlotf);
+	INIT_FUNCTION(alGetAuxiliaryEffectSlotfv);
+#undef INIT_FUNCTION
+	return qtrue;
+}
+
+/*
+=======================================================================================================================================
+S_AL_CreateLowPassFilter
+=======================================================================================================================================
+*/
+static qboolean S_AL_CreateLowPassFilter(void) {
+
+	qalGenFilters(1, &s_alEffects.water.alFilter);
+	qalFilteri(s_alEffects.water.alFilter, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+	qalFilterf(s_alEffects.water.alFilter, AL_LOWPASS_GAIN, s_alEffects.water.current.gain);
+	qalFilterf(s_alEffects.water.alFilter, AL_LOWPASS_GAINHF, s_alEffects.water.current.gainHF);
+	return qtrue;
+}
+
+/*
+=======================================================================================================================================
+S_AL_CreateAuxEffectSlot
+=======================================================================================================================================
+*/
+static qboolean S_AL_CreateAuxEffectSlot(ALuint *puiAuxEffectSlot) {
+	qboolean bReturn = qfalse;
+
+	// clear AL error state
+	qalGetError();
+	// generate an auxiliary effect slot
+	qalGenAuxiliaryEffectSlots(1, puiAuxEffectSlot);
+
+	if (qalGetError() == AL_NO_ERROR) {
+		bReturn = qtrue;
+	}
+
+	return bReturn;
+}
+
+/*
+=======================================================================================================================================
+S_AL_CreateEffect
+=======================================================================================================================================
+*/
+static qboolean S_AL_CreateEffect(ALuint *puiEffect, ALenum eEffectType) {
+	qboolean bReturn = qfalse;
+
+	if (puiEffect) {
+		// clear AL error state
+		qalGetError();
+		// generate an effect
+		qalGenEffects(1, puiEffect);
+
+		if (qalGetError() == AL_NO_ERROR) {
+			// set the effect type
+			qalEffecti(*puiEffect, AL_EFFECT_TYPE, eEffectType);
+
+			if (qalGetError() == AL_NO_ERROR) {
+				bReturn = qtrue;
+			} else {
+				qalDeleteEffects(1, puiEffect);
+			}
+		}
+	}
+
+	return bReturn;
+}
+
+/*
+=======================================================================================================================================
+S_AL_InitEffects
+=======================================================================================================================================
+*/
+static qboolean S_AL_InitEffects(ALCdevice *alDevice) {
+
+	Com_Memset(&s_alEffects, 0, sizeof(s_alEffects));
+
+	if (!S_AL_InitEFX(alDevice)) {
+		return qfalse;
+	}
+
+	s_alEffects.water.changeTime = -1;
+	s_alEffects.water.current.gain = 1.0f;
+	s_alEffects.water.current.gainHF = 1.0f;
+	s_alEffects.water.to = s_alEffects.water.current;
+	s_alEffects.water.from = s_alEffects.water.current;
+
+	s_alEffects.env.changeTime = -1;
+	s_alEffects.env.current = s_alReverbPresets[0].data;
+	s_alEffects.env.to = s_alEffects.env.current;
+	s_alEffects.env.from = s_alEffects.env.current;
+
+	if (!S_AL_CreateAuxEffectSlot(&s_alEffects.env.alEffectSlot)) {
+		Com_Printf(S_COLOR_RED "ERROR: Failed to create aux effect slot\n");
+	} else if (!S_AL_CreateEffect(&s_alEffects.env.alEffect, AL_EFFECT_REVERB)) {
+		Com_Printf(S_COLOR_RED "ERROR: Failed to create effect\n");
+	} else if (!S_AL_CreateLowPassFilter()) {
+		Com_Printf(S_COLOR_RED "ERROR: Failed to create low-pass filter\n");
+	} else if (!S_AL_SetReverbParameters(&s_alEffects.env.current, s_alEffects.env.alEffect)) {
+		Com_Printf(S_COLOR_RED "ERROR: Failed to set reverb params\n");
+	} else {
+		Com_Printf("Successfully initialized effects\n");
+		s_alEffects.initialized = qtrue;
+		qalAuxiliaryEffectSloti(s_alEffects.env.alEffectSlot, AL_EFFECTSLOT_EFFECT, s_alEffects.env.alEffect);
+	}
+
+	return s_alEffects.initialized;
+}
+
+/*
+=======================================================================================================================================
 S_AL_Init
 =======================================================================================================================================
 */
@@ -2259,21 +2773,26 @@ qboolean S_AL_Init(soundInterface_t *si) {
 	// new console variables
 	s_alPrecache = Cvar_Get("s_alPrecache", "1", CVAR_ARCHIVE);
 	s_alGain = Cvar_Get("s_alGain", "1.0", CVAR_ARCHIVE);
-	s_alSources = Cvar_Get("s_alSources", "96", CVAR_ARCHIVE);
+#ifdef __APPLE__
+	s_alSources = Cvar_Get("s_alSources", "128", CVAR_ARCHIVE);
+#else
+	s_alSources = Cvar_Get("s_alSources", "256", CVAR_ARCHIVE); // Tobias FIXME: Increase this!
+#endif
 	s_alDopplerFactor = Cvar_Get("s_alDopplerFactor", "1.0", CVAR_ARCHIVE);
 	s_alDopplerSpeed = Cvar_Get("s_alDopplerSpeed", "9000", CVAR_ARCHIVE);
-	s_alMinDistance = Cvar_Get("s_alMinDistance", "120", CVAR_CHEAT);
-	s_alMaxDistance = Cvar_Get("s_alMaxDistance", "1024", CVAR_CHEAT);
 	s_alRolloff = Cvar_Get("s_alRolloff", "1", CVAR_CHEAT);
-	s_alGraceDistance = Cvar_Get("s_alGraceDistance", "512", CVAR_CHEAT);
 	s_alDriver = Cvar_Get("s_alDriver", ALDRIVER_DEFAULT, CVAR_ARCHIVE|CVAR_LATCH|CVAR_PROTECTED);
 	s_alInputDevice = Cvar_Get("s_alInputDevice", "", CVAR_ARCHIVE|CVAR_LATCH);
 	s_alDevice = Cvar_Get("s_alDevice", "", CVAR_ARCHIVE|CVAR_LATCH);
 	// load QAL
 	if (!QAL_Init(s_alDriver->string)) {
-		Com_Printf("Failed to load library: \"%s\".\n", s_alDriver->string);
-
+#if defined(_WIN32)
+		if (!Q_stricmp(s_alDriver->string, ALDRIVER_DEFAULT) && !QAL_Init("OpenAL64.dll")) {
+#elif defined(__APPLE__)
+		if (!Q_stricmp(s_alDriver->string, ALDRIVER_DEFAULT) && !QAL_Init("/System/Library/Frameworks/OpenAL.framework/OpenAL")) {
+#else
 		if (!Q_stricmp(s_alDriver->string, ALDRIVER_DEFAULT) || !QAL_Init(ALDRIVER_DEFAULT)) {
+#endif
 			return qfalse;
 		}
 	}
@@ -2358,9 +2877,13 @@ qboolean S_AL_Init(soundInterface_t *si) {
 	}
 
 	qalcMakeContextCurrent(alContext);
+
+	S_AL_InitEffects(alDevice);
 	// initialize sources, buffers, music
 	S_AL_BufferInit();
 	S_AL_SrcInit();
+	// print this for informational purposes
+	Com_Printf("Allocated %d sources.\n", srcCount);
 	// set up OpenAL parameters (doppler, etc.)
 	qalDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
 	qalDopplerFactor(s_alDopplerFactor->value);

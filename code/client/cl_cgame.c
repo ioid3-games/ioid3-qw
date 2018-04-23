@@ -642,13 +642,13 @@ intptr_t CL_CgameSystemCalls(intptr_t *args) {
 			S_StopBackgroundTrack();
 			return 0;
 		case CG_S_STARTSOUND:
-			S_StartSound(VMA(1), args[2], args[3], args[4]);
+			S_StartSound(VMA(1), args[2], args[3], args[4], args[5]);
 			return 0;
 		case CG_S_CLEARLOOPINGSOUNDS:
 			S_ClearLoopingSounds(args[1]);
 			return 0;
 		case CG_S_ADDLOOPINGSOUND:
-			S_AddLoopingSound(args[1], VMA(2), VMA(3), args[4]);
+			S_AddLoopingSound(args[1], VMA(2), VMA(3), args[4], args[5]);
 			return 0;
 		case CG_S_UPDATEENTITYPOSITION:
 			S_UpdateEntityPosition(args[1], VMA(2));
@@ -657,7 +657,7 @@ intptr_t CL_CgameSystemCalls(intptr_t *args) {
 			S_Respatialize(args[1], VMA(2), VMA(3), args[4]);
 			return 0;
 		case CG_S_ADDREALLOOPINGSOUND:
-			S_AddRealLoopingSound(args[1], VMA(2), VMA(3), args[4]);
+			S_AddRealLoopingSound(args[1], VMA(2), VMA(3), args[4], args[5]);
 			return 0;
 		case CG_S_STOPLOOPINGSOUND:
 			S_StopLoopingSound(args[1]);

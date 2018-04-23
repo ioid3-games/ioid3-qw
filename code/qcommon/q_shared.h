@@ -300,6 +300,8 @@ void *Hunk_Alloc(int size, ha_pref preference);
 #define CIN_silent	 8
 #define CIN_shader	16
 
+#define SOUND_RANGE_DEFAULT 128
+
 /*
 =======================================================================================================================================
 
@@ -1133,6 +1135,7 @@ typedef struct entityState_s {
 	int legsAnim;		// mask off ANIM_TOGGLEBIT
 	int torsoAnim;		// mask off ANIM_TOGGLEBIT
 	int density;		// for particle effects
+	int soundRange;
 	int tokens;			// harvester skulls
 } entityState_t;
 

@@ -249,6 +249,7 @@ Multiple identical looping sounds will just increase volume without any speed co
 NO_PVS - this sound will not turn off when not in the player's PVS.
 "wait" : Seconds between auto triggerings, 0 = don't auto trigger.
 "random" wait variance, default is 0.
+"radius" radius control, 128 is default.
 */
 void SP_target_speaker(gentity_t *ent) {
 	char buffer[MAX_QPATH];
@@ -294,6 +295,12 @@ void SP_target_speaker(gentity_t *ent) {
 		ent->s.density = 1;
 	} else {
 		ent->s.density = 0;
+	}
+	// radius control
+	G_SpawnInt("radius", "0", &ent->s.soundRange);
+
+	if (!ent->s.soundRange) {
+		ent->s.soundRange = SOUND_RANGE_DEFAULT;
 	}
 
 	VectorCopy(ent->s.origin, ent->s.pos.trBase);

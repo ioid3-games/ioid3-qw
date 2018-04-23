@@ -295,7 +295,6 @@ char *BotWeaponNameForMeansOfDeath(int mod) {
 			return "Nail Gun";
 		case MOD_PROXIMITY_MINE:
 			return "Proximity Launcher";
-		case MOD_GRENADE:
 		case MOD_GRENADE_SPLASH:
 			return "Grenade Launcher";
 		case MOD_NAPALM:
@@ -439,6 +438,7 @@ int BotValidChatPosition(bot_state_t *bs) {
 	}
 	// do not chat if under water
 	VectorCopy(bs->origin, point);
+
 	point[2] += 32;
 
 	if (trap_PointContents(point, bs->entitynum) & MASK_WATER) {

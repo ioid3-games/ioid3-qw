@@ -1039,6 +1039,7 @@ netField_t entityStateFields[] = {
 	{NETF(dl_intensity), 32}, // longer now to carry the corona colors
 	{NETF(density), 10},
 	{NETF(frame), 16},
+	{NETF(soundRange), 32},
 	{NETF(tokens), 8},
 	{NETF(team), 8}
 };
