@@ -2286,10 +2286,10 @@ immaturity01 = {
 	"I just forwarded that message to the police.";
 	"I just forwarded that message to your ",random_counselor,".";
 	"Yeah, you and every other 14-year-old on the planet.";
-	"Still waiting for puberty to hit, ",7,	"?";
+	"Still waiting for puberty to hit, ",7,"?";
 	"I was right about you.";
 	"PIG!!";
-	"~You disgust me ",7,	"!";
+	"~You disgust me ",7,"!";
 	"Oh grow up.";
 	"~Do you have to talk about that?";
 	"~Did I really need to know that?";
@@ -2324,7 +2324,7 @@ one_liners = {
 	"Been there, done that, sent the post cards.";
 	"~They got post cards for this place?";
 	"Ow. Not a good time to get a hang nail.";
-	"~You got an early retirement coming up, ",0,	".";
+	"~You got an early retirement coming up, ",0,".";
 	"~We are definitely not going there.";
 	"Time to dance on the avalanche again.";
 	"Run, run, as fast as you can. ~Can't catch me, I'm the gingerbread man!";
@@ -2340,7 +2340,7 @@ one_liners = {
 	"Chew on this!";
 	"Yippie-ki-yi-yay!";
 	"Ammo-gram!";
-	"Get ready to join the dinosaurs ",0,	".";
+	"Get ready to join the dinosaurs ",0,".";
 	"Well blow me down!";
 	"Shiver me timbers!";
 	"~You're pretty fly for a meat pie.";
