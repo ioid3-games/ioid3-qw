@@ -1822,6 +1822,7 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 		// reset the avoid reach, otherwise bot is stuck in current area
 		trap_BotResetAvoidReach(bs->ms);
 		bs->nbg_time = 0;
+		bs->check_time = FloatTime() + 0.05; // immediately check for another NBG
 	}
 	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qtrue);
@@ -1968,7 +1969,7 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 	}
 	// check for nearby goals periodicly
 	if (bs->check_time < FloatTime()) {
-		bs->check_time = FloatTime() + 0.5;
+		bs->check_time = FloatTime() + 0.05;
 		// check if the bot wants to camp
 		BotWantsToCamp(bs);
 
@@ -2080,10 +2081,13 @@ AINode_Battle_Fight
 =======================================================================================================================================
 */
 int AINode_Battle_Fight(bot_state_t *bs) {
-	int areanum;
+	int areanum, range;
+	bot_goal_t goal;
 	vec3_t target;
 	aas_entityinfo_t entinfo;
 	bot_moveresult_t moveresult;
+
+	range = trap_Characteristic_BInteger(bs->character, CHARACTERISTIC_GOAL_MULTIPLIER, 0, 10000);
 
 	if (BotIsObserver(bs)) {
 		AIEnter_Observer(bs, "battle fight: observer");
@@ -2134,6 +2138,7 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	} else {
 		if (EntityIsDead(&entinfo)) {
 			bs->enemydeath_time = FloatTime();
+			bs->check_time = FloatTime() + 0.05; // the enemy might have lost something (weapons, flags, ...)
 		}
 	}
 
@@ -2196,6 +2201,20 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 
 	if (BotCanAndWantsToRocketJump(bs)) {
 		bs->tfl |= TFL_ROCKETJUMP;
+	}
+
+	if (!BotHasEmergencyGoal(bs)) {
+		// check for nearby goals periodicly
+		if (bs->check_time < FloatTime()) {
+			bs->check_time = FloatTime() + 0.05;
+
+			if (BotNearbyGoal(bs, bs->tfl, &goal, range)) {
+				bs->nbg_time = FloatTime() + (range * 0.01);
+				trap_BotResetLastAvoidReach(bs->ms);
+				AIEnter_Battle_NBG(bs, "battle fight: going for NBG");
+				return qfalse;
+			}
+		}
 	}
 	// choose the best weapon to fight with
 	BotChooseWeapon(bs);
@@ -2312,7 +2331,7 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 	}
 	// check for nearby goals periodicly
 	if (bs->check_time < FloatTime()) {
-		bs->check_time = FloatTime() + 1;
+		bs->check_time = FloatTime() + 0.05;
 		range = 150;
 
 		if (BotNearbyGoal(bs, bs->tfl, &goal, range)) {
@@ -2488,7 +2507,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 	}
 	// check for nearby goals periodicly
 	if (bs->check_time < FloatTime()) {
-		bs->check_time = FloatTime() + 1;
+		bs->check_time = FloatTime() + 0.05;
 		// if carrying a flag and the own flag is at base, or if the bot is trying to get the flag and the own flag is NOT at base the bot shouldn't be distracted too much and should ignore some items
 		if (BotHasEmergencyGoal(bs)) {
 			range = 50;
