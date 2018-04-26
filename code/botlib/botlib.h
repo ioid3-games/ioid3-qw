@@ -445,7 +445,6 @@ name:						default:	module(s):		description:
 "synfile"					"syn.c"		be_ai_chat.c	file with synonyms
 "rndfile"					"rnd.c"		be_ai_chat.c	file with random strings
 "matchfile"					"match.c"	be_ai_chat.c	file with match strings
-"nochat"					"0"			be_ai_chat.c	disable chats
 "max_messages"				"1024"		be_ai_chat.c	console message heap size
 "max_weaponinfo"			"32"		be_ai_weap.c	maximum number of weapon info
 "max_projectileinfo"		"32"		be_ai_weap.c	maximum number of projectile info

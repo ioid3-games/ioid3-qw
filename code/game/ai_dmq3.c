@@ -58,8 +58,6 @@ bot_waypoint_t *botai_freewaypoints;
 int gametype; // game type
 
 vmCvar_t bot_rocketjump;
-vmCvar_t bot_fastchat;
-vmCvar_t bot_nochat;
 vmCvar_t bot_testrchat;
 vmCvar_t bot_challenge;
 vmCvar_t bot_visualrange;
@@ -5703,7 +5701,7 @@ void BotCheckConsoleMessages(bot_state_t *bs) {
 		// if there's no match
 		if (!BotMatchMessage(bs, m.message)) {
 			// if it is a chat message
-			if (m.type == CMS_CHAT && !bot_nochat.integer) {
+			if (m.type == CMS_CHAT) {
 				if (!trap_BotFindMatch(m.message, &match, MTCONTEXT_REPLYCHAT)) {
 					trap_BotRemoveConsoleMessage(bs->cs, handle);
 					continue;
@@ -5742,9 +5740,6 @@ void BotCheckConsoleMessages(bot_state_t *bs) {
 						if (trap_BotReplyChat(bs->cs, message, context, CONTEXT_REPLY, NULL, NULL, NULL, NULL, NULL, NULL, botname, netname)) {
 							// remove the console message
 							trap_BotRemoveConsoleMessage(bs->cs, handle);
-							bs->stand_time = FloatTime() + BotChatTime(bs);
-							AIEnter_Stand(bs, "BotCheckConsoleMessages: reply chat");
-							//EA_Say(bs->client, bs->cs.chatmessage);
 							break;
 						}
 					}
@@ -6321,11 +6316,7 @@ void BotDeathmatchAI(bot_state_t *bs, float thinktime) {
 	}
 	// if the bot entered the game less than 8 seconds ago
 	if (!bs->entergamechat && bs->entergame_time > FloatTime() - 8) {
-		if (BotChat_EnterGame(bs)) {
-			bs->stand_time = FloatTime() + BotChatTime(bs);
-			AIEnter_Stand(bs, "BotDeathmatchAI: chat enter game");
-		}
-
+		BotChat_EnterGame(bs);
 		bs->entergamechat = qtrue;
 	}
 	// reset the node switches from the previous frame
@@ -6474,8 +6465,6 @@ void BotSetupDeathmatchAI(void) {
 	gametype = trap_Cvar_VariableIntegerValue("g_gametype");
 
 	trap_Cvar_Register(&bot_rocketjump, "bot_rocketjump", "1", 0);
-	trap_Cvar_Register(&bot_fastchat, "bot_fastchat", "0", 0);
-	trap_Cvar_Register(&bot_nochat, "bot_nochat", "0", 0);
 	trap_Cvar_Register(&bot_testrchat, "bot_testrchat", "0", 0);
 	trap_Cvar_Register(&bot_challenge, "bot_challenge", "0", 0);
 	trap_Cvar_Register(&bot_visualrange, "bot_visualrange", "100000", 0);

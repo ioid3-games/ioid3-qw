@@ -26,7 +26,6 @@ int BotChat_EnterGame(bot_state_t *bs);
 int BotChat_ExitGame(bot_state_t *bs);
 int BotChat_StartLevel(bot_state_t *bs);
 int BotChat_EndLevel(bot_state_t *bs);
-int BotChat_HitTalking(bot_state_t *bs);
 int BotChat_HitNoDeath(bot_state_t *bs);
 int BotChat_HitNoKill(bot_state_t *bs);
 int BotChat_Death(bot_state_t *bs);

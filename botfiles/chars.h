@@ -148,13 +148,11 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define CHARACTERISTIC_CHAT_DEATH					56 // float [0, 1]
 // tendency to chat when enemy commits suicide
 #define CHARACTERISTIC_CHAT_ENEMYSUICIDE			57 // float [0, 1]
-// tendency to chat when hit while chatting
-#define CHARACTERISTIC_CHAT_HITTALKING				58 // float [0, 1]
 // tendency to chat when bot was hit but didn't die
-#define CHARACTERISTIC_CHAT_HITNODEATH				59 // float [0, 1]
+#define CHARACTERISTIC_CHAT_HITNODEATH				58 // float [0, 1]
 // tendency to chat when bot hit the enemy but enemy didn't die
-#define CHARACTERISTIC_CHAT_HITNOKILL				60 // float [0, 1]
+#define CHARACTERISTIC_CHAT_HITNOKILL				59 // float [0, 1]
 // tendency to chat at random moments
-#define CHARACTERISTIC_CHAT_RANDOM					61 // float [0, 1]
+#define CHARACTERISTIC_CHAT_RANDOM					60 // float [0, 1]
 // tendency to reply to chats
-#define CHARACTERISTIC_CHAT_REPLY					62 // float [0, 1]
+#define CHARACTERISTIC_CHAT_REPLY					61 // float [0, 1]

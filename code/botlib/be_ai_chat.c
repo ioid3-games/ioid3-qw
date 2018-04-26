@@ -3153,11 +3153,8 @@ int BotSetupChatAI(void) {
 	randomstrings = BotLoadRandomStrings(file);
 	file = LibVarString("matchfile", "match.c");
 	matchtemplates = BotLoadMatchTemplates(file);
-
-	if (!LibVarValue("nochat", "0")) {
-		file = LibVarString("rchatfile", "rchat.c");
-		replychats = BotLoadReplyChat(file);
-	}
+	file = LibVarString("rchatfile", "rchat.c");
+	replychats = BotLoadReplyChat(file);
 
 	InitConsoleMessageHeap();
 #ifdef DEBUG
