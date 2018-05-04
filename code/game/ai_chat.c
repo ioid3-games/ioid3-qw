@@ -374,9 +374,9 @@ int BotVisibleEnemies(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
-
+		// get the entity information
 		BotEntityInfo(i, &entinfo);
-
+		// if this player is active
 		if (!entinfo.valid) {
 			continue;
 		}
@@ -903,7 +903,7 @@ int BotChat_HitNoDeath(bot_state_t *bs) {
 	if (BotVisibleEnemies(bs)) {
 		return qfalse;
 	}
-
+	// get the entity information
 	BotEntityInfo(bs->enemy, &entinfo);
 
 	if (EntityIsShooting(&entinfo)) {
@@ -960,7 +960,7 @@ int BotChat_HitNoKill(bot_state_t *bs) {
 	if (BotVisibleEnemies(bs)) {
 		return qfalse;
 	}
-
+	// get the entity information
 	BotEntityInfo(bs->enemy, &entinfo);
 
 	if (EntityIsShooting(&entinfo)) {

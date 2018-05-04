@@ -457,6 +457,7 @@ void BotSetTeamStatus(bot_state_t *bs) {
 		case LTG_TEAMHELP:
 			break;
 		case LTG_TEAMACCOMPANY:
+			// get the entity information
 			BotEntityInfo(bs->teammate, &entinfo);
 
 			if (((gametype == GT_CTF || gametype == GT_1FCTF) && EntityCarriesFlag(&entinfo)) || (gametype == GT_HARVESTER && EntityCarriesCubes(&entinfo))) {
@@ -622,9 +623,9 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 	}
 	// if the bot decided to follow someone
 	if (bs->ltgtype == LTG_TEAMACCOMPANY && !bs->ordered) {
-		// if the team mate being accompanied no longer carries the flag
+		// get the entity information
 		BotEntityInfo(bs->teammate, &entinfo);
-
+		// if the team mate being accompanied no longer carries the flag
 		if (!EntityCarriesFlag(&entinfo)) {
 			bs->ltgtype = 0;
 		}
@@ -638,11 +639,11 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 	// if our team has the enemy flag and our flag is at the base
 	if (flagstatus == 1) {
 		if (bs->owndecision_time < FloatTime()) {
-			// if Not defending the base already
+			// if not defending the base already
 			if (!(bs->ltgtype == LTG_DEFENDKEYAREA && (bs->teamgoal.number == ctf_redflag.number || bs->teamgoal.number == ctf_blueflag.number))) {
-				// if there is a visible team mate flag carrier and not already following the team mate flag carrier
+				// if there is a visible team mate flag carrier
 				c = BotTeamFlagCarrierVisible(bs);
-
+				// if not already following the team mate flag carrier
 				if (c >= 0 && (bs->ltgtype != LTG_TEAMACCOMPANY || bs->teammate != c)) {
 					BotRefuseOrder(bs);
 					// follow the flag carrier
@@ -711,8 +712,9 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 		if (bs->owndecision_time < FloatTime()) {
 			// if not trying to return the flag and not following the team flag carrier
 			if (bs->ltgtype != LTG_RETURNFLAG && bs->ltgtype != LTG_TEAMACCOMPANY) {
-				c = BotTeamFlagCarrierVisible(bs);
 				// if there is a visible team mate flag carrier
+				c = BotTeamFlagCarrierVisible(bs);
+
 				if (c >= 0) {
 					BotRefuseOrder(bs);
 					// follow the flag carrier
@@ -902,9 +904,9 @@ void Bot1FCTFSeekGoals(bot_state_t *bs) {
 	}
 	// if the bot decided to follow someone
 	if (bs->ltgtype == LTG_TEAMACCOMPANY && !bs->ordered) {
-		// if the team mate being accompanied no longer carries the flag
+		// get the entity information
 		BotEntityInfo(bs->teammate, &entinfo);
-
+		// if the team mate being accompanied no longer carries the flag
 		if (!EntityCarriesFlag(&entinfo)) {
 			bs->ltgtype = 0;
 		}
@@ -1277,9 +1279,9 @@ void BotHarvesterSeekGoals(bot_state_t *bs) {
 	}
 	// if the bot decided to follow someone
 	if (bs->ltgtype == LTG_TEAMACCOMPANY && !bs->ordered) {
-		// if the team mate being accompanied no longer carries the flag
+		// get the entity information
 		BotEntityInfo(bs->teammate, &entinfo);
-
+		// if the team mate being accompanied no longer carries the flag
 		if (!EntityCarriesCubes(&entinfo)) {
 			bs->ltgtype = 0;
 		}
@@ -1917,6 +1919,7 @@ void BotUpdateBattleInventory(bot_state_t *bs, int enemy) {
 	vec3_t dir;
 	aas_entityinfo_t entinfo;
 
+	// get the entity information
 	BotEntityInfo(enemy, &entinfo);
 	VectorSubtract(entinfo.origin, bs->origin, dir);
 
@@ -1961,6 +1964,7 @@ void BotUseKamikaze(bot_state_t *bs) {
 		c = BotTeamFlagCarrierVisible(bs);
 
 		if (c >= 0) {
+			// get the entity information
 			BotEntityInfo(c, &entinfo);
 			VectorSubtract(entinfo.origin, bs->origin, dir);
 
@@ -1972,6 +1976,7 @@ void BotUseKamikaze(bot_state_t *bs) {
 		c = BotEnemyFlagCarrierVisible(bs);
 
 		if (c >= 0) {
+			// get the entity information
 			BotEntityInfo(c, &entinfo);
 			VectorSubtract(entinfo.origin, bs->origin, dir);
 
@@ -1989,6 +1994,7 @@ void BotUseKamikaze(bot_state_t *bs) {
 		c = BotTeamFlagCarrierVisible(bs);
 
 		if (c >= 0) {
+			// get the entity information
 			BotEntityInfo(c, &entinfo);
 			VectorSubtract(entinfo.origin, bs->origin, dir);
 
@@ -2000,6 +2006,7 @@ void BotUseKamikaze(bot_state_t *bs) {
 		c = BotEnemyFlagCarrierVisible(bs);
 
 		if (c >= 0) {
+			// get the entity information
 			BotEntityInfo(c, &entinfo);
 			VectorSubtract(entinfo.origin, bs->origin, dir);
 
@@ -2040,6 +2047,7 @@ void BotUseKamikaze(bot_state_t *bs) {
 		c = BotTeamCubeCarrierVisible(bs);
 
 		if (c >= 0) {
+			// get the entity information
 			BotEntityInfo(c, &entinfo);
 			VectorSubtract(entinfo.origin, bs->origin, dir);
 
@@ -2051,6 +2059,7 @@ void BotUseKamikaze(bot_state_t *bs) {
 		c = BotEnemyCubeCarrierVisible(bs);
 
 		if (c >= 0) {
+			// get the entity information
 			BotEntityInfo(c, &entinfo);
 			VectorSubtract(entinfo.origin, bs->origin, dir);
 
@@ -2592,6 +2601,7 @@ int BotWantsToRetreat(bot_state_t *bs) {
 	}
 
 	if (bs->enemy >= 0) {
+		// get the entity information
 		BotEntityInfo(bs->enemy, &entinfo);
 		// if the enemy is carrying a flag
 		if (EntityCarriesFlag(&entinfo)) {
@@ -2627,9 +2637,9 @@ int BotWantsToChase(bot_state_t *bs) {
 		if (BotCTFCarryingFlag(bs)) {
 			return qfalse;
 		}
-		// always chase if the enemy is carrying a flag
+		// get the entity information
 		BotEntityInfo(bs->enemy, &entinfo);
-
+		// always chase if the enemy is carrying a flag
 		if (EntityCarriesFlag(&entinfo)) {
 			return qtrue;
 		}
@@ -2638,9 +2648,9 @@ int BotWantsToChase(bot_state_t *bs) {
 		if (Bot1FCTFCarryingFlag(bs)) {
 			return qfalse;
 		}
-		// always chase if the enemy is carrying a flag
+		// get the entity information
 		BotEntityInfo(bs->enemy, &entinfo);
-
+		// always chase if the enemy is carrying a flag
 		if (EntityCarriesFlag(&entinfo)) {
 			return qtrue;
 		}
@@ -2656,7 +2666,7 @@ int BotWantsToChase(bot_state_t *bs) {
 		if (BotHarvesterCarryingCubes(bs)) {
 			return qfalse;
 		}
-
+		// get the entity information
 		BotEntityInfo(bs->enemy, &entinfo);
 		// always chase if the enemy is carrying cubes
 		if (EntityCarriesCubes(&entinfo)) {
@@ -3021,7 +3031,7 @@ bot_moveresult_t BotAttackMove(bot_state_t *bs, int tfl) {
 	}
 	// initialize the movement state
 	BotSetupForMovement(bs);
-	// get the enemy entity info
+	// get the entity information
 	BotEntityInfo(attackentity, &entinfo);
 	// direction towards the enemy
 	VectorSubtract(entinfo.origin, bs->origin, forward);
@@ -3248,8 +3258,9 @@ float BotEntityVisible(int viewer, vec3_t eye, vec3_t viewangles, int fov, int e
 	aas_entityinfo_t entinfo;
 	vec3_t dir, entangles, start, end, middle;
 
+	// get the entity information
 	BotEntityInfo(ent, &entinfo);
-
+	// if this player is active
 	if (!entinfo.valid) {
 		return 0;
 	}
@@ -3387,6 +3398,7 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 	bs->lasthealth = bs->inventory[INVENTORY_HEALTH];
 
 	if (curenemy >= 0) {
+		// get the entity information
 		BotEntityInfo(curenemy, &curenemyinfo);
 		// only concentrate on flag carrier if not carrying a flag
 		if (EntityCarriesFlag(&curenemyinfo) && !BotCTFCarryingFlag(bs)) {
@@ -3456,16 +3468,16 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 		if (g_entities[i].flags & FL_NOTARGET) {
 			continue;
 		}
-		// if on the same team
+		// ignore enemies
 		if (BotSameTeam(bs, i)) {
 			continue;
-		}
-
-		BotEntityInfo(i, &entinfo);
-
-		if (!entinfo.valid) {
 			continue;
 		}
+		// get the entity information
+		BotEntityInfo(i, &entinfo);
+		// if this player is active
+		if (!entinfo.valid) {
+			continue;
 		// if the enemy isn't dead and the enemy isn't the bot self
 		if (EntityIsDead(&entinfo) || entinfo.number == bs->entitynum) {
 			continue;
@@ -3575,7 +3587,7 @@ int BotTeamFlagCarrierVisible(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
-
+		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if this player is active
 		if (!entinfo.valid) {
@@ -3615,7 +3627,7 @@ int BotTeamFlagCarrier(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
-
+		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if this player is active
 		if (!entinfo.valid) {
@@ -3650,7 +3662,7 @@ int BotEnemyFlagCarrierVisible(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
-
+		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if this player is active
 		if (!entinfo.valid) {
@@ -3700,7 +3712,7 @@ void BotCountVisibleTeamMatesAndEnemies(bot_state_t *bs, int *teammates, int *en
 		if (i == bs->client) {
 			continue;
 		}
-
+		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if this player is active
 		if (!entinfo.valid) {
@@ -3716,13 +3728,13 @@ void BotCountVisibleTeamMatesAndEnemies(bot_state_t *bs, int *teammates, int *en
 		if (VectorLengthSquared(dir) > Square(range)) {
 			continue;
 		}
-		// if the flag carrier is not visible
+		// if the enemy is not visible
 		vis = BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, i);
 
 		if (vis <= 0) {
 			continue;
 		}
-		// if the flag carrier is on the same team
+		// if on the same team
 		if (BotSameTeam(bs, i)) {
 			if (teammates) {
 				(*teammates)++;
@@ -3788,21 +3800,21 @@ int BotTeamCubeCarrierVisible(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
-
+		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if this player is active
 		if (!entinfo.valid) {
 			continue;
 		}
-		// if this player is carrying a flag
+		// if this player is carrying cubes
 		if (!EntityCarriesCubes(&entinfo)) {
 			continue;
 		}
-		// if the flag carrier is not on the same team
+		// if the cube carrier is not on the same team
 		if (!BotSameTeam(bs, i)) {
 			continue;
 		}
-		// if the flag carrier is not visible
+		// if the cube carrier is not visible
 		vis = BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, i);
 
 		if (vis <= 0) {
@@ -3829,21 +3841,21 @@ int BotEnemyCubeCarrierVisible(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
-
+		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if this player is active
 		if (!entinfo.valid) {
 			continue;
 		}
-		// if this player is carrying a flag
+		// if this player is carrying cubes
 		if (!EntityCarriesCubes(&entinfo)) {
 			continue;
 		}
-		// if the flag carrier is on the same team
+		// if the cube carrier is on the same team
 		if (BotSameTeam(bs, i)) {
 			continue;
 		}
-		// if the flag carrier is not visible
+		// if the cube carrier is not visible
 		vis = BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, i);
 
 		if (vis <= 0) {
@@ -3876,7 +3888,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	if (bs->enemy < 0) {
 		return;
 	}
-	// get the enemy entity information
+	// get the entity information
 	BotEntityInfo(bs->enemy, &entinfo);
 	// if this is not a player (should be an obelisk)
 	if (bs->enemy >= MAX_CLIENTS) {
@@ -4298,7 +4310,7 @@ void BotCheckAttack(bot_state_t *bs) {
 	vec3_t mins = {-8, -8, -8}, maxs = {8, 8, 8};
 
 	attackentity = bs->enemy;
-
+	// get the entity information
 	BotEntityInfo(attackentity, &entinfo);
 	// if not attacking a player
 	if (attackentity >= MAX_CLIENTS) {
@@ -4469,9 +4481,9 @@ void BotMapScripts(bot_state_t *bs) {
 			if (i == bs->client) {
 				continue;
 			}
-
+			// get the entity information
 			BotEntityInfo(i, &entinfo);
-
+			// if this player is active
 			if (!entinfo.valid) {
 				continue;
 			}
@@ -5007,7 +5019,7 @@ int BotGetActivateGoal(bot_state_t *bs, int entitynum, bot_activategoal_t *activ
 	vec3_t origin, absmins, absmaxs;
 
 	memset(activategoal, 0, sizeof(bot_activategoal_t));
-
+	// get the entity information
 	BotEntityInfo(entitynum, &entinfo);
 	Com_sprintf(model, sizeof(model), "*%d", entinfo.modelindex);
 
@@ -5224,7 +5236,7 @@ int BotGoForActivateGoal(bot_state_t *bs, bot_activategoal_t *activategoal) {
 	}
 
 	activategoal->start_time = FloatTime();
-
+	// get the entity information
 	BotEntityInfo(activategoal->goal.entitynum, &activateinfo);
 	VectorCopy(activateinfo.origin, activategoal->origin);
 
@@ -6033,6 +6045,7 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 			}
 
 			if (gametype == GT_1FCTF) {
+				// get the entity information
 				BotEntityInfo(target, &entinfo);
 
 				if (entinfo.powerups & (1 << PW_NEUTRALFLAG)) {
