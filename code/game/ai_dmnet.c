@@ -393,7 +393,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				VectorSet(bs->teamgoal.maxs, 8, 8, 8);
 			}
 		}
-
+		// set the bot goal
 		memcpy(goal, &bs->teamgoal, sizeof(bot_goal_t));
 		return qtrue;
 	}
@@ -571,7 +571,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			trap_BotEnterChat(bs->cs, bs->decisionmaker, CHAT_TELL);
 			bs->ltgtype = 0;
 		}
-
+		// stop after some time
 		if (bs->teamgoal_time < FloatTime()) {
 			bs->ltgtype = 0;
 		}
@@ -589,7 +589,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			trap_EA_Action(bs->client, ACTION_AFFIRMATIVE);
 			bs->teammessage_time = 0;
 		}
-		// set the bot goal
+		// the goal the bot should go for
 		memcpy(goal, &bs->teamgoal, sizeof(bot_goal_t));
 		// stop after some time
 		if (bs->teamgoal_time < FloatTime()) {
@@ -625,7 +625,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		}
 		// set the bot goal
 		memcpy(goal, &bs->teamgoal, sizeof(bot_goal_t));
-
+		// stop after some time
 		if (bs->teamgoal_time < FloatTime()) {
 			if (bs->ltgtype == LTG_CAMPORDER) {
 				BotAI_BotInitialChat(bs, "camp_stop", NULL);
@@ -758,7 +758,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			bs->ltgtype = 0;
 			return qfalse;
 		}
-
+		// set the bot goal
 		memcpy(goal, &bs->curpatrolpoint->goal, sizeof(bot_goal_t));
 		return qtrue;
 	}
@@ -773,7 +773,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotVoiceChatOnly(bs, -1, VOICECHAT_ONGETFLAG);
 				bs->teammessage_time = 0;
 			}
-
+			// set the bot goal
 			switch (BotTeam(bs)) {
 				case TEAM_RED:
 					memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t));
@@ -809,6 +809,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		}
 		// if rushing to the base
 		if (bs->ltgtype == LTG_RUSHBASE && bs->rushbaseaway_time < FloatTime()) {
+			// set the bot goal
 			switch (BotTeam(bs)) {
 				case TEAM_RED:
 					memcpy(goal, &ctf_redflag, sizeof(bot_goal_t));
@@ -852,7 +853,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotVoiceChatOnly(bs, -1, VOICECHAT_ONRETURNFLAG);
 				bs->teammessage_time = 0;
 			}
-
+			// set the bot goal
 			switch (BotTeam(bs)) {
 				case TEAM_RED:
 					memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t));
@@ -885,7 +886,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotVoiceChatOnly(bs, -1, VOICECHAT_ONGETFLAG);
 				bs->teammessage_time = 0;
 			}
-
+			// set the bot goal
 			memcpy(goal, &ctf_neutralflag, sizeof(bot_goal_t));
 			// if touching the flag
 			if (trap_BotTouchingGoal(bs->origin, goal)) {
@@ -900,6 +901,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		}
 		// if rushing to the base
 		if (bs->ltgtype == LTG_RUSHBASE) {
+			// set the bot goal
 			switch (BotTeam(bs)) {
 				case TEAM_RED:
 					memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t));
@@ -936,7 +938,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotVoiceChatOnly(bs, -1, VOICECHAT_ONOFFENSE);
 				bs->teammessage_time = 0;
 			}
-
+			// set the bot goal
 			switch (BotTeam(bs)) {
 				case TEAM_RED:
 					memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t));
@@ -968,7 +970,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotVoiceChatOnly(bs, -1, VOICECHAT_ONRETURNFLAG);
 				bs->teammessage_time = 0;
 			}
-
+			// stop after some time
 			if (bs->teamgoal_time < FloatTime()) {
 				bs->ltgtype = 0;
 			}
@@ -984,7 +986,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotVoiceChatOnly(bs, -1, VOICECHAT_ONOFFENSE);
 				bs->teammessage_time = 0;
 			}
-
+			// set the bot goal
 			switch (BotTeam(bs)) {
 				case TEAM_RED:
 					memcpy(goal, &blueobelisk, sizeof(bot_goal_t));
@@ -1022,6 +1024,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 	} else if (gametype == GT_HARVESTER) {
 		// if rushing to the base
 		if (bs->ltgtype == LTG_RUSHBASE) {
+			// set the bot goal
 			switch (BotTeam(bs)) {
 				case TEAM_RED:
 					memcpy(goal, &blueobelisk, sizeof(bot_goal_t));
@@ -1061,7 +1064,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotVoiceChatOnly(bs, -1, VOICECHAT_ONOFFENSE);
 				bs->teammessage_time = 0;
 			}
-
+			// set the bot goal
 			switch (BotTeam(bs)) {
 				case TEAM_RED:
 					memcpy(goal, &blueobelisk, sizeof(bot_goal_t));
@@ -1093,13 +1096,13 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotVoiceChatOnly(bs, -1, VOICECHAT_ONOFFENSE);
 				bs->teammessage_time = 0;
 			}
-
+			// set the bot goal
 			memcpy(goal, &neutralobelisk, sizeof(bot_goal_t));
-
+			// stop after some time
 			if (bs->teamgoal_time < FloatTime()) {
 				bs->ltgtype = 0;
 			}
-
+			// if touching the goal
 			if (trap_BotTouchingGoal(bs->origin, goal)) {
 				bs->harvestaway_time = FloatTime() + 4 + 3 * random();
 			}
@@ -1660,6 +1663,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 		if (moveresult.failure) {
 			// reset the avoid reach, otherwise bot is stuck in current area
 			trap_BotResetAvoidReach(bs->ms);
+			//BotAI_Print(PRT_MESSAGE, "movement failure %d\n", moveresult.traveltype);
 			bs->activatestack->time = 0;
 		}
 		// check if the bot is blocked
@@ -1688,7 +1692,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 			moveresult.weapon = bs->activatestack->weapon;
 		}
 	}
-	// if the ideal view angles are set for movement
+	// if the viewangles are used for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEWSET|MOVERESULT_MOVEMENTVIEW|MOVERESULT_SWIMVIEW)) {
 		VectorCopy(moveresult.ideal_viewangles, bs->ideal_viewangles);
 	// if waiting for something
@@ -1822,6 +1826,7 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 	if (moveresult.failure) {
 		// reset the avoid reach, otherwise bot is stuck in current area
 		trap_BotResetAvoidReach(bs->ms);
+		//BotAI_Print(PRT_MESSAGE, "movement failure %d\n", moveresult.traveltype);
 		bs->nbg_time = 0;
 		bs->check_time = FloatTime() + 0.05; // immediately check for another NBG
 	}
@@ -2008,7 +2013,7 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 		//BotAI_Print(PRT_MESSAGE, "movement failure %d\n", moveresult.traveltype);
 		bs->ltg_time = 0;
 	}
-
+	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qtrue);
 	BotClearPath(bs, &moveresult);
 	// if the viewangles are used for the movement
@@ -2221,7 +2226,7 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 		//BotAI_Print(PRT_MESSAGE, "movement failure %d\n", moveresult.traveltype);
 		bs->ltg_time = 0;
 	}
-
+	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qfalse);
 	// aim at the enemy
 	BotAimAtEnemy(bs);
@@ -2349,9 +2354,9 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 		//BotAI_Print(PRT_MESSAGE, "movement failure %d\n", moveresult.traveltype);
 		bs->ltg_time = 0;
 	}
-
+	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qfalse);
-
+	// if the viewangles are used for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEWSET|MOVERESULT_MOVEMENTVIEW|MOVERESULT_SWIMVIEW)) {
 		VectorCopy(moveresult.ideal_viewangles, bs->ideal_viewangles);
 	} else if (!(bs->flags & BFL_IDEALVIEWSET)) {
@@ -2528,7 +2533,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 		//BotAI_Print(PRT_MESSAGE, "movement failure %d\n", moveresult.traveltype);
 		bs->ltg_time = 0;
 	}
-
+	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qfalse);
 	// choose the best weapon to fight with
 	BotChooseWeapon(bs);
@@ -2539,6 +2544,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 		attack_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_ATTACK_SKILL, 0, 1);
 		// if the bot is skilled enough
 		if (attack_skill > 0.3) {
+			//&& BotEntityVisible(&bs->cur_ps, 360, bs->enemy)
 			BotAimAtEnemy(bs);
 		} else {
 			if (trap_BotMovementViewTarget(bs->ms, &goal, bs->tfl, 300, target)) {
@@ -2672,7 +2678,7 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 		//BotAI_Print(PRT_MESSAGE, "movement failure %d\n", moveresult.traveltype);
 		bs->nbg_time = 0;
 	}
-
+	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qfalse);
 	// update the attack inventory values
 	BotUpdateBattleInventory(bs, bs->enemy);
@@ -2683,7 +2689,7 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 		VectorCopy(moveresult.ideal_viewangles, bs->ideal_viewangles);
 	} else if (!(moveresult.flags & MOVERESULT_MOVEMENTVIEWSET) && !(bs->flags & BFL_IDEALVIEWSET)) {
 		attack_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_ATTACK_SKILL, 0, 1);
-		// if the bot is skilled enough and the enemy is visible
+		// if the bot is skilled enough
 		if (attack_skill > 0.3) {
 			//&& BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->enemy)
 			BotAimAtEnemy(bs);
