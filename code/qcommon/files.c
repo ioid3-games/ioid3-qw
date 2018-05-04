@@ -2403,7 +2403,7 @@ void FS_GetModDescription(const char *modDir, char *description, int description
 	int nDescLen;
 	FILE *file;
 
-	Com_sprintf(descPath, sizeof (descPath), "%s%cdescription.txt", modDir, PATH_SEP);
+	Com_sprintf(descPath, sizeof(descPath), "%s%cdescription.txt", modDir, PATH_SEP);
 
 	nDescLen = FS_SV_FOpenFileRead(descPath, &descHandle);
 

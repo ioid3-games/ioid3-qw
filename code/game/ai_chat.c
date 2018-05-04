@@ -432,6 +432,7 @@ int BotValidChatPosition(bot_state_t *bs) {
 	}
 	// do not chat if under water
 	VectorCopy(bs->origin, point);
+
 	point[2] += 32;
 
 	if (trap_PointContents(point, bs->entitynum) & MASK_WATER) {
