@@ -361,7 +361,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		if (bs->teammatevisible_time < FloatTime() - 10) {
 			bs->ltgtype = 0;
 		}
-		// get entity information of the companion
+		// get the entity information
 		BotEntityInfo(bs->teammate, &entinfo);
 		// if the team mate is visible
 		if (BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->teammate)) {
@@ -410,7 +410,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			trap_BotEnterChat(bs->cs, bs->teammate, CHAT_TELL);
 			bs->ltgtype = 0;
 		}
-		// get entity information of the companion
+		// get the entity information
 		BotEntityInfo(bs->teammate, &entinfo);
 		// if the companion is visible
 		if (BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->teammate)) {
@@ -1143,7 +1143,7 @@ int BotLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) {
 			trap_BotEnterChat(bs->cs, bs->teammate, CHAT_TELL);
 			bs->leadmessage_time = FloatTime();
 		}
-		// get entity information of the companion
+		// get the entity information
 		BotEntityInfo(bs->lead_teammate, &entinfo);
 
 		if (entinfo.valid) {
@@ -1610,7 +1610,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 	}
 	// if the shoot target is visible
 	if (targetvisible) {
-		// get the entity info of the entity the bot is shooting at
+		// get the entity information of the entity the bot is shooting at
 		BotEntityInfo(goal->entitynum, &entinfo);
 		// if the entity the bot shoots at moved
 		if (!VectorCompare(bs->activatestack->origin, entinfo.origin)) {
@@ -2140,7 +2140,7 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 		AIEnter_Seek_LTG(bs, "battle fight: no enemy");
 		return qfalse;
 	}
-
+	// get the entity information
 	BotEntityInfo(bs->enemy, &entinfo);
 	// if the enemy is dead
 	if (bs->enemydeath_time) {
@@ -2162,6 +2162,7 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 			return qfalse;
 		}
 	} else {
+		// if the entity isn't dead
 		if (EntityIsDead(&entinfo)) {
 			bs->enemydeath_time = FloatTime();
 		}
@@ -2460,9 +2461,9 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 		AIEnter_Seek_LTG(bs, "battle retreat: no enemy");
 		return qfalse;
 	}
-
+	// get the entity information
 	BotEntityInfo(bs->enemy, &entinfo);
-
+	// if the entity isn't dead
 	if (EntityIsDead(&entinfo)) {
 		AIEnter_Seek_LTG(bs, "battle retreat: enemy dead");
 		return qfalse;
@@ -2650,9 +2651,9 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 		AIEnter_Seek_NBG(bs, "battle nbg: no enemy");
 		return qfalse;
 	}
-
+	// get the entity information
 	BotEntityInfo(bs->enemy, &entinfo);
-
+	// if the entity isn't dead
 	if (EntityIsDead(&entinfo)) {
 		AIEnter_Seek_NBG(bs, "battle nbg: enemy dead");
 		return qfalse;

@@ -234,7 +234,7 @@ void BotVoiceChat_Camp(bot_state_t *bs, int client, int mode) {
 	char netname[MAX_NETNAME];
 
 	bs->teamgoal.entitynum = -1;
-
+	// get the entity information
 	BotEntityInfo(client, &entinfo);
 	// if info is valid (in PVS)
 	if (entinfo.valid) {
@@ -292,7 +292,7 @@ void BotVoiceChat_FollowMe(bot_state_t *bs, int client, int mode) {
 	char netname[MAX_NETNAME];
 
 	bs->teamgoal.entitynum = -1;
-
+	// get the entity information
 	BotEntityInfo(client, &entinfo);
 	// if info is valid (in PVS)
 	if (entinfo.valid) {

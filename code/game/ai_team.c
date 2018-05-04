@@ -88,7 +88,7 @@ int BotNumTeamMates(bot_state_t *bs) {
 		if (atoi(Info_ValueForKey(buf, "t")) == TEAM_SPECTATOR) {
 			continue;
 		}
-
+		// if on the same team
 		if (BotSameTeam(bs, i)) {
 			numteammates++;
 		}
@@ -156,7 +156,7 @@ int BotSortTeamMatesByBaseTravelTime(bot_state_t *bs, int *teammates, int maxtea
 		if (atoi(Info_ValueForKey(buf, "t")) == TEAM_SPECTATOR) {
 			continue;
 		}
-
+		// if on the same team
 		if (BotSameTeam(bs, i) && goal) {
 			traveltime = BotClientTravelTimeToGoal(i, goal);
 
@@ -2086,7 +2086,7 @@ void BotTeamOrders(bot_state_t *bs) {
 		if (atoi(Info_ValueForKey(buf, "t")) == TEAM_SPECTATOR) {
 			continue;
 		}
-
+		// if on the same team
 		if (BotSameTeam(bs, i)) {
 			teammates[numteammates] = i;
 			numteammates++;
