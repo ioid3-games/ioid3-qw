@@ -1782,6 +1782,7 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 	} else if (BotReachedGoal(bs, &goal)) {
 		BotChooseWeapon(bs);
 		bs->nbg_time = 0;
+		bs->check_time = FloatTime() + 0.05; // immediately check for another NBG
 	}
 
 	if (bs->nbg_time < FloatTime()) {
@@ -1808,7 +1809,6 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 		trap_BotResetAvoidReach(bs->ms);
 		//BotAI_Print(PRT_MESSAGE, "movement failure %d\n", moveresult.traveltype);
 		bs->nbg_time = 0;
-		bs->check_time = FloatTime() + 0.05; // immediately check for another NBG
 	}
 	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qtrue);

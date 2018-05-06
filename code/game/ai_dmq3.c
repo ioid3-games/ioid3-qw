@@ -2338,6 +2338,7 @@ qboolean BotAggression(bot_state_t *bs) {
 	}
 	// current enemy
 	if (bs->enemy >= 0) {
+		// get the entity information
 		BotEntityInfo(bs->enemy, &entinfo);
 
 		if (entinfo.valid) {
@@ -3471,13 +3472,13 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 		// ignore enemies
 		if (BotSameTeam(bs, i)) {
 			continue;
-			continue;
 		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if this player is active
 		if (!entinfo.valid) {
 			continue;
+		}
 		// if the enemy isn't dead and the enemy isn't the bot self
 		if (EntityIsDead(&entinfo) || entinfo.number == bs->entitynum) {
 			continue;
@@ -3533,6 +3534,7 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 		}
 		// if the enemy is quite far away and doesn't have a flag or cubes and the bot is not damaged try to ignore this enemy
 		if (curenemy < 0 && squaredist > Square(100) && !healthdecrease && !EntityCarriesFlag(&entinfo) && !EntityCarriesCubes(&entinfo)) {
+			// get the entity information
 			BotEntityInfo(bs->client, &curbotinfo);
 			// if the bot is invisible and want to get the flag, ignore enemies
 			if (EntityIsInvisible(&curbotinfo) && bs->ltgtype == LTG_GETFLAG) {
@@ -3765,7 +3767,7 @@ int BotCountAllTeamMates(bot_state_t *bs, float range) {
 		if (i == bs->client) {
 			continue;
 		}
-
+		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if this player is active
 		if (!entinfo.valid) {
@@ -5340,13 +5342,13 @@ void BotCheckBlockedTeammates(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
-		// if on the same team
+		// ignore enemies
 		if (!BotSameTeam(bs, i)) {
 			continue;
 		}
-		// get entity information of the teammate
+		// get the entity information
 		BotEntityInfo(i, &entinfo);
-		// if this teammate is active
+		// if this player is active
 		if (!entinfo.valid) {
 			continue;
 		}
