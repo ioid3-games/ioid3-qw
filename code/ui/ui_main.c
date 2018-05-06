@@ -1372,7 +1372,8 @@ UI_DrawTeamMember
 static void UI_DrawTeamMember(rectDef_t *rect, float scale, vec4_t color, qboolean blue, int num, int textStyle) {
 	// 0 - None
 	// 1 - Human
-	// 2..NumCharacters - Bot
+	// 2 - Random Bot
+	// 3 - NumCharacters - Bot
 	int value = trap_Cvar_VariableValue(va(blue ? "ui_blueteam%i" : "ui_redteam%i", num));
 	const char *text;
 
@@ -1380,8 +1381,10 @@ static void UI_DrawTeamMember(rectDef_t *rect, float scale, vec4_t color, qboole
 		text = "Closed";
 	} else if (value == 1) {
 		text = "Human";
+	} else if (value == 2) {
+		text = "Random Bot";
 	} else {
-		value -= 2;
+		value -= 3;
 
 		if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
 			if (value >= uiInfo.characterCount) {
@@ -2132,22 +2135,18 @@ UI_DrawBotName
 =======================================================================================================================================
 */
 static void UI_DrawBotName(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
+	// 0 - Random Bot
+	// 1 - NumCharacters - Bot
 	int value = uiInfo.botIndex;
 	int game = trap_Cvar_VariableValue("g_gametype");
 	const char *text = "";
 
-	if (game > GT_TOURNAMENT) {
-		if (value >= uiInfo.characterCount) {
-			value = 0;
-		}
-
-		text = uiInfo.characterList[value].name;
+	if (value == 0) {
+		text = "Random Bot";
+	} else if (game > GT_TOURNAMENT) {
+		text = uiInfo.characterList[value - 1].name;
 	} else {
-		if (value >= UI_GetNumBots()) {
-			value = 0;
-		}
-
-		text = UI_GetBotNameByNumber(value);
+		text = UI_GetBotNameByNumber(value - 1);
 	}
 
 	Text_Paint(rect->x, rect->y, scale, color, text, 0, 0, textStyle);
@@ -2940,23 +2939,24 @@ static qboolean UI_TeamMember_HandleKey(int flags, float *special, int key, qboo
 	if (select != 0) {
 		// 0 - None
 		// 1 - Human
-		// 2..NumCharacters - Bot
+		// 2 - Random Bot
+		// 3 - NumCharacters - Bot
 		char *cvar = va(blue ? "ui_blueteam%i" : "ui_redteam%i", num);
 		int value = trap_Cvar_VariableValue(cvar);
 
 		value += select;
 
 		if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
-			if (value >= uiInfo.characterCount + 2) {
+			if (value >= uiInfo.characterCount + 3) {
 				value = 0;
 			} else if (value < 0) {
-				value = uiInfo.characterCount + 2 - 1;
+				value = uiInfo.characterCount + 3 - 1;
 			}
 		} else {
-			if (value >= UI_GetNumBots() + 2) {
+			if (value >= UI_GetNumBots() + 3) {
 				value = 0;
 			} else if (value < 0) {
-				value = UI_GetNumBots() + 2 - 1;
+				value = UI_GetNumBots() + 3 - 1;
 			}
 		}
 
@@ -3064,22 +3064,24 @@ static qboolean UI_BotName_HandleKey(int flags, float *special, int key) {
 	int select = UI_SelectForKey(key);
 
 	if (select != 0) {
+		// 0 - Random Bot
+		// 1 - NumCharacters - Bot
 		int game = trap_Cvar_VariableValue("g_gametype");
 		int value = uiInfo.botIndex;
 
 		value += select;
 
 		if (game > GT_TOURNAMENT) {
-			if (value >= uiInfo.characterCount) {
+			if (value >= uiInfo.characterCount + 1) {
 				value = 0;
 			} else if (value < 0) {
-				value = uiInfo.characterCount - 1;
+				value = uiInfo.characterCount + 1 - 1;
 			}
 		} else {
-			if (value >= UI_GetNumBots()) {
+			if (value >= UI_GetNumBots() + 1) {
 				value = 0;
 			} else if (value < 0) {
-				value = UI_GetNumBots() - 1;
+				value = UI_GetNumBots() + 1 - 1;
 			}
 		}
 
@@ -3825,13 +3827,25 @@ static void UI_RunMenuScript(char **args) {
 			trap_Cvar_SetValue("sv_maxClients", clients);
 
 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+				// 0 - None
+				// 1 - Human
+				// 2 - Random Bot
+				// 3 - NumCharacters - Bot
 				int bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
 
 				if (bot > 1) {
-					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s\n", uiInfo.characterList[bot - 2].name, skill, "Red");
+					if (bot == 2) {
+						name = "random";
+					} else if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
+						name = uiInfo.characterList[bot - 3].name;
 					} else {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f \n", UI_GetBotNameByNumber(bot - 2), skill);
+						name = UI_GetBotNameByNumber(bot - 3);
+					}
+
+					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s\n", name, skill, "Red");
+					} else {
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f\n", name, skill);
 					}
 
 					trap_Cmd_ExecuteText(EXEC_APPEND, buff);
@@ -3840,10 +3854,18 @@ static void UI_RunMenuScript(char **args) {
 				bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
 
 				if (bot > 1) {
-					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s\n", uiInfo.characterList[bot - 2].name, skill, "Blue");
+					if (bot == 2) {
+						name = "random";
+					} else if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
+						name = uiInfo.characterList[bot - 3].name;
 					} else {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f \n", UI_GetBotNameByNumber(bot - 2), skill);
+						name = UI_GetBotNameByNumber(bot - 3);
+					}
+
+					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s\n", name, skill, "Blue");
+					} else {
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f\n", name, skill);
 					}
 
 					trap_Cmd_ExecuteText(EXEC_APPEND, buff);
@@ -3899,13 +3921,25 @@ static void UI_RunMenuScript(char **args) {
 			delay = 500;
 
 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+				// 0 - None
+				// 1 - Human
+				// 2 - Random Bot
+				// 3 - NumCharacters - Bot
 				int bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
 
 				if (bot > 1) {
-					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s %i\n", uiInfo.characterList[bot - 2].name, skill, "Red", delay);
+					if (bot == 2) {
+						name = "random";
+					} else if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
+						name = uiInfo.characterList[bot - 3].name;
 					} else {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f %i\n", UI_GetBotNameByNumber(bot - 2), skill, delay);
+						name = UI_GetBotNameByNumber(bot - 3);
+					}
+
+					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s %i\n", name, skill, "Red", delay);
+					} else {
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %i\n", name, skill, delay);
 					}
 					trap_Cmd_ExecuteText(EXEC_APPEND, buff);
 					delay += 500;
@@ -3914,10 +3948,18 @@ static void UI_RunMenuScript(char **args) {
 				bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
 
 				if (bot > 1) {
-					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s %i\n", uiInfo.characterList[bot - 2].name, skill, "Blue", delay);
+					if (bot == 2) {
+						name = "random";
+					} else if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
+						name = uiInfo.characterList[bot - 3].name;
 					} else {
-						Com_sprintf(buff, sizeof(buff), "addbot %s %f %i\n", UI_GetBotNameByNumber(bot - 2), skill, delay);
+						name = UI_GetBotNameByNumber(bot - 3);
+					}
+
+					if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %s %i\n", name, skill, "Blue", delay);
+					} else {
+						Com_sprintf(buff, sizeof(buff), "addbot %s %f %i\n", name, skill, delay);
 					}
 					trap_Cmd_ExecuteText(EXEC_APPEND, buff);
 					delay += 500;
@@ -4082,11 +4124,17 @@ static void UI_RunMenuScript(char **args) {
 				trap_Cmd_ExecuteText(EXEC_APPEND, va("callteamvote leader %s\n", uiInfo.teamNames[uiInfo.teamIndex]));
 			}
 		} else if (Q_stricmp(name, "addBot") == 0) {
-			if (trap_Cvar_VariableValue("g_gametype") > GT_TOURNAMENT) {
-				trap_Cmd_ExecuteText(EXEC_APPEND, va("addbot %s %i %s\n", uiInfo.characterList[uiInfo.botIndex].name, uiInfo.skillIndex + 1, (uiInfo.redBlue == 0) ? "Red" : "Blue"));
+			// 0 - Random Bot
+			// 1 - NumCharacters - Bot
+			if (uiInfo.botIndex == 0) {
+				name = "random";
+			} else if (trap_Cvar_VariableValue("g_gametype") > GT_TOURNAMENT) {
+				name = uiInfo.characterList[uiInfo.botIndex - 1].name;
 			} else {
-				trap_Cmd_ExecuteText(EXEC_APPEND, va("addbot %s %i %s\n", UI_GetBotNameByNumber(uiInfo.botIndex), uiInfo.skillIndex + 1, (uiInfo.redBlue == 0) ? "Red" : "Blue"));
+				name = UI_GetBotNameByNumber(uiInfo.botIndex - 1);
 			}
+
+			trap_Cmd_ExecuteText(EXEC_APPEND, va("addbot %s %i %s\n", name, uiInfo.skillIndex + 1, (uiInfo.redBlue == 0) ? "Red" : "Blue"));
 		} else if (Q_stricmp(name, "addFavorite") == 0) {
 			if (ui_netSource.integer != UIAS_FAVORITES) {
 				char name[MAX_NAME_LENGTH];
