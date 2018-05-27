@@ -2177,6 +2177,8 @@ CG_ShowResponseHead
 void CG_ShowResponseHead(void) {
 	float x, y, w, h;
 
+	CG_SetScreenPlacement(PLACE_LEFT, PLACE_TOP);
+
 	x = 72;
 	y = w = h = 0;
 
@@ -2186,6 +2188,8 @@ void CG_ShowResponseHead(void) {
 	trap_Cvar_SetValue("cl_conXOffset", (int)x);
 
 	cg.voiceTime = cg.time;
+
+	CG_PopScreenPlacement();
 }
 
 /*

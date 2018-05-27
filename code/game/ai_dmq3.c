@@ -1907,6 +1907,8 @@ void BotUpdateInventory(bot_state_t *bs) {
 		bs->inventory[INVENTORY_BLUECUBE] = bs->cur_ps.tokens;
 	}
 
+	bs->inventory[BOT_IS_IN_HURRY] = (int)BotHasEmergencyGoal(bs);
+
 	BotCheckItemPickup(bs, oldinventory);
 }
 
@@ -1923,11 +1925,10 @@ void BotUpdateBattleInventory(bot_state_t *bs, int enemy) {
 	BotEntityInfo(enemy, &entinfo);
 	VectorSubtract(entinfo.origin, bs->origin, dir);
 
-	bs->inventory[BOT_IS_IN_HURRY] = BotHasEmergencyGoal(bs);
 	bs->inventory[ENEMY_HEIGHT] = (int)dir[2];
 	dir[2] = 0;
 	bs->inventory[ENEMY_HORIZONTAL_DIST] = (int)VectorLength(dir);
-	bs->inventory[ENTITY_IS_AN_OBELISK] = EntityIsAnObelisk(bs);
+	bs->inventory[ENTITY_IS_AN_OBELISK] = (int)EntityIsAnObelisk(bs);
 	// FIXME: add num visible enemies and num visible team mates to the inventory
 }
 
@@ -2443,6 +2444,10 @@ qboolean BotAggression(bot_state_t *bs) {
 	}
 	// if the bot has the scout powerup
 	if (bs->inventory[INVENTORY_SCOUT]) {
+		return qtrue;
+	}
+	// if the bot can use the machine gun
+	if (bs->inventory[INVENTORY_MACHINEGUN] > 0 && bs->inventory[INVENTORY_BULLETS] > 40) {
 		return qtrue;
 	}
 	// if the bot can use the chain gun

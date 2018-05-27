@@ -2308,7 +2308,7 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 		range = 150;
 
 		if (BotNearbyGoal(bs, bs->tfl, &goal, range)) {
-			// the bot gets 5 seconds to pick up the nearby goal item
+			// time the bot gets to pick up the nearby goal item
 			bs->nbg_time = FloatTime() + 0.1 * range + 1;
 			trap_BotResetLastAvoidReach(bs->ms);
 			AIEnter_Battle_NBG(bs, "battle chase: nbg");
