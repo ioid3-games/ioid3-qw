@@ -153,10 +153,10 @@ When building a pak file, make sure a config.cfg isn't present in it, or configs
 // every time a new pk3 file is built, this checksum must be updated.
 // the easiest way to get it is to just run the game and see what it spits out
 static const unsigned int pak_checksums[] = {
-	3289286241u,
-	625886867u,
-	2345643420u,
-	3584151650u
+	3555038932u,
+	2237217400u,
+	2747514120u,
+	3871129869u
 };
 
 // if this is defined, the executable positively won't work with any paks other

@@ -1535,12 +1535,12 @@ static void PM_Footsteps(void) {
 	} else if (pm->ps->pm_flags & PMF_BACKWARDS_RUN) {
 		// running
 		if (!(pm->cmd.buttons & BUTTON_WALKING)) {
-			bobmove = 0.55f;
+			bobmove = 0.57f;
 
 			PM_ContinueLegsAnim(LEGS_BACK);
 		// walking
 		} else {
-			bobmove = 0.35f; // walking bobs slow
+			bobmove = 0.37f; // walking bobs slow
 
 			PM_ContinueLegsAnim(LEGS_BACKWALK);
 		}
@@ -1548,7 +1548,7 @@ static void PM_Footsteps(void) {
 	} else {
 		// running
 		if (!(pm->cmd.buttons & BUTTON_WALKING)) {
-			bobmove = 0.45f; // faster speeds bob faster
+			bobmove = 0.47f; // faster speeds bob faster
 
 			PM_ContinueLegsAnim(LEGS_RUN);
 		// walking
