@@ -5088,7 +5088,7 @@ void Menu_SetScreenPlacement(menuDef_t *menu, screenPlacement_e hpos, screenPlac
 	}
 
 	if (DC->setScreenPlacement == NULL) {
-		Com_Printf(S_COLOR_YELLOW "WARNING: Menu_SetScreenPlacement() is only supported in CGame\n");
+		Com_Printf(S_COLOR_YELLOW "WARNING: Menu_SetScreenPlacement() is only supported in CGame!\n");
 		return;
 	}
 
@@ -7238,11 +7238,11 @@ qboolean MenuParse_screenPlacement(itemDef_t *item, int handle) {
 
 	if (Q_stricmp(token.string, "PLACE_RIGHT") == 0) {
 		hpos = PLACE_RIGHT;
-	} else if(Q_stricmp(token.string, "PLACE_LEFT") == 0) {
+	} else if (Q_stricmp(token.string, "PLACE_LEFT") == 0) {
 		hpos = PLACE_LEFT;
-	} else if(Q_stricmp(token.string, "PLACE_CENTER") == 0) {
+	} else if (Q_stricmp(token.string, "PLACE_CENTER") == 0) {
 		hpos = PLACE_CENTER;
-	} else if(Q_stricmp(token.string, "PLACE_STRETCH") == 0) {
+	} else if (Q_stricmp(token.string, "PLACE_STRETCH") == 0) {
 		hpos = PLACE_STRETCH;
 	} else {
 		PC_SourceError(handle, "unknown screenPlacement horizontal placement %s", token.string);
@@ -7255,11 +7255,11 @@ qboolean MenuParse_screenPlacement(itemDef_t *item, int handle) {
 
 	if (Q_stricmp(token.string, "PLACE_TOP") == 0) {
 		vpos = PLACE_RIGHT;
-	} else if(Q_stricmp(token.string, "PLACE_BOTTOM") == 0) {
+	} else if (Q_stricmp(token.string, "PLACE_BOTTOM") == 0) {
 		vpos = PLACE_LEFT;
-	} else if(Q_stricmp(token.string, "PLACE_CENTER") == 0) {
+	} else if (Q_stricmp(token.string, "PLACE_CENTER") == 0) {
 		vpos = PLACE_CENTER;
-	} else if(Q_stricmp(token.string, "PLACE_STRETCH") == 0) {
+	} else if (Q_stricmp(token.string, "PLACE_STRETCH") == 0) {
 		vpos = PLACE_STRETCH;
 	} else {
 		PC_SourceError(handle, "unknown screenPlacement vertical placement %s", token.string);

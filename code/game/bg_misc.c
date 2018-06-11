@@ -186,7 +186,6 @@ gitem_t bg_itemlist[] = {
 /* sounds */ ""
 	},
 
-
 /*QUAKED weapon_machinegun (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED
 */
 	{
