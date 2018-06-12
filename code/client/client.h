@@ -243,7 +243,7 @@ typedef struct {
 	char mapName[MAX_NAME_LENGTH];
 	char game[MAX_NAME_LENGTH];
 	int netType;
-	char gameType[MAX_NAME_LENGTH];
+	int gameType;
 	int clients;
 	int maxClients;
 	int minPing;

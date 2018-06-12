@@ -288,15 +288,12 @@ void CG_MissileHitPlayer(int weapon, vec3_t origin, vec3_t dir, int entityNum) {
 	CG_Bleed(origin, entityNum);
 	// some weapons will make an explosion with the blood, while others will just make the blood
 	switch (weapon) {
-		case WP_CHAINGUN:
 		case WP_NAILGUN:
 		case WP_PROXLAUNCHER:
 		case WP_GRENADELAUNCHER:
-		case WP_NAPALMLAUNCHER:
 		case WP_ROCKETLAUNCHER:
 		case WP_PLASMAGUN:
 		case WP_BFG:
-		case WP_MISSILELAUNCHER:
 			CG_MissileHitWall(weapon, 0, origin, dir);
 			break;
 		default:
@@ -1661,7 +1658,7 @@ void CG_RegisterItemVisuals(int itemNum) {
 	gitem_t *item;
 
 	if (itemNum < 0 || itemNum >= bg_numItems) {
-		CG_Error("CG_RegisterItemVisuals: itemNum %d out of range [0-%d]", itemNum, bg_numItems - 1);
+		CG_Error("CG_RegisterItemVisuals: itemNum %d out of range [0 - %d]", itemNum, bg_numItems - 1);
 	}
 
 	itemInfo = &cg_items[itemNum];

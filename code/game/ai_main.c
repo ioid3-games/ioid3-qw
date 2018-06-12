@@ -138,18 +138,39 @@ BotAI_GetClientState
 */
 int BotAI_GetClientState(int clientNum, playerState_t *state) {
 	gentity_t *ent;
+	playerState_t *ps;
+
+	if (clientNum < 0 || clientNum >= level.num_entities) {
+		return qfalse;
+	}
 
 	ent = &g_entities[clientNum];
 
 	if (!ent->inuse) {
 		return qfalse;
 	}
+/* // Tobias CHECK: was this the reason why monster did crash the game in the past? Well, now it only spams the scoreboard with error messages at intermission.
+	if (!ent->r.linked) {
+		return qfalse;
+	}
+*/
+	if (gametype <= GT_HARVESTER) { // Tobias CHECK: yeah, this is ugly, is it safe to remove this extra check? Monsters will never spawn in arena gametypes.
+		if (!ent->client) {
+			return qfalse;
+		}
 
-	if (!ent->client) {
+		if (ent->client->pers.connected != CON_CONNECTED) {
+			return qfalse;
+		}
+	}
+
+	ps = G_GetEntityPlayerState(ent);
+
+	if (!ps) {
 		return qfalse;
 	}
 
-	memcpy(state, &ent->client->ps, sizeof(playerState_t));
+	memcpy(state, ps, sizeof(playerState_t));
 	return qtrue;
 }
 
@@ -597,7 +618,7 @@ void BotInterbreedBots(void) {
 	int i;
 
 	// get rankings for all the bots
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (botstates[i] && botstates[i]->inuse) {
 			ranks[i] = botstates[i]->num_kills * 2 - botstates[i]->num_deaths;
 		} else {
@@ -610,7 +631,7 @@ void BotInterbreedBots(void) {
 		trap_BotMutateGoalFuzzyLogic(botstates[child]->gs, 1);
 	}
 	// reset the kills and deaths
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (botstates[i] && botstates[i]->inuse) {
 			botstates[i]->num_kills = 0;
 			botstates[i]->num_deaths = 0;
@@ -630,7 +651,7 @@ void BotWriteInterbreeded(char *filename) {
 	bestrank = 0;
 	bestbot = -1;
 	// get the best bot
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (botstates[i] && botstates[i]->inuse) {
 			rank = botstates[i]->num_kills * 2 - botstates[i]->num_deaths;
 		} else {
@@ -698,7 +719,7 @@ void BotInterbreeding(void) {
 		return;
 	}
 	// shutdown all the bots
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (botstates[i] && botstates[i]->inuse) {
 			BotAIShutdownClient(botstates[i]->client, qfalse);
 		}
@@ -1225,7 +1246,7 @@ void BotScheduleBotThink(void) {
 
 	botnum = 0;
 
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (!botstates[i] || !botstates[i]->inuse) {
 			continue;
 		}
@@ -1517,7 +1538,7 @@ int BotAILoadMap(int restart) {
 		trap_BotLibLoadMap(mapname.string);
 	}
 
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (botstates[i] && botstates[i]->inuse) {
 			BotResetState(botstates[i]);
 			botstates[i]->setupcount = 4;
@@ -1545,7 +1566,6 @@ int BotAIStartFrame(int time) {
 
 	G_CheckBotSpawn();
 
-	trap_Cvar_Update(&bot_rocketjump);
 	trap_Cvar_Update(&bot_testrchat);
 	trap_Cvar_Update(&bot_thinktime);
 	trap_Cvar_Update(&bot_memorydump);
@@ -1697,7 +1717,7 @@ int BotAIStartFrame(int time) {
 
 	floattime = trap_AAS_Time();
 	// execute scheduled bot AI
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (!botstates[i] || !botstates[i]->inuse) {
 			continue;
 		}

@@ -352,18 +352,9 @@ void G_RegisterCvars(void) {
 	// check some things
 	if (g_gametype.integer < 0 || g_gametype.integer >= GT_MAX_GAME_TYPE) {
 		G_Printf("g_gametype %i is out of range, defaulting to 0\n", g_gametype.integer);
-		g_gametype.integer = 0;
 		trap_Cvar_SetValue("g_gametype", 0);
 		trap_Cvar_Update(&g_gametype);
 	}
-	// don't allow single player gametype to be used in multiplayer.
-	if (g_gametype.integer == GT_SINGLE_PLAYER && !g_singlePlayer.integer) {
-		trap_Cvar_SetValue("g_gametype", GT_FFA);
-		trap_Cvar_Update(&g_gametype);
-	}
-
-	trap_Cvar_Set("sv_gametypeName", bg_displayGametypeNames[g_gametype.integer]);
-	trap_Cvar_Set("sv_gametypeNetName", bg_netGametypeNames[g_gametype.integer]);
 
 	level.warmupModificationCount = g_warmup.modificationCount;
 }

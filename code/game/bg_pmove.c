@@ -342,21 +342,23 @@ static float PM_CmdScale(usercmd_t *cmd) {
 	} else if (cmd->rightmove) {
 		scale *= 0.9f;
 	}
-	// apply weapon speed scale
-	switch (pm->ps->weapon) {
-		case WP_GAUNTLET:
-		case WP_HANDGUN:
-			scale *= 1.15f;
-			break;
-		case WP_RAILGUN:
-		case WP_BFG:
-			scale *= 0.9f;
-			break;
-		case WP_MISSILELAUNCHER:
-			scale *= 0.75f;
-			break;
-		default:
-			break;
+	// running
+	if (!(pm->cmd.buttons & BUTTON_WALKING)) {
+		// apply weapon speed scale
+		switch (pm->ps->weapon) {
+			case WP_GAUNTLET:
+				scale *= 1.15f;
+				break;
+			case WP_RAILGUN:
+			case WP_BFG:
+				scale *= 0.9f;
+				break;
+			default:
+				break;
+		}
+	// walking
+	} else {
+		scale *= 0.75f;
 	}
 
 	return scale;

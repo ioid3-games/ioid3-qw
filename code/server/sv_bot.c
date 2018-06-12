@@ -535,7 +535,6 @@ void SV_BotInitCvars(void) {
 	Cvar_Get("bot_testclusters", "0", CVAR_CHEAT);		// test the AAS clusters
 	Cvar_Get("bot_pause", "0", CVAR_CHEAT);				// pause the bots thinking
 	Cvar_Get("bot_report", "0", CVAR_CHEAT);			// get a full report in ctf
-	Cvar_Get("bot_rocketjump", "1", 0);					// enable rocket jumping
 	Cvar_Get("bot_challenge", "0", 0);					// challenging bot
 	Cvar_Get("bot_minplayers", "0", 0);					// minimum players in a team or the game
 	Cvar_Get("bot_interbreedchar", "", CVAR_CHEAT);		// bot character used for interbreeding

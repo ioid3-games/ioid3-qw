@@ -2172,7 +2172,7 @@ void CL_InitServerInfo(serverInfo_t *server, netadr_t *address) {
 	server->minPing = 0;
 	server->ping = -1;
 	server->game[0] = '\0';
-	server->gameType[0] = '\0';
+	server->gameType = 0;
 	server->netType = 0;
 	server->g_humanplayers = 0;
 	server->g_needpass = 0;
@@ -3170,7 +3170,8 @@ void CL_Init(void) {
 	m_yaw = Cvar_Get("m_yaw", "0.022", CVAR_ARCHIVE);
 	m_forward = Cvar_Get("m_forward", "0.25", CVAR_ARCHIVE);
 	m_side = Cvar_Get("m_side", "0.25", CVAR_ARCHIVE);
-	m_filter = Cvar_Get("m_filter", "1", CVAR_ARCHIVE); // input is jittery on OS X w/o this
+	// input is jittery on OS X w/o this
+	m_filter = Cvar_Get("m_filter", "1", CVAR_ARCHIVE);
 	j_pitch = Cvar_Get("j_pitch", "0.022", CVAR_ARCHIVE);
 	j_yaw = Cvar_Get("j_yaw", "-0.022", CVAR_ARCHIVE);
 	j_forward = Cvar_Get("j_forward", "-0.25", CVAR_ARCHIVE);
@@ -3354,11 +3355,11 @@ static void CL_SetServerInfo(serverInfo_t *server, const char *info, int ping) {
 	if (server) {
 		if (info) {
 			server->clients = atoi(Info_ValueForKey(info, "clients"));
-			Q_strncpyz(server->hostName, Info_ValueForKey(info, "hostname"), sizeof(server->hostName));
-			Q_strncpyz(server->mapName, Info_ValueForKey(info, "mapname"), sizeof(server->mapName));
+			Q_strncpyz(server->hostName, Info_ValueForKey(info, "hostname"), MAX_NAME_LENGTH);
+			Q_strncpyz(server->mapName, Info_ValueForKey(info, "mapname"), MAX_NAME_LENGTH);
 			server->maxClients = atoi(Info_ValueForKey(info, "sv_maxclients"));
-			Q_strncpyz(server->game, Info_ValueForKey(info, "game"), sizeof(server->game));
-			Q_strncpyz(server->gameType, Info_ValueForKey(info, "gametype"), sizeof(server->gameType));
+			Q_strncpyz(server->game, Info_ValueForKey(info, "game"), MAX_NAME_LENGTH);
+			server->gameType = atoi(Info_ValueForKey(info, "gametype"));
 			server->netType = atoi(Info_ValueForKey(info, "nettype"));
 			server->minPing = atoi(Info_ValueForKey(info, "minping"));
 			server->maxPing = atoi(Info_ValueForKey(info, "maxping"));

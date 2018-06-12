@@ -1565,6 +1565,54 @@ void CG_EntityEvent(centity_t *cent, vec3_t position) {
 			DEBUGNAME("EV_USE_ITEM3");
 			CG_UseItem(cent);
 			break;
+		case EV_USE_ITEM4:
+			DEBUGNAME("EV_USE_ITEM4");
+			CG_UseItem(cent);
+			break;
+		case EV_USE_ITEM5:
+			DEBUGNAME("EV_USE_ITEM5");
+			CG_UseItem(cent);
+			break;
+		case EV_USE_ITEM6:
+			DEBUGNAME("EV_USE_ITEM6");
+			CG_UseItem(cent);
+			break;
+		case EV_USE_ITEM7:
+			DEBUGNAME("EV_USE_ITEM7");
+			CG_UseItem(cent);
+			break;
+		case EV_USE_ITEM8:
+			DEBUGNAME("EV_USE_ITEM8");
+			CG_UseItem(cent);
+			break;
+		case EV_USE_ITEM9:
+			DEBUGNAME("EV_USE_ITEM9");
+			CG_UseItem(cent);
+			break;
+		case EV_USE_ITEM10:
+			DEBUGNAME("EV_USE_ITEM10");
+			CG_UseItem(cent);
+			break;
+		case EV_USE_ITEM11:
+			DEBUGNAME("EV_USE_ITEM11");
+			CG_UseItem(cent);
+			break;
+		case EV_USE_ITEM12:
+			DEBUGNAME("EV_USE_ITEM12");
+			CG_UseItem(cent);
+			break;
+		case EV_USE_ITEM13:
+			DEBUGNAME("EV_USE_ITEM13");
+			CG_UseItem(cent);
+			break;
+		case EV_USE_ITEM14:
+			DEBUGNAME("EV_USE_ITEM14");
+			CG_UseItem(cent);
+			break;
+		case EV_USE_ITEM15:
+			DEBUGNAME("EV_USE_ITEM15");
+			CG_UseItem(cent);
+			break;
 		case EV_SCOREPLUM:
 			DEBUGNAME("EV_SCOREPLUM");
 			CG_ScorePlum(cent->currentState.otherEntityNum, cent->lerpOrigin, cent->currentState.time);

@@ -383,12 +383,15 @@ BotVisibleEnemies
 =======================================================================================================================================
 */
 int BotVisibleEnemies(bot_state_t *bs) {
-	float vis;
 	int i;
 	aas_entityinfo_t entinfo;
 
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (i == bs->client) {
+			continue;
+		}
+		// if on the same team
+		if (BotSameTeam(bs, i)) {
 			continue;
 		}
 		// get the entity information
@@ -397,22 +400,20 @@ int BotVisibleEnemies(bot_state_t *bs) {
 		if (!entinfo.valid) {
 			continue;
 		}
-		// if the enemy isn't dead and the enemy isn't the bot self
-		if (EntityIsDead(&entinfo) || entinfo.number == bs->entitynum) {
+		// if the entity isn't the bot self
+		if (entinfo.number == bs->entitynum) {
+			continue;
+		}
+		// if the entity isn't dead
+		if (EntityIsDead(&entinfo)) {
 			continue;
 		}
 		// if the enemy is invisible
 		if (EntityIsInvisible(&entinfo)) {
 			continue;
 		}
-		// if on the same team
-		if (BotSameTeam(bs, i)) {
-			continue;
-		}
 		// check if the enemy is visible
-		vis = BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, i);
-
-		if (vis > 0) {
+		if (BotEntityVisible(&bs->cur_ps, 360, i)) {
 			return qtrue;
 		}
 	}
@@ -779,6 +780,10 @@ int BotChat_Kill(bot_state_t *bs) {
 		return qfalse;
 	}
 
+	if (bs->enemy >= MAX_CLIENTS) {
+		return qfalse;
+	}
+
 	EasyClientName(bs->lastkilledplayer, name, 32);
 
 	bs->chatto = CHAT_ALL;
@@ -853,6 +858,10 @@ int BotChat_EnemySuicide(bot_state_t *bs) {
 		return qfalse;
 	}
 
+	if (bs->enemy >= MAX_CLIENTS) {
+		return qfalse;
+	}
+
 	if (bs->enemy >= 0) {
 		EasyClientName(bs->enemy, name, 32);
 	} else {
@@ -920,11 +929,18 @@ int BotChat_HitNoDeath(bot_state_t *bs) {
 	if (BotVisibleEnemies(bs)) {
 		return qfalse;
 	}
-	// get the entity information
-	BotEntityInfo(bs->enemy, &entinfo);
 
-	if (EntityIsShooting(&entinfo)) {
+	if (bs->enemy >= MAX_CLIENTS) {
 		return qfalse;
+	}
+
+	if (bs->enemy >= 0) {
+		// get the entity information
+		BotEntityInfo(bs->enemy, &entinfo);
+
+		if (EntityIsShooting(&entinfo)) {
+			return qfalse;
+		}
 	}
 
 	ClientName(lasthurt_client, name, sizeof(name));
@@ -977,11 +993,18 @@ int BotChat_HitNoKill(bot_state_t *bs) {
 	if (BotVisibleEnemies(bs)) {
 		return qfalse;
 	}
-	// get the entity information
-	BotEntityInfo(bs->enemy, &entinfo);
 
-	if (EntityIsShooting(&entinfo)) {
+	if (bs->enemy >= MAX_CLIENTS) {
 		return qfalse;
+	}
+
+	if (bs->enemy >= 0) {
+		// get the entity information
+		BotEntityInfo(bs->enemy, &entinfo);
+
+		if (EntityIsShooting(&entinfo)) {
+			return qfalse;
+		}
 	}
 
 	ClientName(bs->enemy, name, sizeof(name));
@@ -1043,6 +1066,10 @@ int BotChat_Random(bot_state_t *bs) {
 	}
 
 	if (BotVisibleEnemies(bs)) {
+		return qfalse;
+	}
+
+	if (bs->enemy >= MAX_CLIENTS) {
 		return qfalse;
 	}
 
