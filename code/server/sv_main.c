@@ -55,8 +55,6 @@ cvar_t *sv_dlRate;
 cvar_t *sv_minPing;
 cvar_t *sv_maxPing;
 cvar_t *sv_gametype;
-cvar_t *sv_gametypeName;
-cvar_t *sv_gametypeNetName;
 cvar_t *sv_pure;
 cvar_t *sv_floodProtect;
 cvar_t *sv_lanForceRate;	// dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
@@ -633,7 +631,7 @@ void SVC_Info(netadr_t from) {
 	Info_SetValueForKey(infostring, "gamename", com_gamename->string);
 	Info_SetValueForKey(infostring, "protocol", va("%i", com_protocol->integer));
 	Info_SetValueForKey(infostring, "hostname", sv_hostname->string);
-	Info_SetValueForKey(infostring, "gametype", sv_gametypeNetName->string);
+	Info_SetValueForKey(infostring, "gametype", va("%i", sv_gametype->integer));
 	Info_SetValueForKey(infostring, "mapname", sv_mapname->string);
 	Info_SetValueForKey(infostring, "sv_maxclients", va("%i", sv_maxclients->integer - sv_privateClients->integer));
 	Info_SetValueForKey(infostring, "clients", va("%i", count));

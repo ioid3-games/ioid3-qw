@@ -759,28 +759,6 @@ Only in One Flag CTF games
 };
 
 int bg_numItems = ARRAY_LEN(bg_itemlist) - 1;
-// may not contain spaces, dpmaster will reject the server
-const char *bg_netGametypeNames[GT_MAX_GAME_TYPE] = {
-	"SP",
-	"FFA",
-	"Tournament",
-	"TeamDM",
-	"CTF",
-	"1FCTF",
-	"Overload",
-	"Harvester"
-};
-
-const char *bg_displayGametypeNames[GT_MAX_GAME_TYPE] = {
-	"Single Player",
-	"Free For All",
-	"Tournament",
-	"Team Deathmatch",
-	"Capture the Flag",
-	"One Flag CTF",
-	"Overload",
-	"Harvester"
-};
 
 /*
 =======================================================================================================================================
@@ -1171,6 +1149,18 @@ char *eventnames[] = {
 	"EV_USE_ITEM1",
 	"EV_USE_ITEM2",
 	"EV_USE_ITEM3",
+	"EV_USE_ITEM4",
+	"EV_USE_ITEM5",
+	"EV_USE_ITEM6",
+	"EV_USE_ITEM7",
+	"EV_USE_ITEM8",
+	"EV_USE_ITEM9",
+	"EV_USE_ITEM10",
+	"EV_USE_ITEM11",
+	"EV_USE_ITEM12",
+	"EV_USE_ITEM13",
+	"EV_USE_ITEM14",
+	"EV_USE_ITEM15",
 	"EV_SCOREPLUM",				// score plum
 	"EV_LIGHTNINGBOLT",			// lightning bolt
 	"EV_DEBUG_LINE"

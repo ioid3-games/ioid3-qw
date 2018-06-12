@@ -74,6 +74,8 @@ void BotTeamGoals(bot_state_t *bs, int retreat);
 qboolean BotAggression(bot_state_t *bs);
 // returns how bad the bot feels
 qboolean BotFeelingBad(bot_state_t *bs);
+// the bot should NOT walk further, he should wait for a specific period of time
+qboolean BotIsWaiting(bot_state_t *bs, bot_goal_t *goal);
 // returns true if the bot is in hurry
 qboolean BotHasEmergencyGoal(bot_state_t *bs);
 // returns true if the bot wants to retreat
@@ -113,7 +115,7 @@ int BotFindEnemy(bot_state_t *bs, int curenemy);
 // returns a roam goal
 void BotRoamGoal(bot_state_t *bs, vec3_t goal);
 // returns entity visibility in the range [0, 1]
-float BotEntityVisible(int viewer, vec3_t eye, vec3_t viewangles, int fov, int ent);
+qboolean BotEntityVisible(playerState_t *ps, float fov, int ent);
 // the bot will aim at the current enemy
 void BotAimAtEnemy(bot_state_t *bs);
 // check if the bot should attack
@@ -179,7 +181,6 @@ void BotMapScripts(bot_state_t *bs);
 extern int gametype;	// game type
 extern int maxclients;	// maximum number of clients
 
-extern vmCvar_t bot_rocketjump;
 extern vmCvar_t bot_testrchat;
 extern vmCvar_t bot_challenge;
 

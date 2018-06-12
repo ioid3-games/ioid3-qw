@@ -138,7 +138,7 @@ static cvarTable_t gameCvarTable[] = {
 	{&g_podiumDrop, "g_podiumDrop", "70", 0, 0, qfalse},
 	{&g_allowVote, "g_allowVote", "1", CVAR_ARCHIVE, 0, qfalse},
 	{&g_listEntity, "g_listEntity", "0", 0, 0, qfalse},
-	{&g_singlePlayer, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO|CVAR_ROM, 0, qfalse},
+	{&g_singlePlayer, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO|CVAR_ROM, 0, qfalse, qfalse},
 	{&g_obeliskHealth, "g_obeliskHealth", "2500", 0, 0, qfalse},
 	{&g_obeliskRegenPeriod, "g_obeliskRegenPeriod", "1", 0, 0, qfalse},
 	{&g_obeliskRegenAmount, "g_obeliskRegenAmount", "15", 0, 0, qfalse},
@@ -353,9 +353,6 @@ void G_RegisterCvars(void) {
 		trap_Cvar_SetValue("g_gametype", 0);
 		trap_Cvar_Update(&g_gametype);
 	}
-
-	trap_Cvar_Set("sv_gametypeName", bg_displayGametypeNames[g_gametype.integer]);
-	trap_Cvar_Set("sv_gametypeNetName", bg_netGametypeNames[g_gametype.integer]);
 
 	level.warmupModificationCount = g_warmup.modificationCount;
 }

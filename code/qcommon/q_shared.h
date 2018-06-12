@@ -1251,9 +1251,6 @@ typedef enum {
 	GT_MAX_GAME_TYPE
 } gametype_t;
 
-extern const char *bg_netGametypeNames[GT_MAX_GAME_TYPE];
-extern const char *bg_displayGametypeNames[GT_MAX_GAME_TYPE];
-
 #define MAX_GLOBAL_SERVERS 4096
 #define MAX_OTHER_SERVERS 128
 #define MAX_PINGREQUESTS 32

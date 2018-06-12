@@ -202,13 +202,15 @@ void CG_MissileHitWall(int weapon, int clientNum, vec3_t origin, vec3_t dir) {
 		le->light = light;
 
 		VectorCopy(lightColor, le->lightColor);
-		// colorize with client color
-		VectorCopy(cgs.clientinfo[clientNum].color1, le->color);
 
-		le->refEntity.shaderRGBA[0] = le->color[0] * 0xff;
-		le->refEntity.shaderRGBA[1] = le->color[1] * 0xff;
-		le->refEntity.shaderRGBA[2] = le->color[2] * 0xff;
-		le->refEntity.shaderRGBA[3] = 0xff;
+		if (weapon == WP_RAILGUN) {
+			// colorize with client color
+			VectorCopy(cgs.clientinfo[clientNum].color1, le->color);
+			le->refEntity.shaderRGBA[0] = le->color[0] * 0xff;
+			le->refEntity.shaderRGBA[1] = le->color[1] * 0xff;
+			le->refEntity.shaderRGBA[2] = le->color[2] * 0xff;
+			le->refEntity.shaderRGBA[3] = 0xff;
+		}
 	}
 	// impact mark
 	alphaFade = (mark == cgs.media.energyMarkShader); // plasma fades alpha, all others fade color
@@ -239,11 +241,9 @@ void CG_MissileHitPlayer(int weapon, vec3_t origin, vec3_t dir, int entityNum) {
 	CG_Bleed(origin, entityNum);
 	// some weapons will make an explosion with the blood, while others will just make the blood
 	switch (weapon) {
-		case WP_CHAINGUN:
 		case WP_NAILGUN:
 		case WP_PROXLAUNCHER:
 		case WP_GRENADELAUNCHER:
-		case WP_NAPALMLAUNCHER:
 		case WP_ROCKETLAUNCHER:
 		case WP_PLASMAGUN:
 		case WP_BFG:
@@ -1437,7 +1437,7 @@ void CG_RegisterWeapon(int weaponNum) {
 			weaponInfo->missileTrailFunc = CG_GrenadeTrail;
 			weaponInfo->wiTrailTime = 700;
 			weaponInfo->trailRadius = 32;
-			weaponInfo->flashSound[0] = trap_S_RegisterSound("sound/weapons/napalm/napalmf1.wav", qfalse);
+			weaponInfo->flashSound[0] = trap_S_RegisterSound("sound/weapons/grenade/grenlf1a.wav", qfalse);
 			cgs.media.grenadeExplosionShader = trap_R_RegisterShader("grenadeExplosion");
 			break;
 		case WP_ROCKETLAUNCHER:
@@ -1472,8 +1472,8 @@ void CG_RegisterWeapon(int weaponNum) {
 			cgs.media.railCoreShader = trap_R_RegisterShader("railCore");
 			break;
 		case WP_PLASMAGUN:
-			MAKERGB(weaponInfo->flashDlightColor, 0.7f, 0.8f, 1.0f);
-			weaponInfo->missileDlight = 100;
+//			MAKERGB(weaponInfo->flashDlightColor, 0.7f, 0.8f, 1.0f);
+//			weaponInfo->missileDlight = 100;
 			MAKERGB(weaponInfo->missileDlightColor, 0.7f, 0.8f, 1.0f);
 			weaponInfo->missileTrailFunc = CG_PlasmaTrail;
 			weaponInfo->missileSound = trap_S_RegisterSound("sound/weapons/plasma/lasfly.wav", qfalse);
@@ -1716,15 +1716,17 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent,
 	gun.shadowPlane = parent->shadowPlane;
 	gun.renderfx = parent->renderfx;
 	// set custom shading for railgun refire rate
-	if (weaponNum == WP_RAILGUN && cent->pe.railFireTime + 1500 > cg.time) {
-		int scale = 255 * (cg.time - cent->pe.railFireTime) / 1500;
+	if (weaponNum == WP_RAILGUN) {
+		if (cent->pe.railFireTime + 1500 > cg.time) {
+			int scale = 255 * (cg.time - cent->pe.railFireTime) / 1500;
 
-		gun.shaderRGBA[0] = (ci->c1RGBA[0] * scale) >> 8;
-		gun.shaderRGBA[1] = (ci->c1RGBA[1] * scale) >> 8;
-		gun.shaderRGBA[2] = (ci->c1RGBA[2] * scale) >> 8;
-		gun.shaderRGBA[3] = 255;
-	} else {
-		Byte4Copy(ci->c1RGBA, gun.shaderRGBA);
+			gun.shaderRGBA[0] = (ci->c1RGBA[0] * scale) >> 8;
+			gun.shaderRGBA[1] = (ci->c1RGBA[1] * scale) >> 8;
+			gun.shaderRGBA[2] = (ci->c1RGBA[2] * scale) >> 8;
+			gun.shaderRGBA[3] = 255;
+		} else {
+			Byte4Copy(ci->c1RGBA, gun.shaderRGBA);
+		}
 	}
 	// make sure we aren't looking at cg.predictedPlayerEntity for LG
 	nonPredictedCent = &cg_entities[cent->currentState.clientNum];

@@ -279,7 +279,7 @@ static void CG_Item(centity_t *cent) {
 		cent->lerpOrigin[2] += 12; // an extra height boost
 	}
 
-	if (item->giType == IT_WEAPON) {
+	if (item->giType == IT_WEAPON && item->giTag == WP_RAILGUN) {
 		clientInfo_t *ci = &cgs.clientinfo[cg.snap->ps.clientNum];
 
 		Byte4Copy(ci->c1RGBA, ent.shaderRGBA);
