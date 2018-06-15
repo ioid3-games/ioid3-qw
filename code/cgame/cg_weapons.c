@@ -2091,7 +2091,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 */
 
-#define HUD_ICONSIZE 24
+#define HUD_ICONSIZE 28
 #define HUD_ICONSIZESEL 8
 #define HUD_ICONSPACE 4
 #define HUD_X (320 - (HUD_ICONSIZE / 2))
@@ -2105,10 +2105,14 @@ CG_DrawWeaponSelect
 void CG_DrawWeaponSelect(void) {
 	int bits[MAX_WEAPONS / (sizeof(int) * 8)], count, i, x, y, diff, weap;
 	float *color, dist;
-	vec4_t fadecolor = {1.0f, 1.0f, 1.0f, 1.0f};
 	char *name;
+	vec4_t fadecolor = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	CG_SetScreenPlacement(PLACE_CENTER, PLACE_BOTTOM);
+
+	if (cg_drawWeaponBar.value <= 0) {
+		return;
+	}
 	// don't display if dead
 	if (cg.predictedPlayerState.stats[STAT_HEALTH] <= 0) {
 		return;
@@ -2117,11 +2121,8 @@ void CG_DrawWeaponSelect(void) {
 	color = CG_FadeColor(cg.weaponSelectTime, WEAPON_SELECT_TIME * 2);
 
 	if (!color) {
-		cg.bar_offset = 0;
 		return;
 	}
-
-	cg.bar_offset = color[3] * color[3];
 
 	trap_R_SetColor(color);
 #ifndef BASEGAME
@@ -2139,18 +2140,17 @@ void CG_DrawWeaponSelect(void) {
 		}
 	}
 
-	cg.bar_count = count;
-	y = 380;
-
 	if (count <= 0) {
 		return;
 	}
+
+	y = 380;
 	// draw current selection:
 	CG_DrawPic(HUD_X - HUD_ICONSIZESEL / 2, y - HUD_ICONSIZESEL / 2, HUD_ICONSIZE + HUD_ICONSIZESEL, HUD_ICONSIZE + HUD_ICONSIZESEL, cg_weapons[cg.weaponSelect].weaponIcon);
 	CG_DrawPic(HUD_X - HUD_ICONSIZESEL / 2, y - HUD_ICONSIZESEL / 2, HUD_ICONSIZE + HUD_ICONSIZESEL, HUD_ICONSIZE + HUD_ICONSIZESEL, cgs.media.selectShader);
 
-	diff = 1;
 	weap = 0;
+	diff = 1;
 
 	for (i = 0; i < 17; i++) {
 		weap = cg.weaponSelect + i;
@@ -2177,7 +2177,6 @@ void CG_DrawWeaponSelect(void) {
 		fadecolor[3] = 1.0f - (dist / HUD_FADE_DIST);
 
 		trap_R_SetColor(fadecolor);
-
 		CG_DrawPic(x, y, HUD_ICONSIZE, HUD_ICONSIZE, cg_weapons[weap].weaponIcon);
 		// no ammo cross on top
 		if (!cg.snap->ps.ammo[weap]) {
@@ -2196,7 +2195,6 @@ void CG_DrawWeaponSelect(void) {
 		fadecolor[3] = 1.0f - (dist / HUD_FADE_DIST);
 
 		trap_R_SetColor(fadecolor);
-
 		CG_DrawPic(x, y, HUD_ICONSIZE, HUD_ICONSIZE, cg_weapons[weap].weaponIcon);
 		// no ammo cross on top
 		if (!cg.snap->ps.ammo[weap]) {
@@ -2204,11 +2202,10 @@ void CG_DrawWeaponSelect(void) {
 		}
 
 		trap_R_SetColor(color);
-
 	}
 
-	diff = -1;
 	weap = 0;
+	diff = -1;
 
 	for (i = 0; i < 17; i++) {
 		weap = cg.weaponSelect - i;
@@ -2235,7 +2232,6 @@ void CG_DrawWeaponSelect(void) {
 		fadecolor[3] = 1.0f - (dist / HUD_FADE_DIST);
 
 		trap_R_SetColor(fadecolor);
-
 		CG_DrawPic(x, y, HUD_ICONSIZE, HUD_ICONSIZE, cg_weapons[weap].weaponIcon);
 		// no ammo cross on top
 		if (!cg.snap->ps.ammo[weap]) {
@@ -2254,7 +2250,6 @@ void CG_DrawWeaponSelect(void) {
 		fadecolor[3] = 1.0f - (dist / HUD_FADE_DIST);
 
 		trap_R_SetColor(fadecolor);
-
 		CG_DrawPic(x, y, HUD_ICONSIZE, HUD_ICONSIZE, cg_weapons[weap].weaponIcon);
 		// no ammo cross on top
 		if (!cg.snap->ps.ammo[weap]) {
@@ -2262,7 +2257,6 @@ void CG_DrawWeaponSelect(void) {
 		}
 
 		trap_R_SetColor(color);
-
 	}
 	// draw the selected name
 	if (cg_weapons[cg.weaponSelect].item) {
