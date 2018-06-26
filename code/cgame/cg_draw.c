@@ -934,7 +934,7 @@ static float CG_DrawTeamOverlay(float y, qboolean right, qboolean upper) {
 	}
 
 	if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_RED && cg.snap->ps.persistant[PERS_TEAM] != TEAM_BLUE) {
-		return y; // Not on any team
+		return y; // not on any team
 	}
 
 	plyrs = 0;

@@ -389,7 +389,7 @@ static void CL_CaptureVoip(void) {
 	qboolean initialFrame = qfalse;
 	qboolean finalFrame = qfalse;
 #if USE_MUMBLE
-	// if we're using Mumble, don't try to handle VoIP transmission ourselves.
+	// if we're using Mumble, don't try to handle VoIP transmission ourselves
 	if (cl_useMumble->integer) {
 		return;
 	}
@@ -412,11 +412,11 @@ static void CL_CaptureVoip(void) {
 	}
 
 	if (!clc.voipCodecInitialized) {
-		return; // just in case this gets called at a bad time.
+		return; // just in case this gets called at a bad time
 	}
 
 	if (clc.voipOutgoingDataSize > 0) {
-		return; // packet is pending transmission, don't record more yet.
+		return; // packet is pending transmission, don't record more yet
 	}
 
 	if (cl_voipUseVAD->modified) {
@@ -425,22 +425,22 @@ static void CL_CaptureVoip(void) {
 	}
 
 	if ((useVad) && (!cl_voipSend->integer)) {
-		Cvar_Set("cl_voipSend", "1"); // lots of things reset this.
+		Cvar_Set("cl_voipSend", "1"); // lots of things reset this
 	}
 
 	if (cl_voipSend->modified) {
 		qboolean dontCapture = qfalse;
 
 		if (clc.state != CA_ACTIVE) {
-			dontCapture = qtrue; // not connected to a server.
+			dontCapture = qtrue; // not connected to a server
 		} else if (!clc.voipEnabled) {
-			dontCapture = qtrue; // server doesn't support VoIP.
+			dontCapture = qtrue; // server doesn't support VoIP
 		} else if (clc.demoplaying) {
-			dontCapture = qtrue; // playing back a demo.
+			dontCapture = qtrue; // playing back a demo
 		} else if (cl_voip->integer == 0) {
-			dontCapture = qtrue; // client has VoIP support disabled.
+			dontCapture = qtrue; // client has VoIP support disabled
 		} else if (audioMult == 0.0f) {
-			dontCapture = qtrue; // basically silenced incoming audio.
+			dontCapture = qtrue; // basically silenced incoming audio
 		}
 
 		cl_voipSend->modified = qfalse;
@@ -489,7 +489,7 @@ static void CL_CaptureVoip(void) {
 
 			voipFrames = samples / VOIP_MAX_FRAME_SAMPLES;
 
-			S_Capture(samples, (byte *)sampbuffer); // grab from audio card.
+			S_Capture(samples, (byte *)sampbuffer); // grab from audio card
 			// check the "power" of this packet...
 			for (i = 0; i < samples; i++) {
 				const float flsamp = (float)sampbuffer[i];
@@ -509,7 +509,7 @@ static void CL_CaptureVoip(void) {
 			clc.voipPower = (voipPower / (32768.0f * 32768.0f * ((float)samples))) * 100.0f;
 
 			if ((useVad) && (clc.voipPower < cl_voipVADThreshold->value)) {
-				CL_VoipNewGeneration(); // no "talk" for at least 1/4 second.
+				CL_VoipNewGeneration(); // no "talk" for at least 1/4 second
 			} else {
 				clc.voipOutgoingDataSize = bytes;
 				clc.voipOutgoingDataFrames = voipFrames;
@@ -545,7 +545,7 @@ static void CL_CaptureVoip(void) {
 	if (finalFrame) {
 		S_StopCapture();
 		S_MasterGain(1.0f);
-		clc.voipPower = 0.0f; // force this value so it doesn't linger.
+		clc.voipPower = 0.0f; // force this value so it doesn't linger
 	}
 }
 #endif
@@ -1304,6 +1304,7 @@ static void CL_UpdateGUID(const char *prefix, int prefix_len) {
 	int len;
 
 	len = FS_SV_FOpenFileRead(QKEY_FILE, &f);
+
 	FS_FCloseFile(f);
 
 	if (len != QKEY_SIZE) {
@@ -1821,7 +1822,6 @@ void CL_Rcon_f(void) {
 			Com_Printf("You must either be connected,\n"
 						"or set the 'rconAddress' cvar\n"
 						"to issue rcon commands\n");
-
 			return;
 		}
 
@@ -2672,7 +2672,7 @@ void CL_PacketEvent(netadr_t from, msg_t *msg) {
 	}
 
 	if (!CL_Netchan_Process(&clc.netchan, msg)) {
-		return; // out of order, duplicated, etc
+		return; // out of order, duplicated, etc.
 	}
 	// the header is different lengths for reliable and unreliable messages
 	headerBytes = msg->readcount;

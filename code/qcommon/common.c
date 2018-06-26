@@ -1195,6 +1195,7 @@ Z_LogHeap
 =======================================================================================================================================
 */
 void Z_LogHeap(void) {
+
 	Z_LogZoneHeap(mainzone, "MAIN");
 	Z_LogZoneHeap(smallzone, "SMALL");
 }
@@ -3221,7 +3222,9 @@ void Com_Shutdown(void) {
 
 /*
 =======================================================================================================================================
-command line completion
+
+	COMMAND LINE COMPLETION
+
 =======================================================================================================================================
 */
 
@@ -3412,6 +3415,7 @@ void Field_CompleteCommand(char *cmd, qboolean doCommands, qboolean doCvars) {
 			}
 
 			memmove(&completionField->buffer[1], &completionField->buffer[0], strlen(completionField->buffer) + 1);
+
 			completionField->cursor++;
 		}
 

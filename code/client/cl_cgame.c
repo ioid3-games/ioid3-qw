@@ -174,6 +174,7 @@ CL_SetUserCmdValue
 =======================================================================================================================================
 */
 void CL_SetUserCmdValue(int userCmdValue, float sensitivityScale) {
+
 	cl.cgameUserCmdValue = userCmdValue;
 	cl.cgameSensitivity = sensitivityScale;
 }
@@ -861,6 +862,7 @@ void CL_FirstSnapshot(void) {
 #ifdef USE_MUMBLE
 	if ((cl_useMumble->integer) && !mumble_islinked()) {
 		int ret = mumble_link(CLIENT_WINDOW_TITLE);
+
 		Com_Printf("Mumble: Linking to Mumble application %s\n", ret == 0 ? "ok" : "failed");
 	}
 #endif

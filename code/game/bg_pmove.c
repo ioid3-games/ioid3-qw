@@ -1881,7 +1881,7 @@ void PmoveSingle(pmove_t *pmove) {
 		PM_FlyMove();
 	} else if (pm->ps->pm_flags & PMF_GRAPPLE_PULL) {
 		PM_GrappleMove();
-		// We can wiggle a bit
+		// we can wiggle a bit
 		PM_AirMove();
 	} else if (pm->ps->pm_flags & PMF_TIME_WATERJUMP) {
 		PM_WaterJumpMove();
