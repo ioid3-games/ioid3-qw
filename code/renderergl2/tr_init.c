@@ -231,6 +231,7 @@ static void InitOpenGL(void) {
 		Q_strlwr(renderer_buffer);
 		// OpenGL driver constants
 		qglGetIntegerv(GL_MAX_TEXTURE_SIZE, &temp);
+
 		glConfig.maxTextureSize = temp;
 		// stubbed or broken drivers may have reported 0...
 		if (glConfig.maxTextureSize <= 0) {
@@ -369,8 +370,8 @@ static void R_ModeList_f(void) {
 
 	NOTE TTimo some thoughts about the screenshots system:
 	screenshots get written in fs_homepath + fs_gamedir
-	vanilla q3 .. baseq3/screenshots/*.tga
-	team arena .. missionpack/screenshots/*.tga
+	vanilla q3 .. baseq3/screenshots/shot000*.tga
+	team arena .. missionpack/screenshots/shot000*.tga
 
 	two commands: "screenshot" and "screenshotJPEG"
 	we use statics to store a count and start writing the first screenshot/screenshot????.tga (.jpg) available (with FS_FileExists/
@@ -526,7 +527,6 @@ void R_TakeScreenshot(int x, int y, int width, int height, char *name, qboolean 
 	}
 
 	cmd->commandId = RC_SCREENSHOT;
-
 	cmd->x = x;
 	cmd->y = y;
 	cmd->width = width;
@@ -741,8 +741,7 @@ void R_ScreenShotJPEG_f(void) {
 	} else {
 		// scan for a free filename
 
-		// if we have saved a previous screenshot, don't scan again, because recording demo avis can involve
-		// thousands of shots
+		// if we have saved a previous screenshot, don't scan again, because recording demo avis can involve thousands of shots
 		if (lastNumber == -1) {
 			lastNumber = 0;
 		}
@@ -901,6 +900,7 @@ void GL_SetDefaultState(void) {
 
 	qglBindBuffer(GL_ARRAY_BUFFER, 0);
 	qglBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 	glState.currentVao = NULL;
 	glState.vertexAttribsEnabled = 0;
 
@@ -1085,7 +1085,7 @@ void R_Register(void) {
 	r_ext_texture_env_add = ri.Cvar_Get("r_ext_texture_env_add", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	r_ext_framebuffer_object = ri.Cvar_Get("r_ext_framebuffer_object", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	r_ext_texture_float = ri.Cvar_Get("r_ext_texture_float", "1", CVAR_ARCHIVE|CVAR_LATCH);
-	r_ext_framebuffer_multisample = ri.Cvar_Get("r_ext_framebuffer_multisample", "0", CVAR_ARCHIVE|CVAR_LATCH);
+	r_ext_framebuffer_multisample = ri.Cvar_Get("r_ext_framebuffer_multisample", "8", CVAR_ARCHIVE|CVAR_LATCH);
 	r_arb_seamless_cube_map = ri.Cvar_Get("r_arb_seamless_cube_map", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	r_arb_vertex_array_object = ri.Cvar_Get("r_arb_vertex_array_object", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	r_ext_direct_state_access = ri.Cvar_Get("r_ext_direct_state_access", "1", CVAR_ARCHIVE|CVAR_LATCH);
@@ -1102,7 +1102,7 @@ void R_Register(void) {
 	r_depthbits = ri.Cvar_Get("r_depthbits", "24", CVAR_ARCHIVE|CVAR_LATCH);
 	r_ext_multisample = ri.Cvar_Get("r_ext_multisample", "4", CVAR_ARCHIVE|CVAR_LATCH);
 	ri.Cvar_CheckRange(r_ext_multisample, 0, 4, qtrue);
-	r_overBrightBits = ri.Cvar_Get("r_overBrightBits", "1", CVAR_ARCHIVE|CVAR_LATCH);
+	r_overBrightBits = ri.Cvar_Get("r_overBrightBits", "0", CVAR_ARCHIVE|CVAR_LATCH);
 	r_ignorehwgamma = ri.Cvar_Get("r_ignorehwgamma", "0", CVAR_ARCHIVE|CVAR_LATCH);
 	r_mode = ri.Cvar_Get("r_mode", "-2", CVAR_ARCHIVE|CVAR_LATCH);
 	r_fullscreen = ri.Cvar_Get("r_fullscreen", "1", CVAR_ARCHIVE);
@@ -1138,7 +1138,7 @@ void R_Register(void) {
 	r_deluxeMapping = ri.Cvar_Get("r_deluxeMapping", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	r_parallaxMapping = ri.Cvar_Get("r_parallaxMapping", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	r_cubeMapping = ri.Cvar_Get("r_cubeMapping", "1", CVAR_ARCHIVE|CVAR_LATCH);
-	r_cubemapSize = ri.Cvar_Get("r_cubemapSize", "128", CVAR_ARCHIVE|CVAR_LATCH);
+	r_cubemapSize = ri.Cvar_Get("r_cubemapSize", "64", CVAR_ARCHIVE|CVAR_LATCH);
 	r_deluxeSpecular = ri.Cvar_Get("r_deluxeSpecular", "0.3", CVAR_ARCHIVE|CVAR_LATCH);
 	r_pbr = ri.Cvar_Get("r_pbr", "0", CVAR_ARCHIVE|CVAR_LATCH);
 	r_baseNormalX = ri.Cvar_Get("r_baseNormalX", "1.0", CVAR_ARCHIVE|CVAR_LATCH);
@@ -1147,18 +1147,18 @@ void R_Register(void) {
 	r_baseSpecular = ri.Cvar_Get("r_baseSpecular", "0.04", CVAR_ARCHIVE|CVAR_LATCH);
 	r_baseGloss = ri.Cvar_Get("r_baseGloss", "0.3", CVAR_ARCHIVE|CVAR_LATCH);
 	r_glossType = ri.Cvar_Get("r_glossType", "1", CVAR_ARCHIVE|CVAR_LATCH);
-	r_dlightMode = ri.Cvar_Get("r_dlightMode", "0", CVAR_ARCHIVE|CVAR_LATCH);
+	r_dlightMode = ri.Cvar_Get("r_dlightMode", "2", CVAR_ARCHIVE|CVAR_LATCH);
 	r_pshadowDist = ri.Cvar_Get("r_pshadowDist", "128", CVAR_ARCHIVE);
 	r_mergeLightmaps = ri.Cvar_Get("r_mergeLightmaps", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	r_imageUpsample = ri.Cvar_Get("r_imageUpsample", "0", CVAR_ARCHIVE|CVAR_LATCH);
 	r_imageUpsampleMaxSize = ri.Cvar_Get("r_imageUpsampleMaxSize", "1024", CVAR_ARCHIVE|CVAR_LATCH);
 	r_imageUpsampleType = ri.Cvar_Get("r_imageUpsampleType", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	r_genNormalMaps = ri.Cvar_Get("r_genNormalMaps", "0", CVAR_ARCHIVE|CVAR_LATCH);
-	r_forceSun = ri.Cvar_Get("r_forceSun", "0", CVAR_CHEAT);
+	r_forceSun = ri.Cvar_Get("r_forceSun", "1", CVAR_CHEAT);
 	r_forceSunLightScale = ri.Cvar_Get("r_forceSunLightScale", "1.0", CVAR_CHEAT);
 	r_forceSunAmbientScale = ri.Cvar_Get("r_forceSunAmbientScale", "0.5", CVAR_CHEAT);
 	r_drawSunRays = ri.Cvar_Get("r_drawSunRays", "1", CVAR_ARCHIVE|CVAR_LATCH);
-	r_sunlightMode = ri.Cvar_Get("r_sunlightMode", "1", CVAR_ARCHIVE|CVAR_LATCH);
+	r_sunlightMode = ri.Cvar_Get("r_sunlightMode", "2", CVAR_ARCHIVE|CVAR_LATCH);
 	r_sunShadows = ri.Cvar_Get("r_sunShadows", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	r_shadowFilter = ri.Cvar_Get("r_shadowFilter", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	r_shadowBlur = ri.Cvar_Get("r_shadowBlur", "1", CVAR_ARCHIVE|CVAR_LATCH);
@@ -1185,7 +1185,7 @@ void R_Register(void) {
 	r_ignoreGLErrors = ri.Cvar_Get("r_ignoreGLErrors", "1", CVAR_ARCHIVE);
 	r_fastsky = ri.Cvar_Get("r_fastsky", "0", CVAR_ARCHIVE);
 	r_inGameVideo = ri.Cvar_Get("r_inGameVideo", "1", CVAR_ARCHIVE);
-	r_drawSun = ri.Cvar_Get("r_drawSun", "0", CVAR_ARCHIVE);
+	r_drawSun = ri.Cvar_Get("r_drawSun", "1", CVAR_ARCHIVE);
 	r_dynamiclight = ri.Cvar_Get("r_dynamiclight", "1", CVAR_ARCHIVE);
 	r_dlightBacks = ri.Cvar_Get("r_dlightBacks", "1", CVAR_ARCHIVE);
 	r_finish = ri.Cvar_Get("r_finish", "1", CVAR_ARCHIVE);
@@ -1307,7 +1307,7 @@ void R_Init(void) {
 		ri.Error(ERR_FATAL, "Mod ABI incompatible: sizeof(glconfig_t) == %u != 11332", (unsigned int)sizeof(glconfig_t));
 	}
 
-//	Swap_Init();
+	//Swap_Init();
 
 	if ((intptr_t)tess.xyz & 15) {
 		ri.Printf(PRINT_WARNING, "tess.xyz not 16 byte aligned\n");
