@@ -1,6 +1,6 @@
 /*
 =======================================================================================================================================
-Copyright (C) 2010 James Canete (use.less01@gmail.com)
+Copyright (C) 2010 James Canete (use.less01@gmail.com).
 
 This file is part of Spearmint Source Code.
 

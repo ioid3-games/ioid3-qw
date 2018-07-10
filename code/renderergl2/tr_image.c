@@ -1,6 +1,6 @@
 /*
 =======================================================================================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
+Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company.
 
 This file is part of Spearmint Source Code.
 
