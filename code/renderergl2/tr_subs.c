@@ -1,6 +1,6 @@
 /*
 =======================================================================================================================================
-Copyright (C) 2010 James Canete (use.less01@gmail.com).
+Copyright (C) 2010 James Canete (use.less01@gmail.com)
 
 This file is part of Spearmint Source Code.
 
@@ -22,14 +22,20 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 =======================================================================================================================================
 */
 
-// tr_subs.c - common function replacements for modular renderer
+/**************************************************************************************************************************************
+ Common function replacements for modular renderer.
+**************************************************************************************************************************************/
 
 #include "tr_local.h"
 
-void QDECL Com_Printf( const char *msg, ... )
-{
-	va_list         argptr;
-	char            text[1024];
+/*
+=======================================================================================================================================
+Com_Printf
+=======================================================================================================================================
+*/
+void QDECL Com_Printf(const char *msg, ...) {
+	va_list argptr;
+	char text[1024];
 
 	va_start(argptr, msg);
 	Q_vsnprintf(text, sizeof(text), msg, argptr);
@@ -38,10 +44,14 @@ void QDECL Com_Printf( const char *msg, ... )
 	ri.Printf(PRINT_ALL, "%s", text);
 }
 
-void QDECL Com_Error( int level, const char *error, ... )
-{
-	va_list         argptr;
-	char            text[1024];
+/*
+=======================================================================================================================================
+Com_Error
+=======================================================================================================================================
+*/
+void QDECL Com_Error(int level, const char *error, ...) {
+	va_list argptr;
+	char text[1024];
 
 	va_start(argptr, error);
 	Q_vsnprintf(text, sizeof(text), error, argptr);
