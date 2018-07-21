@@ -680,9 +680,9 @@ char *MSG_ReadBigString(msg_t *msg) {
 
 		string[l++] = c;
 	} while (1);
-	
+
 	string[l] = '\0';
-	
+
 	return string;
 }
 
@@ -718,9 +718,9 @@ char *MSG_ReadStringLine(msg_t *msg) {
 
 		string[l++] = c;
 	} while (1);
-	
+
 	string[l] = '\0';
-	
+
 	return string;
 }
 
@@ -1265,7 +1265,7 @@ void MSG_ReadDeltaEntity(msg_t *msg, entityState_t *from, entityState_t *to, int
 				}
 			}
 
-//			pcount[i]++;
+			//pcount[i]++;
 		}
 	}
 
@@ -1399,7 +1399,7 @@ void MSG_WriteDeltaPlayerstate(msg_t *msg, struct playerState_s *from, struct pl
 		}
 
 		MSG_WriteBits(msg, 1, 1); // changed
-//		pcount[i]++;
+		//pcount[i]++;
 
 		if (field->bits == 0) {
 			// float

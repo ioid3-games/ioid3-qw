@@ -100,11 +100,11 @@ cvar_t *com_busyWait;
 cvar_t *con_autochat;
 #endif
 #if idx64
-	int (*Q_VMftol)(void);
+int (*Q_VMftol)(void);
 #elif id386
-	long (QDECL *Q_ftol)(float f);
-	int (QDECL *Q_VMftol)(void);
-	void (QDECL *Q_SnapVector)(vec3_t vec);
+long (QDECL *Q_ftol)(float f);
+int (QDECL *Q_VMftol)(void);
+void (QDECL *Q_SnapVector)(vec3_t vec);
 #endif
 // com_speeds times
 int time_game;
@@ -1740,7 +1740,6 @@ void Hunk_Clear(void) {
 	hunk_temp = &hunk_high;
 
 	Com_Printf("Hunk_Clear: reset the hunk ok\n");
-
 	VM_Clear();
 #ifdef HUNK_DEBUG
 	hunkblocks = NULL;
@@ -3080,7 +3079,7 @@ void Com_Frame(void) {
 			if (bias > minMsec) {
 				bias = minMsec;
 			}
-			// adjust minMsec if previous frame took too long to render so that framerate is stable at the requested value.
+			// adjust minMsec if previous frame took too long to render so that framerate is stable at the requested value
 			minMsec -= bias;
 		}
 	} else {
