@@ -691,9 +691,7 @@ void R_ScreenShot_f(void) {
 		Com_sprintf(checkname, MAX_OSPATH, "screenshots/%s.tga", ri.Cmd_Argv(1));
 	} else {
 		// scan for a free filename
-
-		// if we have saved a previous screenshot, don't scan again, because recording demo avis can involve
-		// thousands of shots
+		// if we have saved a previous screenshot, don't scan again, because recording demo avis can involve thousands of shots
 		if (lastNumber == -1) {
 			lastNumber = 0;
 		}
@@ -707,7 +705,7 @@ void R_ScreenShot_f(void) {
 		}
 
 		if (lastNumber >= 9999) {
-			ri.Printf(PRINT_ALL, "ScreenShot: Couldn't create a file\n"); 
+			ri.Printf(PRINT_ALL, "ScreenShot: Couldn't create a file\n");
 			return;
 		}
 
@@ -762,7 +760,7 @@ void R_ScreenShotJPEG_f(void) {
 		}
 
 		if (lastNumber == 10000) {
-			ri.Printf(PRINT_ALL, "ScreenShot: Couldn't create a file\n"); 
+			ri.Printf(PRINT_ALL, "ScreenShot: Couldn't create a file\n");
 			return;
 		}
 
@@ -1071,6 +1069,7 @@ void GfxMemInfo_f(void) {
 			qglGetIntegerv(GL_RENDERBUFFER_FREE_MEMORY_ATI, &value[0]);
 			ri.Printf(PRINT_ALL, "RENDERBUFFER_FREE_MEMORY_ATI: %ikb total %ikb largest aux: %ikb total %ikb largest\n", value[0], value[1], value[2], value[3]);
 		}
+
 		break;
 	}
 }

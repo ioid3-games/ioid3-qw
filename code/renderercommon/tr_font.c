@@ -209,6 +209,7 @@ static glyphInfo_t *RE_ConstructGlyphInfo(unsigned char *imageOut, int *xOut, in
 	// make sure everything is here
 	if (face != NULL) {
 		FT_Load_Glyph(face, FT_Get_Char_Index(face, c), FT_LOAD_DEFAULT);
+
 		bitmap = R_RenderGlyph(face->glyph, &glyph);
 
 		if (bitmap) {
@@ -267,7 +268,7 @@ static glyphInfo_t *RE_ConstructGlyphInfo(unsigned char *imageOut, int *xOut, in
 						*_dst = 0xff;
 					}
 
-					mask >> = 1;
+					mask >>= 1;
 
 					if (mask == 0) {
 						mask = 0x80;
@@ -520,7 +521,7 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font) {
 
 			Com_sprintf(name, sizeof(name), "fonts/fontImage_%i_%i.tga", imageNumber++, pointSize);
 
-			if (r_saveFontData->integer) { 
+			if (r_saveFontData->integer) {
 				WriteTGA(name, imageBuff, 256, 256);
 			}
 
