@@ -615,7 +615,7 @@ void CL_WriteDemoMessage(msg_t *msg, int headerBytes) {
 =======================================================================================================================================
 CL_StopRecord_f
 
-stop recording a demo.
+Stop recording a demo.
 =======================================================================================================================================
 */
 void CL_StopRecord_f(void) {
@@ -662,6 +662,7 @@ void CL_DemoFilename(int number, char *fileName, int fileNameSize) {
 	Com_sprintf(fileName, fileNameSize, "demo%i%i%i%i", a, b, c, d);
 }
 
+static char demoName[MAX_QPATH]; // compiler bug workaround
 /*
 =======================================================================================================================================
 CL_Record_f
@@ -671,7 +672,6 @@ record <demoname>
 Begins recording a demo from the current position.
 =======================================================================================================================================
 */
-static char demoName[MAX_QPATH]; // compiler bug workaround
 void CL_Record_f(void) {
 	char name[MAX_OSPATH];
 	byte bufData[MAX_MSGLEN];
@@ -2271,7 +2271,6 @@ void CL_CheckForResend(void) {
 
 			Info_SetValueForKey(info, "qport", va("%i", port));
 			Info_SetValueForKey(info, "challenge", va("%i", clc.challenge));
-
 			Com_sprintf(data, sizeof(data), "connect \"%s\"", info);
 			NET_OutOfBandData(NS_CLIENT, clc.serverAddress, (byte *)data, strlen(data));
 			// the most current userinfo has been sent, so watch for any newer changes to userinfo variables

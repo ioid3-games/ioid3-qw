@@ -370,7 +370,7 @@ AAS_BFGJumpZVelocity
 =======================================================================================================================================
 */
 float AAS_BFGJumpZVelocity(vec3_t origin) {
-	// bfg radius damage is 120 (g_weapon.c: weapon_bfg_fire)
+	// bfg radius damage is 120 (g_weapon.c: Weapon_BFG_Fire)
 	return AAS_WeaponJumpZVelocity(origin, 120);
 }
 

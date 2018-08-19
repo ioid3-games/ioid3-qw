@@ -298,7 +298,6 @@ iteminfo "weapon_bfg"
 //===================================
 // AMMO
 //===================================
-
 iteminfo "ammo_bullets"
 {
 	name		"Bullets"
