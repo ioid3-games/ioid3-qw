@@ -3486,18 +3486,18 @@ static void UI_StartSinglePlayer(void) {
 		k = UI_TeamIndexFromName(UI_Cvar_VariableString("ui_opponentName"));
 
 		for (i = 0; i < PLAYERS_PER_TEAM; i++) {
-			Com_sprintf(buff, sizeof(buff), "wait; addbot %s %i %s 250 %s\n", UI_AIFromName(teamList[k].teamMembers[i]), skill, "Blue", teamList[k].teamMembers[i]);
+			Com_sprintf(buff, sizeof(buff), "wait; addbot %s %i %s 250 %s\n", UI_AIFromName(teamList[k].teamMembers[i]), skill, "Red", teamList[k].teamMembers[i]);
 			trap_Cmd_ExecuteText(EXEC_APPEND, buff);
 		}
 
 		k = UI_TeamIndexFromName(UI_Cvar_VariableString("ui_teamName"));
 
 		for (i = 1; i < PLAYERS_PER_TEAM; i++) {
-			Com_sprintf(buff, sizeof(buff), "wait; addbot %s %i %s 250 %s\n", UI_AIFromName(teamList[k].teamMembers[i]), skill, "Red", teamList[k].teamMembers[i]);
+			Com_sprintf(buff, sizeof(buff), "wait; addbot %s %i %s 250 %s\n", UI_AIFromName(teamList[k].teamMembers[i]), skill, "Blue", teamList[k].teamMembers[i]);
 			trap_Cmd_ExecuteText(EXEC_APPEND, buff);
 		}
 
-		trap_Cmd_ExecuteText(EXEC_APPEND, "wait 5; team Red\n");
+		trap_Cmd_ExecuteText(EXEC_APPEND, "wait 5; team Blue\n");
 	}
 }
 */

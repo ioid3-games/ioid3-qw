@@ -1765,6 +1765,7 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent,
 
 		if (cent->pe.railFireTime + 1500 > cg.time) {
 			int scale = 255 * (cg.time - cent->pe.railFireTime) / 1500;
+
 			gun.shaderRGBA[0] = (ci->c1RGBA[0] * scale) >> 8;
 			gun.shaderRGBA[1] = (ci->c1RGBA[1] * scale) >> 8;
 			gun.shaderRGBA[2] = (ci->c1RGBA[2] * scale) >> 8;

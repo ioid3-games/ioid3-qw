@@ -37,7 +37,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define RF_THIRD_PERSON			0x0002 // don't draw through eyes, only mirrors (player bodies, chat sprites)
 #define RF_FIRST_PERSON			0x0004 // only draw through eyes (view weapon, damage blood blob)
 #define RF_DEPTHHACK			0x0008 // for view weapon Z crunching
-#define RF_CROSSHAIR			0x0010 // this item is a cross hair and will draw over everything similar to DEPTHHACK in stereo rendering mode, with the difference that the projection matrix won't be hacked to reduce the stereo separation as is done for the gun.
+#define RF_CROSSHAIR			0x0010 // this item is a cross hair and will draw over everything similar to DEPTHHACK in stereo rendering mode, with the difference that the projection matrix won't be hacked to reduce the stereo separation as is done for the gun
 #define RF_NOSHADOW				0x0040 // don't add stencil shadows
 #define RF_LIGHTING_ORIGIN		0x0080 // use refEntity->lightingOrigin instead of refEntity->origin for lighting. This allows entities to sink into the floor with their origin going solid, and allows all parts of a player to get the same lighting
 #define RF_SHADOW_PLANE			0x0100 // use refEntity->shadowPlane

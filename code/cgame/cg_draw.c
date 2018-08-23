@@ -2579,6 +2579,7 @@ static void CG_DrawWarmup(void) {
 			s = va("%s vs %s", ci1->name, ci2->name);
 #ifdef MISSIONPACK
 			w = CG_Text_Width(s, 0.6f, 0);
+
 			CG_Text_Paint(320 - w / 2, 60, 0.6f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
 #else
 			w = CG_DrawStrlen(s);
@@ -2610,6 +2611,7 @@ static void CG_DrawWarmup(void) {
 		}
 #ifdef MISSIONPACK
 		w = CG_Text_Width(s, 0.6f, 0);
+
 		CG_Text_Paint(320 - w / 2, 90, 0.6f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
 #else
 		w = CG_DrawStrlen(s);
@@ -2667,6 +2669,7 @@ static void CG_DrawWarmup(void) {
 	}
 
 	w = CG_Text_Width(s, scale, 0);
+
 	CG_Text_Paint(320 - w / 2, 125, scale, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
 #else
 	switch (cg.warmupCount) {

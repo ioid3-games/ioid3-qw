@@ -566,7 +566,7 @@ int trap_BotLibLoadMap(const char *mapname) {
 trap_BotLibUpdateEntity
 =======================================================================================================================================
 */
-int trap_BotLibUpdateEntity(int ent, void /* struct bot_updateentity_s */ *bue) {
+int trap_BotLibUpdateEntity(int ent, void /*struct bot_updateentity_s*/ *bue) {
 	return syscall(BOTLIB_UPDATENTITY, ent, bue);
 }
 

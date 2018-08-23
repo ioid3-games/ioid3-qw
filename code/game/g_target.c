@@ -216,7 +216,7 @@ void Use_Target_Speaker(gentity_t *ent, gentity_t *other, gentity_t *activator) 
 	}
 }
 
-/*QUAKED target_speaker (1 0 0) (-8 -8 -8) (8 8 8) looped-on looped-off global activator
+/*QUAKED target_speaker (1 0 0) (-8 -8 -8) (8 8 8) LOOPED_ON LOOPED_OFF GLOBAL ACTIVATOR
 "noise"		wav file to play
 
 A global sound will play full volume throughout the level.
@@ -225,8 +225,8 @@ Global and activator sounds can't be combined with looping.
 Normal sounds play each time the target is used.
 Looped sounds will be toggled by use functions.
 Multiple identical looping sounds will just increase volume without any speed cost.
-"wait" : Seconds between auto triggerings, 0 = don't auto trigger
-"random" wait variance, default is 0
+"wait" : Seconds between auto triggerings, 0 = don't auto trigger.
+"random" wait variance, default is 0.
 */
 void SP_target_speaker(gentity_t *ent) {
 	char buffer[MAX_QPATH];
