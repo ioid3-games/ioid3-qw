@@ -2432,7 +2432,7 @@ static void UI_DrawServerMOTD(rectDef_t *rect, float scale, vec4_t color) {
 		}
 
 		if (uiInfo.serverStatus.motdOffset && maxX > 0) {
-			// if we have an offset(we are skipping the first part of the string) and we fit the string
+			// if we have an offset (we are skipping the first part of the string) and we fit the string
 			if (uiInfo.serverStatus.motdPaintX2 == -1) {
 				uiInfo.serverStatus.motdPaintX2 = rect->x + rect->w - 2;
 			}
