@@ -851,7 +851,7 @@ int SV_WriteDownloadToClient(client_t *cl, msg_t *msg) {
 #ifndef STANDALONE
 		qboolean missionPack = qfalse;
 #endif
-		// chop off filename extension.
+		// chop off filename extension
 		Com_sprintf(pakbuf, sizeof(pakbuf), "%s", cl->downloadName);
 
 		pakptr = strrchr(pakbuf, '.');
@@ -862,7 +862,7 @@ int SV_WriteDownloadToClient(client_t *cl, msg_t *msg) {
 			if (!Q_stricmp(pakptr + 1, "pk3")) {
 				const char *referencedPaks = FS_ReferencedPakNames();
 
-				// check whether the file appears in the list of referenced paks to prevent downloading of arbitrary files.
+				// check whether the file appears in the list of referenced paks to prevent downloading of arbitrary files
 				Cmd_TokenizeStringIgnoreQuotes(referencedPaks);
 
 				numRefPaks = Cmd_Argc();
@@ -870,7 +870,7 @@ int SV_WriteDownloadToClient(client_t *cl, msg_t *msg) {
 				for (curindex = 0; curindex < numRefPaks; curindex++) {
 					if (!FS_FilenameCompare(Cmd_Argv(curindex), pakbuf)) {
 						unreferenced = 0;
-						// now that we know the file is referenced, check whether it's legal to download it.
+						// now that we know the file is referenced, check whether it's legal to download it
 #ifndef STANDALONE
 						missionPack = FS_idPak(pakbuf, BASETA, NUM_TA_PAKS);
 						qwPack = missionPack;
@@ -1626,7 +1626,7 @@ Blocking of voip packets based on source client.
 static qboolean SV_ShouldIgnoreVoipSender(const client_t *cl) {
 
 	if (!sv_voip->integer) {
-		return qtrue; // VoIP disabled on this server.
+		return qtrue; // VoIP disabled on this server
 	} else if (!cl->hasVoip) { // client doesn't have VoIP support?!
 		return qtrue;
 	}

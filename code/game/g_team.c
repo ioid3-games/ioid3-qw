@@ -1342,7 +1342,9 @@ ObeliskPain
 =======================================================================================================================================
 */
 static void ObeliskPain(gentity_t *self, gentity_t *attacker, int damage) {
-	int actualDamage = damage / 10;
+	int actualDamage;
+
+	actualDamage = damage / 10;
 
 	if (actualDamage <= 0) {
 		actualDamage = 1;
