@@ -212,7 +212,7 @@ typedef struct {
 
 typedef struct searchpath_s {
 	struct searchpath_s *next;
-	pack_t *pack; // only one of pack / dir will be non NULL
+	pack_t *pack; // only one of pack/dir will be non NULL
 	directory_t *dir;
 } searchpath_t;
 
@@ -2499,7 +2499,7 @@ int FS_GetModList(char *listbuf, int bufsize) {
 				break;
 			}
 		}
-
+		// if there was a game pk3 or .pk3dir, add mod to list
 		if (nPaks > 0 || nPakDirs > 0) {
 			nLen = strlen(name) + 1;
 			// nLen is the length of the mod path
@@ -2516,6 +2516,7 @@ int FS_GetModList(char *listbuf, int bufsize) {
 				nTotal += nLen + nDescLen;
 				nMods++;
 			} else {
+				Com_Printf(S_COLOR_YELLOW "WARNING: Ran out of space for mods in mod list (%d mods fit in the %d byte buffer).\n", nMods, bufsize);
 				break;
 			}
 		}
@@ -2697,7 +2698,7 @@ void FS_Path_f(void) {
 	searchpath_t *s;
 	int i;
 
-	Com_Printf("We are looking in the current search path:\n");
+	Com_Printf("Current search path:\n");
 
 	for (s = fs_searchpaths; s; s = s->next) {
 		if (s->pack) {

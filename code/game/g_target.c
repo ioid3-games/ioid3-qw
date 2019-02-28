@@ -261,7 +261,7 @@ void SP_target_speaker(gentity_t *ent) {
 	}
 
 	ent->use = Use_Target_Speaker;
-
+	// GLOBAL
 	if (ent->spawnflags & 4) {
 		ent->r.svFlags |= SVF_BROADCAST;
 	}

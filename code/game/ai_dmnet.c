@@ -606,7 +606,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			trap_EA_Action(bs->client, ACTION_AFFIRMATIVE);
 			bs->teammessage_time = 0;
 		}
-		// the goal the bot should go for
+		// set the bot goal (the goal the bot should go for)
 		memcpy(goal, &bs->teamgoal, sizeof(bot_goal_t));
 		// stop after some time
 		if (bs->teamgoal_time < FloatTime()) {
@@ -1458,9 +1458,9 @@ void BotClearPath(bot_state_t *bs, bot_moveresult_t *moveresult) {
 					// if the bot is pretty close with its aim
 					if (InFieldOfVision(bs->viewangles, 20, moveresult->ideal_viewangles)) {
 						BotAI_Trace(&bsptrace, bs->eye, NULL, NULL, target, bs->entitynum, MASK_SHOT);
-						// if the mine is visible from the current position
+						// if the corpse is visible from the current position
 						if (bsptrace.fraction >= 1.0 || bsptrace.ent == state.number) {
-							// shoot at the mine
+							// shoot at the kamikaze corpse
 							trap_EA_Attack(bs->client);
 						}
 					}
@@ -1489,8 +1489,7 @@ void BotClearPath(bot_state_t *bs, bot_moveresult_t *moveresult) {
 		}
 
 		if (bestmine != -1) {
-			// state->generic1 == TEAM_RED || state->generic1 == TEAM_BLUE
-
+			//state->generic1 == TEAM_RED || state->generic1 == TEAM_BLUE
 			// deactivate prox mines in the bot's path by shooting rockets or plasma cells etc. at them
 			BotAI_GetEntityState(bs->proxmines[bestmine], &state);
 			VectorCopy(state.pos.trBase, target);
@@ -2367,7 +2366,7 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 		range = 150;
 
 		if (BotNearbyGoal(bs, bs->tfl, &goal, range)) {
-			// the bot gets 5 seconds to pick up the nearby goal item
+			// time the bot gets to pick up the nearby goal item
 			bs->nbg_time = FloatTime() + 0.1 * range + 1;
 			trap_BotResetLastAvoidReach(bs->ms);
 			AIEnter_Battle_NBG(bs, "battle chase: nbg");

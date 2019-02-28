@@ -3674,15 +3674,15 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	}
 	// get the entity information
 	BotEntityInfo(bs->enemy, &entinfo);
-	// if this is not a player (should be an obelisk)
+	// if this is not a player (could be an obelisk)
 	if (bs->enemy >= MAX_CLIENTS) {
-		// if the obelisk is visible
+		// if the entity is visible
 		VectorCopy(entinfo.origin, target);
 		// if attacking an obelisk
 		if (bs->enemy == redobelisk.entitynum || bs->enemy == blueobelisk.entitynum) {
 			target[2] += 32;
 		}
-		// aim at the obelisk
+		// aim at the entity
 		VectorSubtract(target, bs->eye, dir);
 		vectoangles(dir, bs->ideal_viewangles);
 		// set the aim target before trying to attack
@@ -3735,7 +3735,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	if (aim_accuracy <= 0) {
 		aim_accuracy = 0.0001f;
 	}
-	// get the entity information
+	// get the enemy entity information
 	BotEntityInfo(bs->enemy, &entinfo);
 	// if the enemy is invisible then shoot crappy most of the time
 	if (EntityIsInvisible(&entinfo)) {
@@ -3826,7 +3826,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 				}
 			}
 		}
-		// if the projectile does radial damage
+		// if the projectile does large radial damage
 		if (aim_skill > 0.6 && wi.proj.damagetype & DAMAGETYPE_RADIAL) {
 			// if the enemy isn't standing significantly higher than the bot
 			if (entinfo.origin[2] < bs->origin[2] + 16) {

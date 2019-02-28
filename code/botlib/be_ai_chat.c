@@ -2111,10 +2111,10 @@ void BotDumpInitialChat(bot_chat_t *chat) {
 	for (t = chat->types; t; t = t->next) {
 		Log_Write(" type \"%s\"", t->name);
 		Log_Write(" {");
-		Log_Write("  numchatmessages = %d", t->numchatmessages);
+		Log_Write(" numchatmessages = %d", t->numchatmessages);
 
 		for (m = t->firstchatmessage; m; m = m->next) {
-			Log_Write("  \"%s\"", m->chatmessage);
+			Log_Write(" \"%s\"", m->chatmessage);
 		}
 
 		Log_Write("}");

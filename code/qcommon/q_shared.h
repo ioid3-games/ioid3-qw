@@ -1166,7 +1166,7 @@ typedef struct {
 } glyphInfo_t;
 
 typedef struct {
-	glyphInfo_t glyphs [GLYPHS_PER_FONT];
+	glyphInfo_t glyphs[GLYPHS_PER_FONT];
 	float glyphScale;
 	char name[MAX_QPATH];
 } fontInfo_t;

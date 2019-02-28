@@ -592,7 +592,7 @@ int BotOnTopOfEntity(bot_movestate_t *ms) {
 	AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
 	VectorMA(ms->origin, -3, up, end);
 	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP);
-
+	// if not started in solid and NOT hitting the world entity
 	if (!trace.startsolid && (trace.ent != ENTITYNUM_WORLD && trace.ent != ENTITYNUM_NONE)) {
 		return trace.ent;
 	}
@@ -1141,7 +1141,7 @@ float BotGapDistance(vec3_t origin, vec3_t hordir, int entnum) {
 					break;
 				}
 				// if a gap is found slow down
-				//botimport.Print(PRT_MESSAGE, "gap at %i\n", dist);
+				//botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "BotGapDistance: found a gap at %i.\n", dist);
 				return dist;
 			}
 
@@ -1540,7 +1540,7 @@ bot_moveresult_t BotFinishTravel_Walk(bot_movestate_t *ms, aas_reachability_t *r
 	}
 
 	speed = 400 - (400 - 3 * dist);
-
+	// elementary action move in direction
 	EA_Move(ms->client, hordir, speed);
 	VectorCopy(hordir, result.movedir);
 
@@ -2006,7 +2006,7 @@ BotTravel_Jump
 */
 bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) {
 	vec3_t hordir, dir1, dir2, start, end, runstart;
-//	vec3_t runstart, dir1, dir2, hordir;
+	//vec3_t runstart, dir1, dir2, hordir;
 	int gapdist;
 	float dist1, dist2, speed;
 	bot_moveresult_t_cleared(result);
@@ -2049,7 +2049,7 @@ bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) 
 	dist2 = VectorNormalize(dir2);
 	// if just before the reachability start
 	if (DotProduct(dir1, dir2) < -0.8 || dist2 < 5) {
-//		botimport.Print(PRT_MESSAGE, "between jump start and run start point\n");
+		//botimport.Print(PRT_MESSAGE, "between jump start and run start point\n");
 		hordir[0] = reach->end[0] - ms->origin[0];
 		hordir[1] = reach->end[1] - ms->origin[1];
 		hordir[2] = 0;
@@ -2066,7 +2066,7 @@ bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) 
 
 		ms->jumpreach = ms->lastreachnum;
 	} else {
-//		botimport.Print(PRT_MESSAGE, "going towards run start point\n");
+		//botimport.Print(PRT_MESSAGE, "going towards run start point\n");
 		hordir[0] = runstart[0] - ms->origin[0];
 		hordir[1] = runstart[1] - ms->origin[1];
 		hordir[2] = 0;
@@ -2134,10 +2134,10 @@ bot_moveresult_t BotTravel_Ladder(bot_movestate_t *ms, aas_reachability_t *reach
 	//float dist, speed;
 	vec3_t dir, viewdir; //hordir
 	vec3_t origin = {0, 0, 0};
-//	vec3_t up = {0, 0, 1};
+	//vec3_t up = {0, 0, 1};
 	bot_moveresult_t_cleared(result);
 
-//	if ((ms->moveflags & MFL_AGAINSTLADDER))
+	//if ((ms->moveflags & MFL_AGAINSTLADDER))
 		// NOTE: not a good idea for ladders starting in water
 		// || !(ms->moveflags & MFL_ONGROUND))
 	{
@@ -2680,7 +2680,6 @@ bot_moveresult_t BotFinishTravel_FuncBobbing(bot_movestate_t *ms, aas_reachabili
 	float dist, speed;
 
 	BotFuncBobStartEnd(reach, bob_start, bob_end, bob_origin);
-
 	VectorSubtract(bob_origin, bob_end, dir);
 
 	dist = VectorLength(dir);

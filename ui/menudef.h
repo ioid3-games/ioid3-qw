@@ -271,7 +271,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define VOICECHAT_CAMP "camp" // command someone to camp (we don't have sounds for this one)
 #define VOICECHAT_FOLLOWME "followme" // command someone to follow you
 #define VOICECHAT_RETURNFLAG "returnflag" // command someone to return our flag
-#define VOICECHAT_FOLLOWFLAGCARRIER	"followflagcarrier"	// command someone to follow the flag carrier
+#define VOICECHAT_FOLLOWFLAGCARRIER "followflagcarrier" // command someone to follow the flag carrier
 #define VOICECHAT_YES "yes" // yes, affirmative, etc.
 #define VOICECHAT_NO "no" // no, negative, etc.
 #define VOICECHAT_ONGETFLAG "ongetflag" // I'm getting the flag
@@ -280,7 +280,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define VOICECHAT_ONPATROL "onpatrol" // I'm on patrol (roaming)
 #define VOICECHAT_ONCAMPING "oncamp" // I'm camping somewhere
 #define VOICECHAT_ONFOLLOW "onfollow" // I'm following
-#define VOICECHAT_ONFOLLOWCARRIER	"onfollowcarrier"	// I'm following the flag carrier
+#define VOICECHAT_ONFOLLOWCARRIER "onfollowcarrier" // I'm following the flag carrier
 #define VOICECHAT_ONRETURNFLAG "onreturnflag" // I'm returning our flag
 #define VOICECHAT_INPOSITION "inposition" // I'm in position
 #define VOICECHAT_IHAVEFLAG "ihaveflag" // I have the flag

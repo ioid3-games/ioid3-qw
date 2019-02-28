@@ -395,7 +395,7 @@ typedef struct {
 	qboolean thisFrameTeleport;
 	qboolean nextFrameTeleport;
 	int frametime;					// cg.time - cg.oldTime
-	int time;						// this is the time value that the client is rendering at.
+	int time;						// this is the server time value that the client is rendering at
 	int oldTime;					// time at last frame, used for missile trails and prediction checking
 	int physicsTime;				// either cg.snap->time or cg.nextSnap->time
 	int timelimitWarnings;			// 5 min, 1 min, overtime
@@ -1266,7 +1266,7 @@ qhandle_t trap_R_RegisterSkin(const char *name); // returns all white if not fou
 qhandle_t trap_R_RegisterShader(const char *name); // returns all white if not found
 qhandle_t trap_R_RegisterShaderNoMip(const char *name); // returns all white if not found
 // a scene is built up by calls to R_ClearScene and the various R_Add functions.
-// nothing is drawn until R_RenderScene is called.
+// nothing is drawn until R_RenderScene is called
 void trap_R_ClearScene(void);
 void trap_R_AddRefEntityToScene(const refEntity_t *re);
 // polys are intended for simple wall marks, not really for doing significant construction
@@ -1282,12 +1282,11 @@ void trap_R_ModelBounds(clipHandle_t model, vec3_t mins, vec3_t maxs);
 int trap_R_LerpTag(orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, float frac, const char *tagName);
 void trap_R_RemapShader(const char *oldShader, const char *newShader, const char *timeOffset);
 qboolean trap_R_inPVS(const vec3_t p1, const vec3_t p2);
-// the glconfig_t will not change during the life of a cgame. If it needs to change, the entire cgame will be restarted,
-// because all the qhandle_t are then invalid.
+// the glconfig_t will not change during the life of a cgame. If it needs to change, the entire cgame will be restarted, because all the qhandle_t are then invalid
 void trap_GetGlconfig(glconfig_t *glconfig);
 // the gamestate should be grabbed at startup, and whenever a configstring changes
 void trap_GetGameState(gameState_t *gamestate);
-// cgame will poll each frame to see if a newer snapshot has arrived that it is interested in. The time is returned separately so that snapshot latency can be calculated.
+// cgame will poll each frame to see if a newer snapshot has arrived that it is interested in. The time is returned separately so that snapshot latency can be calculated
 void trap_GetCurrentSnapshotNumber(int *snapshotNumber, int *serverTime);
 // a snapshot get can fail if the snapshot (or the entties it holds) is so old that it has fallen out of the client system queue
 qboolean trap_GetSnapshot(int snapshotNumber, snapshot_t *snapshot);

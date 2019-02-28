@@ -397,7 +397,7 @@ void CL_SystemInfoChanged(void) {
 				if (Q_stricmp(key, "g_synchronousClients") && Q_stricmp(key, "pmove_fixed") && Q_stricmp(key, "pmove_msec"))
 #endif
 				{
-					Com_Printf(S_COLOR_YELLOW "WARNING: server is not allowed to set %s=%s\n", key, value);
+					Com_Printf(S_COLOR_YELLOW "WARNING: server is not allowed to set %s = %s!\n", key, value);
 					continue;
 				}
 			}

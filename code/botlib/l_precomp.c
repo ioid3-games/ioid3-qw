@@ -252,9 +252,9 @@ PC_CopyToken
 token_t *PC_CopyToken(token_t *token) {
 	token_t *t;
 
-//	t = (token_t *)malloc(sizeof(token_t));
+	//t = (token_t *)malloc(sizeof(token_t));
 	t = (token_t *)GetMemory(sizeof(token_t));
-//	t = freetokens;
+	//t = freetokens;
 
 	if (!t) {
 #ifdef BSPC
@@ -265,7 +265,7 @@ token_t *PC_CopyToken(token_t *token) {
 		return NULL;
 	}
 
-//	freetokens = freetokens->next;
+	//freetokens = freetokens->next;
 
 	Com_Memcpy(t, token, sizeof(token_t));
 
@@ -285,8 +285,8 @@ void PC_FreeToken(token_t *token) {
 
 	FreeMemory(token);
 
-//	token->next = freetokens;
-//	freetokens = token;
+	//token->next = freetokens;
+	//freetokens = token;
 	numtokens--;
 }
 
@@ -661,7 +661,7 @@ void PC_AddBuiltinDefines(source_t *source) {
 		{"__FILE__", BUILTIN_FILE},
 		{"__DATE__", BUILTIN_DATE},
 		{"__TIME__", BUILTIN_TIME},
-//		{"__STDC__", BUILTIN_STDC},
+		//{"__STDC__", BUILTIN_STDC},
 		{NULL, 0}
 	};
 

@@ -610,7 +610,7 @@ static void S_Base_StartSoundEx(vec3_t origin, int entityNum, int entchannel, sf
 
 	time = Com_Milliseconds();
 
-//	Com_Printf("playing %s\n", sfx->soundName);
+	//Com_Printf("playing %s\n", sfx->soundName);
 	// pick a channel to play on
 	allowed = 4;
 
@@ -810,7 +810,7 @@ S_Base_StopLoopingSound
 void S_Base_StopLoopingSound(int entityNum) {
 
 	loopSounds[entityNum].active = qfalse;
-//	loopSounds[entityNum].sfx = 0;
+	//loopSounds[entityNum].sfx = 0;
 	loopSounds[entityNum].kill = qfalse;
 }
 

@@ -894,6 +894,7 @@ void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
 			// demping
 			bs->viewanglespeed[i] *= 0.45 * (1 - factor);
 		}
+
 		//BotAI_Print(PRT_MESSAGE, "ideal_angles %f %f\n", bs->ideal_viewangles[0], bs->ideal_viewangles[1], bs->ideal_viewangles[2]);
 		//bs->viewangles[i] = bs->ideal_viewangles[i];
 	}
@@ -1376,6 +1377,7 @@ int BotAISetupClient(int client, struct bot_settings_s *settings, qboolean resta
 	bs->entergame_time = FloatTime();
 	bs->ms = trap_BotAllocMoveState();
 	bs->walker = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_WALKER, 0, 1);
+
 	numbots++;
 
 	if (trap_Cvar_VariableIntegerValue("bot_testichat")) {
@@ -1566,8 +1568,8 @@ int BotAIStartFrame(int time) {
 	trap_Cvar_Update(&bot_report);
 
 	if (bot_report.integer) {
-//		BotTeamplayReport();
-//		trap_Cvar_Set("bot_report", "0");
+		//BotTeamplayReport();
+		//trap_Cvar_Set("bot_report", "0");
 		BotUpdateInfoConfigStrings();
 	}
 

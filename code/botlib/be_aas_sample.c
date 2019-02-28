@@ -240,7 +240,7 @@ int AAS_PointAreaNum(vec3_t point) {
 	nodenum = 1;
 
 	while (nodenum > 0) {
-//		botimport.Print(PRT_MESSAGE, "[%d]", nodenum);
+		//botimport.Print(PRT_MESSAGE, "[%d]", nodenum);
 #ifdef AAS_SAMPLE_DEBUG
 		if (nodenum >= aasworld.numnodes) {
 			botimport.Print(PRT_ERROR, "nodenum = %d >= aasworld.numnodes = %d\n", nodenum, aasworld.numnodes);
@@ -424,7 +424,7 @@ vec_t AAS_BoxOriginDistanceFromPlane(vec3_t normal, vec3_t mins, vec3_t maxs, in
 
 	VectorCopy(normal, v2);
 	VectorInverse(v2);
-//	VectorNegate(normal, v2);
+	//VectorNegate(normal, v2);
 	return DotProduct(v1, v2);
 }
 
@@ -554,7 +554,7 @@ aas_trace_t AAS_TraceClientBBox(vec3_t start, vec3_t end, int presencetype, int 
 				trace.ent = 0;
 				trace.area = -nodenum;
 
-//				VectorSubtract(end, start, v1);
+				//VectorSubtract(end, start, v1);
 
 				trace.planenum = tstack_p->planenum;
 				// always take the plane with normal facing towards the trace start
@@ -602,7 +602,9 @@ aas_trace_t AAS_TraceClientBBox(vec3_t start, vec3_t end, int presencetype, int 
 
 			trace.ent = 0;
 			trace.area = 0; // hit solid leaf
-//			VectorSubtract(end, start, v1);
+
+			//VectorSubtract(end, start, v1);
+
 			trace.planenum = tstack_p->planenum;
 			// always take the plane with normal facing towards the trace start
 			plane = &aasworld.planes[trace.planenum];
@@ -708,7 +710,7 @@ aas_trace_t AAS_TraceClientBBox(vec3_t start, vec3_t end, int presencetype, int 
 			cur_mid[1] = cur_start[1] + (cur_end[1] - cur_start[1]) * frac;
 			cur_mid[2] = cur_start[2] + (cur_end[2] - cur_start[2]) * frac;
 
-//			AAS_DrawPlaneCross(cur_mid, plane->normal, plane->dist, plane->type, LINECOLOR_RED);
+			//AAS_DrawPlaneCross(cur_mid, plane->normal, plane->dist, plane->type, LINECOLOR_RED);
 			// side the front part of the line is on
 			side = front < 0;
 			// first put the end part of the line on the stack (back side)
@@ -739,7 +741,7 @@ aas_trace_t AAS_TraceClientBBox(vec3_t start, vec3_t end, int presencetype, int 
 		}
 	}
 
-//	return trace;
+	//return trace;
 }
 
 /*
@@ -901,7 +903,7 @@ int AAS_TraceAreas(vec3_t start, vec3_t end, int *areas, vec3_t *points, int max
 			cur_mid[1] = cur_start[1] + (cur_end[1] - cur_start[1]) * frac;
 			cur_mid[2] = cur_start[2] + (cur_end[2] - cur_start[2]) * frac;
 
-//			AAS_DrawPlaneCross(cur_mid, plane->normal, plane->dist, plane->type, LINECOLOR_RED);
+			//AAS_DrawPlaneCross(cur_mid, plane->normal, plane->dist, plane->type, LINECOLOR_RED);
 			// side the front part of the line is on
 			side = front < 0;
 			// first put the end part of the line on the stack (back side)
@@ -932,7 +934,7 @@ int AAS_TraceAreas(vec3_t start, vec3_t end, int *areas, vec3_t *points, int max
 		}
 	}
 
-//	return numareas;
+	//return numareas;
 }
 
 /*
