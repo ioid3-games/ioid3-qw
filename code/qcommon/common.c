@@ -1481,7 +1481,7 @@ Com_InitZoneMemory
 void Com_InitZoneMemory(void) {
 	cvar_t *cv;
 
-	// Please note: com_zoneMegs can only be set on the command line, and not in qwconfig.cfg or Com_StartupVariable, as they haven't
+	// Please note: com_zoneMegs can only be set on the command line, and not in config.cfg or Com_StartupVariable, as they haven't
 	// been executed by this point. It's a chicken and egg problem. We need the memory manager configured to handle those places where
 	// you would configure the memory manager.
 
@@ -2405,7 +2405,7 @@ void Com_ExecuteCfg(void) {
 	Cbuf_Execute(); // always execute after exec to prevent text buffer overflowing
 
 	if (!Com_SafeMode()) {
-		// skip the qwconfig.cfg and autoexec.cfg if "safe" is on the command line
+		// skip the config.cfg and autoexec.cfg if "safe" is on the command line
 		Cbuf_ExecuteText(EXEC_NOW, "exec " QWCONFIG_CFG "\n");
 		Cbuf_Execute();
 		Cbuf_ExecuteText(EXEC_NOW, "exec autoexec.cfg\n");

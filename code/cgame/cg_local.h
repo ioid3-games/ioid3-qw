@@ -1046,6 +1046,7 @@ screenPlacement_e CG_GetScreenVerticalPlacement(void);
 void CG_AdjustFrom640(float *x, float *y, float *w, float *h);
 void CG_FillRect(float x, float y, float width, float height, const float *color);
 void CG_DrawPic(float x, float y, float width, float height, qhandle_t hShader);
+// Base Q3 text drawing
 void CG_DrawString(float x, float y, const char *string, float charWidth, float charHeight, const float *modulate);
 void CG_DrawStringExt(int x, int y, const char *string, const float *setColor, qboolean forceColor, qboolean shadow, int charWidth, int charHeight, int maxChars);
 void CG_DrawBigString(int x, int y, const char *s, float alpha);
@@ -1314,11 +1315,16 @@ typedef enum {
 	CHAT_PRINT,
 	TEAMCHAT_PRINT
 } q3print_t;
-
+// this returns a handle. arg0 is the name in the format "idlogo.roq", set arg1 to NULL, altered states to qfalse (do not alter gamestate)
 int trap_CIN_PlayCinematic(const char *arg0, int xpos, int ypos, int width, int height, int bits);
+// stops playing the cinematic and ends it. should always return FMV_EOF
+// cinematics must be stopped in reverse order of when they are started
 e_status trap_CIN_StopCinematic(int handle);
+// will run a frame of the cinematic but will not draw it. Will return FMV_EOF if the end of the cinematic has been reached
 e_status trap_CIN_RunCinematic(int handle);
+// draws the current frame
 void trap_CIN_DrawCinematic(int handle);
+// allows you to resize the animation dynamically
 void trap_CIN_SetExtents(int handle, int x, int y, int w, int h);
 int trap_RealTime(qtime_t *qtime);
 void trap_SnapVector(float *v);

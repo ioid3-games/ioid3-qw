@@ -478,9 +478,9 @@ extern int cvar_modifiedFlags;
 
 #define MAX_FILE_HANDLES 64
 #ifdef DEDICATED
-#define QWCONFIG_CFG "qwconfig_server.cfg"
+#define QWCONFIG_CFG "config_server.cfg"
 #else
-#define QWCONFIG_CFG "qwconfig.cfg"
+#define QWCONFIG_CFG "config.cfg"
 #endif
 qboolean FS_Initialized(void);
 void FS_InitFilesystem(void);

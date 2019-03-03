@@ -241,7 +241,7 @@ void CG_DrawInformation(void) {
 			s = "Team Deathmatch";
 			break;
 		case GT_CTF:
-			s = "Capture the Flag";
+			s = "Capture The Flag";
 			break;
 		case GT_1FCTF:
 			s = "One Flag CTF";

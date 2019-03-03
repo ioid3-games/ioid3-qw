@@ -2258,6 +2258,7 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 3) {
 				BotCTFOrders(bs);
+
 				bs->teamgiveorders_time = 0;
 			}
 
@@ -2284,6 +2285,7 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 2) {
 				Bot1FCTFOrders(bs);
+
 				bs->teamgiveorders_time = 0;
 			}
 

@@ -624,10 +624,12 @@ static void CG_DrawPlayerItem(rectDef_t *rect, float scale, qboolean draw2D) {
 			CG_DrawPic(rect->x, rect->y, rect->w, rect->h, cg_items[value].icon);
 		} else {
 			VectorClear(angles);
+
 			origin[0] = 90;
 			origin[1] = 0;
 			origin[2] = -10;
 			angles[YAW] = (cg.time &2047) * 360 / 2048.0;
+
 			CG_Draw3DModel(rect->x, rect->y, rect->w, rect->h, cg_items[value].models[0], 0, origin, angles);
 		}
 	}
