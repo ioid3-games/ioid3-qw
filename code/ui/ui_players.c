@@ -835,9 +835,6 @@ void UI_DrawPlayer(float x, float y, float w, float h, playerInfo_t *pi, int tim
 
 		memset(&barrel, 0, sizeof(barrel));
 
-		VectorCopy(origin, barrel.lightingOrigin);
-
-		barrel.renderfx = renderfx;
 		barrel.hModel = pi->barrelModel;
 
 		angles[YAW] = 0;
@@ -845,7 +842,11 @@ void UI_DrawPlayer(float x, float y, float w, float h, playerInfo_t *pi, int tim
 		angles[ROLL] = UI_MachinegunSpinAngle(pi);
 
 		AnglesToAxis(angles, barrel.axis);
+		VectorCopy(origin, barrel.lightingOrigin);
 		UI_PositionRotatedEntityOnTag(&barrel, &gun, pi->weaponModel, "tag_barrel");
+
+		barrel.renderfx = renderfx;
+
 		trap_R_AddRefEntityToScene(&barrel);
 	}
 	// add muzzle flash

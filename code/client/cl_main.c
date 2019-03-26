@@ -1571,7 +1571,7 @@ void CL_Connect_f(void) {
 		clc.state = CA_CHALLENGING;
 	} else {
 		clc.state = CA_CONNECTING;
-		// set a client challenge number that ideally is mirrored back by the server.
+		// set a client challenge number that ideally is mirrored back by the server
 		clc.challenge = (((unsigned int)rand() << 16) ^ (unsigned int)rand()) ^ Com_Milliseconds();
 	}
 
@@ -3309,12 +3309,12 @@ static void CL_SetServerInfo(serverInfo_t *server, const char *info, int ping) {
 			Q_strncpyz(server->game, Info_ValueForKey(info, "game"), MAX_NAME_LENGTH);
 			Q_strncpyz(server->hostName, Info_ValueForKey(info, "hostname"), MAX_NAME_LENGTH);
 			server->g_needpass = atoi(Info_ValueForKey(info, "g_needpass"));
-			server->maxClients = atoi(Info_ValueForKey(info, "sv_maxclients"));
 			server->netType = atoi(Info_ValueForKey(info, "nettype"));
 			server->minPing = atoi(Info_ValueForKey(info, "minping"));
 			server->maxPing = atoi(Info_ValueForKey(info, "maxping"));
-			server->g_humanplayers = atoi(Info_ValueForKey(info, "g_humanplayers"));
+			server->maxClients = atoi(Info_ValueForKey(info, "sv_maxclients"));
 			server->clients = atoi(Info_ValueForKey(info, "clients"));
+			server->g_humanplayers = atoi(Info_ValueForKey(info, "g_humanplayers"));
 			server->gameType = atoi(Info_ValueForKey(info, "gametype"));
 			Q_strncpyz(server->mapName, Info_ValueForKey(info, "mapname"), MAX_NAME_LENGTH);
 		}

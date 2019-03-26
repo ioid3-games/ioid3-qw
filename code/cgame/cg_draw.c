@@ -563,19 +563,10 @@ static void CG_DrawStatusBar(void) {
 		origin[2] = 0;
 		angles[YAW] = 90 + 20 * sin(cg.time / 1000.0);
 
-		CG_Draw3DModel(CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE, cg_weapons[cent->currentState.weapon].ammoModel, 0, origin, angles);
+		CG_Draw3DModel(370 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE, cg_weapons[cent->currentState.weapon].ammoModel, 0, origin, angles);
 	}
 
 	CG_DrawStatusBarHead(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE);
-
-	// flags
-	if (cg.predictedPlayerState.powerups[PW_REDFLAG]) {
-		CG_DrawStatusBarFlag(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE + ICON_SIZE, TEAM_RED);
-	} else if (cg.predictedPlayerState.powerups[PW_BLUEFLAG]) {
-		CG_DrawStatusBarFlag(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE + ICON_SIZE, TEAM_BLUE);
-	} else if (cg.predictedPlayerState.powerups[PW_NEUTRALFLAG]) {
-		CG_DrawStatusBarFlag(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE + ICON_SIZE, TEAM_FREE);
-	}
 	// armor
 	if (ps->stats[STAT_ARMOR]) {
 		origin[0] = 90;
@@ -583,7 +574,15 @@ static void CG_DrawStatusBar(void) {
 		origin[2] = -10;
 		angles[YAW] = (cg.time & 2047) * 360 / 2048.0;
 
-		CG_Draw3DModel(370 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE, cgs.media.armorModel, 0, origin, angles);
+		CG_Draw3DModel(CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE, cgs.media.armorModel, 0, origin, angles);
+	}
+	// flags
+	if (cg.predictedPlayerState.powerups[PW_REDFLAG]) {
+		CG_DrawStatusBarFlag(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE + ICON_SIZE, TEAM_RED);
+	} else if (cg.predictedPlayerState.powerups[PW_BLUEFLAG]) {
+		CG_DrawStatusBarFlag(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE + ICON_SIZE, TEAM_BLUE);
+	} else if (cg.predictedPlayerState.powerups[PW_NEUTRALFLAG]) {
+		CG_DrawStatusBarFlag(185 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE + ICON_SIZE, TEAM_FREE);
 	}
 	// ammo
 	if (cent->currentState.weapon) {
@@ -602,7 +601,7 @@ static void CG_DrawStatusBar(void) {
 			}
 
 			trap_R_SetColor(colors[color]);
-			CG_DrawField(0, 432, 3, value);
+			CG_DrawField(370, 432, 3, value);
 			trap_R_SetColor(NULL);
 			// if we didn't draw a 3D icon, draw a 2D icon for ammo
 			if (!cg_draw3dIcons.integer && cg_drawIcons.integer) {
@@ -611,7 +610,7 @@ static void CG_DrawStatusBar(void) {
 				icon = cg_weapons[cg.predictedPlayerState.weapon].ammoIcon;
 
 				if (icon) {
-					CG_DrawPic(CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE, icon);
+					CG_DrawPic(370 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE, icon);
 				}
 			}
 		}
@@ -638,11 +637,11 @@ static void CG_DrawStatusBar(void) {
 
 	if (value > 0) {
 		trap_R_SetColor(colors[0]);
-		CG_DrawField(370, 432, 3, value);
+		CG_DrawField(0, 432, 3, value);
 		trap_R_SetColor(NULL);
 		// if we didn't draw a 3D icon, draw a 2D icon for armor
 		if (!cg_draw3dIcons.integer && cg_drawIcons.integer) {
-			CG_DrawPic(370 + CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE, cgs.media.armorIcon);
+			CG_DrawPic(CHAR_WIDTH * 3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE, cgs.media.armorIcon);
 		}
 	}
 }

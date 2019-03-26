@@ -2225,9 +2225,9 @@ void BotTeamAI(bot_state_t *bs) {
 
 	bs->askteamleader_time = 0;
 	bs->becometeamleader_time = 0;
-	// return if this bot is NOT the team leader
-	ClientName(bs->client, netname, sizeof(netname));
 
+	ClientName(bs->client, netname, sizeof(netname));
+	// return if this bot is NOT the team leader
 	if (Q_stricmp(netname, bs->teamleader) != 0) {
 		return;
 	}

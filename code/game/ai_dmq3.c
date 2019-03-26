@@ -2232,7 +2232,7 @@ float BotAggression(bot_state_t *bs) {
 			return 0;
 		}
 	}
-	// if the bot can use the shotgun
+	// if the bot can use the shot gun
 	if (bs->inventory[INVENTORY_SHOTGUN] > 0 && bs->inventory[INVENTORY_SHELLS] > 10) {
 		return 50;
 	}
@@ -2240,7 +2240,7 @@ float BotAggression(bot_state_t *bs) {
 	if (bs->inventory[INVENTORY_GRENADELAUNCHER] > 0 && bs->inventory[INVENTORY_GRENADES] > 10) {
 		return 80;
 	}
-	// if the bot can use the rocketlauncher
+	// if the bot can use the rocket launcher
 	if (bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 5) {
 		return 90;
 	}
@@ -2252,7 +2252,7 @@ float BotAggression(bot_state_t *bs) {
 	if (bs->inventory[INVENTORY_RAILGUN] > 0 && bs->inventory[INVENTORY_SLUGS] > 5) {
 		return 95;
 	}
-	// if the bot can use the plasmagun
+	// if the bot can use the plasma gun
 	if (bs->inventory[INVENTORY_PLASMAGUN] > 0 && bs->inventory[INVENTORY_CELLS] > 40) {
 		return 85;
 	}
@@ -5127,50 +5127,6 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 	}
 
 	switch (event) {
-		// client obituary event
-		case EV_OBITUARY:
-		{
-			int target, attacker, mod;
-
-			target = state->otherEntityNum;
-			attacker = state->otherEntityNum2;
-			mod = state->eventParm;
-
-			if (target == bs->client) {
-				bs->botdeathtype = mod;
-				bs->lastkilledby = attacker;
-
-				if (target == attacker || target == ENTITYNUM_NONE || target == ENTITYNUM_WORLD) {
-					bs->botsuicide = qtrue;
-				} else {
-					bs->botsuicide = qfalse;
-				}
-
-				bs->num_deaths++;
-			// else if this client was killed by the bot
-			} else if (attacker == bs->client) {
-				bs->enemydeathtype = mod;
-				bs->lastkilledplayer = target;
-				bs->killedenemy_time = FloatTime();
-				bs->num_kills++;
-			} else if (attacker == bs->enemy && target == attacker) {
-				bs->enemysuicide = qtrue;
-			}
-
-			if (gametype == GT_1FCTF) {
-				// get the entity information
-				BotEntityInfo(target, &entinfo);
-
-				if (entinfo.powerups & (1 << PW_NEUTRALFLAG)) {
-					if (!BotSameTeam(bs, target)) {
-						bs->neutralflagstatus = 3; // enemy dropped the flag
-						bs->flagstatuschanged = qtrue;
-					}
-				}
-			}
-
-			break;
-		}
 		case EV_GENERAL_SOUND:
 		{
 			// if this sound is played on the bot
@@ -5290,11 +5246,48 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 
 			break;
 		}
-
-		case EV_PLAYER_TELEPORT_IN:
+		// client obituary event
+		case EV_OBITUARY:
 		{
-			VectorCopy(state->origin, lastteleport_origin);
-			lastteleport_time = FloatTime();
+			int target, attacker, mod;
+
+			target = state->otherEntityNum;
+			attacker = state->otherEntityNum2;
+			mod = state->eventParm;
+
+			if (target == bs->client) {
+				bs->botdeathtype = mod;
+				bs->lastkilledby = attacker;
+
+				if (target == attacker || target == ENTITYNUM_NONE || target == ENTITYNUM_WORLD) {
+					bs->botsuicide = qtrue;
+				} else {
+					bs->botsuicide = qfalse;
+				}
+
+				bs->num_deaths++;
+			// else if this client was killed by the bot
+			} else if (attacker == bs->client) {
+				bs->enemydeathtype = mod;
+				bs->lastkilledplayer = target;
+				bs->killedenemy_time = FloatTime();
+				bs->num_kills++;
+			} else if (attacker == bs->enemy && target == attacker) {
+				bs->enemysuicide = qtrue;
+			}
+
+			if (gametype == GT_1FCTF) {
+				// get the entity information
+				BotEntityInfo(target, &entinfo);
+
+				if (entinfo.powerups & (1 << PW_NEUTRALFLAG)) {
+					if (!BotSameTeam(bs, target)) {
+						bs->neutralflagstatus = 3; // enemy dropped the flag
+						bs->flagstatuschanged = qtrue;
+					}
+				}
+			}
+
 			break;
 		}
 		case EV_FOOTSTEP:
@@ -5340,6 +5333,12 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 		case EV_USE_ITEM14:
 		case EV_USE_ITEM15:
 			break;
+		case EV_PLAYER_TELEPORT_IN:
+		{
+			VectorCopy(state->origin, lastteleport_origin);
+			lastteleport_time = FloatTime();
+			break;
+		}
 	}
 }
 
@@ -5558,10 +5557,10 @@ void BotDeathmatchAI(bot_state_t *bs, float thinktime) {
 	bs->flags &= ~BFL_IDEALVIEWSET;
 
 	if (!BotIntermission(bs)) {
-		// update some inventory values
-		BotUpdateInventory(bs);
 		// check out the snapshot
 		BotCheckSnapshot(bs);
+		// update some inventory values
+		BotUpdateInventory(bs);
 		// set the teleport time
 		BotSetTeleportTime(bs);
 		// check for air

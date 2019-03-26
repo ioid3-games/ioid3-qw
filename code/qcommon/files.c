@@ -190,8 +190,8 @@ typedef struct fileInPack_s {
 } fileInPack_t;
 
 typedef struct {
-	char pakPathname[MAX_OSPATH];	// c:\quake3\baseq3
-	char pakFilename[MAX_OSPATH];	// c:\quake3\baseq3\pak0.pk3
+	char pakPathname[MAX_OSPATH];	// C:\quake3\baseq3
+	char pakFilename[MAX_OSPATH];	// C:\quake3\baseq3\pak0.pk3
 	char pakBasename[MAX_OSPATH];	// pak0
 	char pakGamename[MAX_OSPATH];	// baseq3
 	unzFile handle;					// handle to zip file
@@ -205,8 +205,8 @@ typedef struct {
 } pack_t;
 
 typedef struct {
-	char path[MAX_OSPATH];		// c:\quake3
-	char fullpath[MAX_OSPATH];	// c:\quake3\baseq3
+	char path[MAX_OSPATH];		// C:\quake3
+	char fullpath[MAX_OSPATH];	// C:\quake3\baseq3
 	char gamedir[MAX_OSPATH];	// baseq3
 } directory_t;
 
@@ -3135,8 +3135,8 @@ void FS_Shutdown(qboolean closemfp) {
 =======================================================================================================================================
 FS_ReorderPurePaks
 
-NOTE: the reordering that happens here is not reflected in the cvars (\cvarlist *pak*). This can lead to misleading situations,
-see https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=540.
+NOTE: the reordering that happens here is not reflected in the cvars (\cvarlist *pak*).
+This can lead to misleading situations, see https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=540.
 =======================================================================================================================================
 */
 static void FS_ReorderPurePaks(void) {

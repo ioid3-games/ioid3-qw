@@ -1696,7 +1696,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 			moveresult.weapon = bs->activatestack->weapon;
 		}
 	}
-	// if the viewangles are used for the movement
+	// if the view angles are used for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEW|MOVERESULT_MOVEMENTVIEWSET|MOVERESULT_SWIMVIEW)) {
 		VectorCopy(moveresult.ideal_viewangles, bs->ideal_viewangles);
 	// if waiting for something
@@ -1834,7 +1834,7 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qtrue);
 	BotClearPath(bs, &moveresult);
-	// if the viewangles are used for the movement
+	// if the view angles are used for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEW|MOVERESULT_MOVEMENTVIEWSET|MOVERESULT_SWIMVIEW)) {
 		VectorCopy(moveresult.ideal_viewangles, bs->ideal_viewangles);
 	// if waiting for something
@@ -2031,7 +2031,7 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qtrue);
 	BotClearPath(bs, &moveresult);
-	// if the viewangles are used for the movement
+	// if the view angles are used for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEW|MOVERESULT_MOVEMENTVIEWSET|MOVERESULT_SWIMVIEW)) {
 		VectorCopy(moveresult.ideal_viewangles, bs->ideal_viewangles);
 	// if waiting for something
@@ -2344,9 +2344,9 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 		range = 150;
 
 		if (BotNearbyGoal(bs, bs->tfl, &goal, range)) {
+			trap_BotResetLastAvoidReach(bs->ms);
 			// time the bot gets to pick up the nearby goal item
 			bs->nbg_time = FloatTime() + 0.1 * range + 1;
-			trap_BotResetLastAvoidReach(bs->ms);
 			AIEnter_Battle_NBG(bs, "battle chase: nbg");
 			return qfalse;
 		}
@@ -2366,7 +2366,7 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 	}
 	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qfalse);
-	// if the viewangles are used for the movement
+	// if the view angles are used for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEW|MOVERESULT_MOVEMENTVIEWSET|MOVERESULT_SWIMVIEW)) {
 		VectorCopy(moveresult.ideal_viewangles, bs->ideal_viewangles);
 	} else if (!(bs->flags & BFL_IDEALVIEWSET)) {

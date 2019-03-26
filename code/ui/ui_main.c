@@ -1220,6 +1220,8 @@ static void UI_SetCapFragLimits(qboolean uiVars) {
 /*
 =======================================================================================================================================
 UI_DrawGameType
+
+'ui_gameType' assumes gametype 0 is -1 ALL and will not show.
 =======================================================================================================================================
 */
 static void UI_DrawGameType(rectDef_t *rect, float scale, vec4_t color, int textStyle) {

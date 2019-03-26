@@ -85,7 +85,7 @@ sfxHandle_t CG_CustomSound(int clientNum, const char *soundName) {
 =======================================================================================================================================
 CG_ParseAnimationFile
 
-Read a configuration file containing animation counts and rates models/players/visor/animation.cfg, etc.
+Read a configuration file containing animation counts and rates, models/players/visor/animation.cfg, etc.
 =======================================================================================================================================
 */
 static qboolean CG_ParseAnimationFile(const char *filename, clientInfo_t *ci) {
@@ -954,8 +954,8 @@ void CG_NewClientInfo(int clientNum) {
 				*skin++ = 0;
 			}
 
-			Q_strncpyz(newInfo.skinName, skin, sizeof(newInfo.skinName));
 			Q_strncpyz(newInfo.modelName, modelStr, sizeof(newInfo.modelName));
+			Q_strncpyz(newInfo.skinName, skin, sizeof(newInfo.skinName));
 		}
 
 		if (cgs.gametype > GT_TOURNAMENT) {
@@ -1000,8 +1000,8 @@ void CG_NewClientInfo(int clientNum) {
 				*skin++ = 0;
 			}
 
-			Q_strncpyz(newInfo.headSkinName, skin, sizeof(newInfo.headSkinName));
 			Q_strncpyz(newInfo.headModelName, modelStr, sizeof(newInfo.headModelName));
+			Q_strncpyz(newInfo.headSkinName, skin, sizeof(newInfo.headSkinName));
 		}
 
 		if (cgs.gametype > GT_TOURNAMENT) {
