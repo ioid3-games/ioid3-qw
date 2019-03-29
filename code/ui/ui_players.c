@@ -320,7 +320,7 @@ static void UI_PositionRotatedEntityOnTag(refEntity_t *entity, const refEntity_t
 UI_SetLerpFrameAnimation
 =======================================================================================================================================
 */
-static void UI_SetLerpFrameAnimation(playerInfo_t *ci, lerpFrame_t *lf, int newAnimation) {
+static void UI_SetLerpFrameAnimation(playerInfo_t *pi, lerpFrame_t *lf, int newAnimation) {
 	animation_t *anim;
 
 	lf->animationNumber = newAnimation;
@@ -330,7 +330,7 @@ static void UI_SetLerpFrameAnimation(playerInfo_t *ci, lerpFrame_t *lf, int newA
 		trap_Error(va("Bad animation number: %i", newAnimation));
 	}
 
-	anim = &ci->animations[newAnimation];
+	anim = &pi->animations[newAnimation];
 
 	lf->animation = anim;
 	lf->animationTime = lf->frameTime + anim->initialLerp;
@@ -341,13 +341,13 @@ static void UI_SetLerpFrameAnimation(playerInfo_t *ci, lerpFrame_t *lf, int newA
 UI_RunLerpFrame
 =======================================================================================================================================
 */
-static void UI_RunLerpFrame(playerInfo_t *ci, lerpFrame_t *lf, int newAnimation) {
+static void UI_RunLerpFrame(playerInfo_t *pi, lerpFrame_t *lf, int newAnimation) {
 	int f, numFrames;
 	animation_t *anim;
 
 	// see if the animation sequence is switching
 	if (newAnimation != lf->animationNumber || !lf->animation) {
-		UI_SetLerpFrameAnimation(ci, lf, newAnimation);
+		UI_SetLerpFrameAnimation(pi, lf, newAnimation);
 	}
 	// if we have passed the current frame, move it to oldFrame and calculate a new frame
 	if (dp_realtime >= lf->frameTime) {

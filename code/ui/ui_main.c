@@ -1100,8 +1100,11 @@ UI_Load
 */
 void UI_Load(void) {
 	char lastName[1024];
-	menuDef_t *menu = Menu_GetFocused();
-	char *menuSet = UI_Cvar_VariableString("ui_menuFiles");
+	menuDef_t *menu;
+	char *menuSet;
+
+	menu = Menu_GetFocused();
+	menuSet = UI_Cvar_VariableString("ui_menuFiles");
 
 	if (menu && menu->window.name) {
 		Q_strncpyz(lastName, menu->window.name, sizeof(lastName));
@@ -1119,11 +1122,11 @@ void UI_Load(void) {
 	Menus_ActivateByName(lastName);
 }
 
-// Convert ui's net source to AS_* used by trap calls.
-
 /*
 =======================================================================================================================================
 UI_SourceForLAN
+
+Convert ui's net source to AS_* used by trap calls.
 =======================================================================================================================================
 */
 int UI_SourceForLAN(void) {
@@ -1214,8 +1217,6 @@ static void UI_SetCapFragLimits(qboolean uiVars) {
 		trap_Cvar_Set("fraglimit", va("%d", frag));
 	}
 }
-
-// ui_gameType assumes gametype 0 is -1 ALL and will not show
 
 /*
 =======================================================================================================================================
@@ -1392,7 +1393,7 @@ UI_DrawTeamMember
 static void UI_DrawTeamMember(rectDef_t *rect, float scale, vec4_t color, qboolean blue, int num, int textStyle) {
 	// 0 - None
 	// 1 - Human
-	// 2..NumCharacters - Bot
+	// 2.. NumCharacters - Bot
 	int value = trap_Cvar_VariableValue(va(blue ? "ui_blueteam%i" : "ui_redteam%i", num));
 	const char *text;
 
@@ -2997,7 +2998,7 @@ static qboolean UI_TeamMember_HandleKey(int flags, float *special, int key, qboo
 	if (select != 0) {
 		// 0 - None
 		// 1 - Human
-		// 2..NumCharacters - Bot
+		// 2.. NumCharacters - Bot
 		char *cvar = va(blue ? "ui_blueteam%i" : "ui_redteam%i", num);
 		int value = trap_Cvar_VariableValue(cvar);
 
@@ -3831,13 +3832,13 @@ static void UI_RunMenuScript(char **args) {
 			clients = 0;
 
 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
-				int bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
+				int bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
 
 				if (bot >= 0) {
 					clients++;
 				}
 
-				bot = trap_Cvar_VariableValue(va("ui_redteam%i", i + 1));
+				bot = trap_Cvar_VariableValue(va("ui_blueteam%i", i + 1));
 
 				if (bot >= 0) {
 					clients++;

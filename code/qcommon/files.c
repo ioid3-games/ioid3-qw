@@ -42,7 +42,7 @@ A "qpath" is a reference to game file data. MAX_ZPATH is 256 characters, which m
 explicitly illegal in qpaths to prevent any references outside the quake directory system.
 
 The "base path" is the path to the directory holding all the game directories and usually the executable. It defaults to ".", but can
-be overridden with a "+set fs_basepath c:\quake3" command line to allow code debugging in a different directory. Basepath cannot
+be overridden with a "+set fs_basepath C:\Quake Wars" command line to allow code debugging in a different directory. Basepath cannot
 be modified at all after startup. Any files that are created (demos, screenshots, etc.) will be created relative to the base path, so
 base path should usually be writable.
 
@@ -76,7 +76,7 @@ hit. fs_searchpaths is built with successive calls to FS_AddGameDirectory.
 
 Additionally, we search in several subdirectories:
 - current game is the current mode
-- base game is a variable to allow mods based on other mods (such as base game + missionpack content combination in a mod for instance)
+- base game is a variable to allow mods based on other mods (such as base game + modpack content combination in a mod for instance)
 - BASEGAME is the hardcoded base game ("Data")
 
   e.g. the qpath "sound/newstuff/test.wav" would be searched for in the following places:
@@ -190,10 +190,10 @@ typedef struct fileInPack_s {
 } fileInPack_t;
 
 typedef struct {
-	char pakPathname[MAX_OSPATH];	// C:\quake3\baseq3
-	char pakFilename[MAX_OSPATH];	// C:\quake3\baseq3\pak0.pk3
+	char pakPathname[MAX_OSPATH];	// C:\Quake Wars\Data
+	char pakFilename[MAX_OSPATH];	// C:\Quake Wars\Data\pak0.pk3
 	char pakBasename[MAX_OSPATH];	// pak0
-	char pakGamename[MAX_OSPATH];	// baseq3
+	char pakGamename[MAX_OSPATH];	// Data
 	unzFile handle;					// handle to zip file
 	int checksum;					// regular checksum
 	int pure_checksum;				// checksum for pure
@@ -205,9 +205,9 @@ typedef struct {
 } pack_t;
 
 typedef struct {
-	char path[MAX_OSPATH];		// C:\quake3
-	char fullpath[MAX_OSPATH];	// C:\quake3\baseq3
-	char gamedir[MAX_OSPATH];	// baseq3
+	char path[MAX_OSPATH];		// C:\Quake Wars
+	char fullpath[MAX_OSPATH];	// C:\Quake Wars\Data
+	char gamedir[MAX_OSPATH];	// Data
 } directory_t;
 
 typedef struct searchpath_s {
@@ -2415,7 +2415,7 @@ void FS_GetModDescription(const char *modDir, char *description, int description
 =======================================================================================================================================
 FS_GetModList
 
-Returns a list of mod directory names. A mod directory is a peer to baseq3 with a pk3 or pk3dir in it.
+Returns a list of mod directory names. A mod directory is a peer to the 'Data' folder with a pk3 or pk3dir in it.
 =======================================================================================================================================
 */
 int FS_GetModList(char *listbuf, int bufsize) {
@@ -2458,7 +2458,7 @@ int FS_GetModList(char *listbuf, int bufsize) {
 				}
 			}
 		}
-		// we also drop "baseq3", "." and ".."
+		// we also drop "Data", "." and ".."
 		if (bDrop || Q_stricmp(name, com_basegame->string) == 0 || Q_stricmpn(name, ".", 1) == 0) {
 			continue;
 		}
@@ -2899,8 +2899,8 @@ void FS_AddGameDirectory(const char *path, const char *dir) {
 			search = Z_Malloc(sizeof(searchpath_t));
 			search->dir = Z_Malloc(sizeof(*search->dir));
 
-			Q_strncpyz(search->dir->path, curpath, sizeof(search->dir->path)); // C:\quake3\baseq3
-			Q_strncpyz(search->dir->fullpath, pakfile, sizeof(search->dir->fullpath)); // C:\quake3\baseq3\mypak.pk3dir
+			Q_strncpyz(search->dir->path, curpath, sizeof(search->dir->path)); // C:\Quake Wars\Data
+			Q_strncpyz(search->dir->fullpath, pakfile, sizeof(search->dir->fullpath)); // C:\Quake Wars\Data\mypak.pk3dir
 			Q_strncpyz(search->dir->gamedir, pakdirs[pakdirsi], sizeof(search->dir->gamedir)); // mypak.pk3dir
 
 			search->next = fs_searchpaths;
@@ -3600,7 +3600,7 @@ const char *FS_ReferencedPakNames(void) {
 	searchpath_t *search;
 
 	info[0] = 0;
-	// we want to return ALL pk3's from the fs_game path and referenced one's from baseq3
+	// we want to return ALL pk3's from the fs_game path and referenced one's from 'Data' folder
 	for (search = fs_searchpaths; search; search = search->next) {
 		// is the element a pak file?
 		if (search->pack) {
