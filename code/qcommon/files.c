@@ -2415,7 +2415,7 @@ void FS_GetModDescription(const char *modDir, char *description, int description
 =======================================================================================================================================
 FS_GetModList
 
-Returns a list of mod directory names. A mod directory is a peer to the 'Data' folder with a pk3 or pk3dir in it.
+Returns a list of mod directory names. A mod directory is a peer to the base game folder with a pk3 or pk3dir in it.
 =======================================================================================================================================
 */
 int FS_GetModList(char *listbuf, int bufsize) {
@@ -3600,7 +3600,7 @@ const char *FS_ReferencedPakNames(void) {
 	searchpath_t *search;
 
 	info[0] = 0;
-	// we want to return ALL pk3's from the fs_game path and referenced one's from 'Data' folder
+	// we want to return ALL pk3's from the fs_game path and referenced one's from base game folder
 	for (search = fs_searchpaths; search; search = search->next) {
 		// is the element a pak file?
 		if (search->pack) {
