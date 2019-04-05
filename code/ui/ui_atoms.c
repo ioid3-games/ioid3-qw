@@ -438,10 +438,10 @@ void UI_DrawNamedPic(float x, float y, float width, float height, const char *pi
 
 /*
 =======================================================================================================================================
-UI_DrawHandlePic
+UI_DrawPic
 =======================================================================================================================================
 */
-void UI_DrawHandlePic(float x, float y, float w, float h, qhandle_t hShader) {
+void UI_DrawPic(float x, float y, float w, float h, qhandle_t hShader) {
 	float s0;
 	float s1;
 	float t0;

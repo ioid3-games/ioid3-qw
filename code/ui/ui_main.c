@@ -640,7 +640,7 @@ void UI_DrawCenteredPic(qhandle_t image, int w, int h) {
 	x = (SCREEN_WIDTH - w) / 2;
 	y = (SCREEN_HEIGHT - h) / 2;
 
-	UI_DrawHandlePic(x, y, w, h, image);
+	UI_DrawPic(x, y, w, h, image);
 }
 
 int frameCount = 0;
@@ -699,7 +699,7 @@ void _UI_Refresh(int realtime) {
 	trap_R_SetColor(NULL);
 
 	if (Menu_Count() > 0 && (trap_Key_GetCatcher() & KEYCATCH_UI)) {
-		UI_DrawHandlePic(uiInfo.uiDC.cursorx - 16, uiInfo.uiDC.cursory - 16, 32, 32, uiInfo.uiDC.Assets.cursor);
+		UI_DrawPic(uiInfo.uiDC.cursorx - 16, uiInfo.uiDC.cursory - 16, 32, 32, uiInfo.uiDC.Assets.cursor);
 	}
 #ifndef NDEBUG
 	if (uiInfo.uiDC.debug) {
@@ -1296,7 +1296,7 @@ static void UI_DrawClanLogo(rectDef_t *rect, float scale, vec4_t color) {
 			uiInfo.teamList[i].teamIcon_Name = trap_R_RegisterShaderNoMip(va("%s_name", uiInfo.teamList[i].imageName));
 		}
 
-		UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon);
+		UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon);
 		trap_R_SetColor(NULL);
 	}
 }
@@ -1322,13 +1322,13 @@ static void UI_DrawClanCinematic(rectDef_t *rect, float scale, vec4_t color) {
 				UI_DrawCinematic(uiInfo.teamList[i].cinematic, rect->x, rect->y, rect->w, rect->h);
 			} else {
 				trap_R_SetColor(color);
-				UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon_Metal);
+				UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon_Metal);
 				trap_R_SetColor(NULL);
 				uiInfo.teamList[i].cinematic = -2;
 			}
 		} else {
 			trap_R_SetColor(color);
-			UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon);
+			UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon);
 			trap_R_SetColor(NULL);
 		}
 	}
@@ -1429,8 +1429,8 @@ UI_DrawEffects
 */
 static void UI_DrawEffects(rectDef_t *rect, float scale, vec4_t color) {
 
-	UI_DrawHandlePic(rect->x, rect->y - 14, 128, 8, uiInfo.uiDC.Assets.fxBasePic);
-	UI_DrawHandlePic(rect->x + uiInfo.effectsColor * 16 + 8, rect->y - 16, 16, 12, uiInfo.uiDC.Assets.fxPic[uiInfo.effectsColor]);
+	UI_DrawPic(rect->x, rect->y - 14, 128, 8, uiInfo.uiDC.Assets.fxBasePic);
+	UI_DrawPic(rect->x + uiInfo.effectsColor * 16 + 8, rect->y - 16, 16, 12, uiInfo.uiDC.Assets.fxPic[uiInfo.effectsColor]);
 }
 
 /*
@@ -1458,9 +1458,9 @@ static void UI_DrawMapPreview(rectDef_t *rect, float scale, vec4_t color, qboole
 	}
 
 	if (uiInfo.mapList[map].levelShot > 0) {
-		UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.mapList[map].levelShot);
+		UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.mapList[map].levelShot);
 	} else {
-		UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, trap_R_RegisterShaderNoMip("menu/art/unknownmap"));
+		UI_DrawPic(rect->x, rect->y, rect->w, rect->h, trap_R_RegisterShaderNoMip("menu/art/unknownmap"));
 	}
 }
 
@@ -1598,9 +1598,9 @@ UI_DrawNetMapPreview
 static void UI_DrawNetMapPreview(rectDef_t *rect, float scale, vec4_t color) {
 
 	if (uiInfo.serverStatus.currentServerPreview > 0) {
-		UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.serverStatus.currentServerPreview);
+		UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.serverStatus.currentServerPreview);
 	} else {
-		UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, trap_R_RegisterShaderNoMip("menu/art/unknownmap"));
+		UI_DrawPic(rect->x, rect->y, rect->w, rect->h, trap_R_RegisterShaderNoMip("menu/art/unknownmap"));
 	}
 }
 
@@ -1673,7 +1673,7 @@ static void UI_DrawTierMap(rectDef_t *rect, int index) {
 		uiInfo.tierList[i].mapHandles[index] = trap_R_RegisterShaderNoMip(va("levelshots/%s", uiInfo.tierList[i].maps[index]));
 	}
 
-	UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.tierList[i].mapHandles[index]);
+	UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.tierList[i].mapHandles[index]);
 }
 
 /*
@@ -1861,7 +1861,7 @@ static void UI_DrawPlayerLogo(rectDef_t *rect, vec3_t color) {
 	}
 
 	trap_R_SetColor(color);
-	UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon);
+	UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon);
 	trap_R_SetColor(NULL);
 }
 
@@ -1880,7 +1880,7 @@ static void UI_DrawPlayerLogoMetal(rectDef_t *rect, vec3_t color) {
 	}
 
 	trap_R_SetColor(color);
-	UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon_Metal);
+	UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon_Metal);
 	trap_R_SetColor(NULL);
 }
 
@@ -1899,7 +1899,7 @@ static void UI_DrawPlayerLogoName(rectDef_t *rect, vec3_t color) {
 	}
 
 	trap_R_SetColor(color);
-	UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon_Name);
+	UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon_Name);
 	trap_R_SetColor(NULL);
 }
 
@@ -1918,7 +1918,7 @@ static void UI_DrawOpponentLogo(rectDef_t *rect, vec3_t color) {
 	}
 
 	trap_R_SetColor(color);
-	UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon);
+	UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon);
 	trap_R_SetColor(NULL);
 }
 
@@ -1937,7 +1937,7 @@ static void UI_DrawOpponentLogoMetal(rectDef_t *rect, vec3_t color) {
 	}
 
 	trap_R_SetColor(color);
-	UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon_Metal);
+	UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon_Metal);
 	trap_R_SetColor(NULL);
 }
 
@@ -1956,7 +1956,7 @@ static void UI_DrawOpponentLogoName(rectDef_t *rect, vec3_t color) {
 	}
 
 	trap_R_SetColor(color);
-	UI_DrawHandlePic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon_Name);
+	UI_DrawPic(rect->x, rect->y, rect->w, rect->h, uiInfo.teamList[i].teamIcon_Name);
 	trap_R_SetColor(NULL);
 }
 
@@ -2173,7 +2173,7 @@ static void UI_DrawCrosshair(rectDef_t *rect, float scale, vec4_t color) {
 	}
 
 	trap_R_SetColor(color);
-	UI_DrawHandlePic(rect->x, rect->y - rect->h, rect->w, rect->h, uiInfo.uiDC.Assets.crosshairShader[uiInfo.currentCrosshair]);
+	UI_DrawPic(rect->x, rect->y - rect->h, rect->w, rect->h, uiInfo.uiDC.Assets.crosshairShader[uiInfo.currentCrosshair]);
 	trap_R_SetColor(NULL);
 }
 
@@ -5838,10 +5838,10 @@ static void UI_RunCinematicFrame(int handle) {
 
 /*
 =======================================================================================================================================
-UI_BuildQ3Model_List
+UI_BuildModel_List
 =======================================================================================================================================
 */
-static void UI_BuildQ3Model_List(void) {
+static void UI_BuildModel_List(void) {
 	int numdirs;
 	int numfiles;
 	char dirlist[2048];
@@ -5935,7 +5935,7 @@ void _UI_Init(qboolean inGameLoad) {
 
 	uiInfo.uiDC.registerShaderNoMip = &trap_R_RegisterShaderNoMip;
 	uiInfo.uiDC.setColor = &trap_R_SetColor;
-	uiInfo.uiDC.drawHandlePic = &UI_DrawHandlePic;
+	uiInfo.uiDC.drawHandlePic = &UI_DrawPic;
 	uiInfo.uiDC.drawStretchPic = &trap_R_DrawStretchPic;
 	uiInfo.uiDC.drawText = &Text_Paint;
 	uiInfo.uiDC.textWidth = &Text_Width;
@@ -6018,7 +6018,7 @@ void _UI_Init(qboolean inGameLoad) {
 	Menus_CloseAll();
 	trap_LAN_LoadCachedServers();
 	UI_LoadBestScores(uiInfo.mapList[ui_currentMap.integer].mapLoadName, uiInfo.gameTypes[ui_gameType.integer].gtEnum);
-	UI_BuildQ3Model_List();
+	UI_BuildModel_List();
 	UI_LoadBots();
 	// sets defaults for ui temp cvars
 	uiInfo.effectsColor = gamecodetoui[(int)trap_Cvar_VariableValue("color1") - 1];
