@@ -1528,6 +1528,9 @@ static void PM_Weapon(void) {
 		case WP_GRENADELAUNCHER:
 			addTime = 800;
 			break;
+		case WP_NAPALMLAUNCHER:
+			addTime = 1200;
+			break;
 		case WP_ROCKETLAUNCHER:
 			addTime = 800;
 			break;

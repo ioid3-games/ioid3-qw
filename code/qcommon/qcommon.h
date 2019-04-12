@@ -464,15 +464,14 @@ extern int cvar_modifiedFlags;
 #define FS_GENERAL_REF	0x00000001
 #define FS_UI_REF		0x00000002
 #define FS_CGAME_REF	0x00000004
-// number of id paks that will never be autodownloaded from baseq3/missionpack
-#define NUM_ID_PAKS 9
-#define NUM_TA_PAKS 4
+// number of qw paks that will never be autodownloaded from base game
+#define NUM_QW_PAKS 4
 
 #define MAX_FILE_HANDLES 64
 #ifdef DEDICATED
-#define Q3CONFIG_CFG "q3config_server.cfg"
+#define QWCONFIG_CFG "config_server.cfg"
 #else
-#define Q3CONFIG_CFG "q3config.cfg"
+#define QWCONFIG_CFG "config.cfg"
 #endif
 qboolean FS_Initialized(void);
 void FS_InitFilesystem(void);
@@ -558,7 +557,7 @@ void FS_PureServerSetLoadedPaks(const char *pakSums, const char *pakNames);
 // If not empty, only pk3 files that match one of the space separated checksums will be checked for files, with the sole exception of .cfg files.
 qboolean FS_CheckDirTraversal(const char *checkdir);
 qboolean FS_InvalidGameDir(const char *gamedir);
-qboolean FS_idPak(char *pak, char *base, int numPaks);
+qboolean FS_qwPak(char *pak, char *base, int numPaks);
 qboolean FS_ComparePaks(char *neededpaks, int len, qboolean dlstring);
 void FS_Rename(const char *from, const char *to);
 void FS_Remove(const char *osPath);

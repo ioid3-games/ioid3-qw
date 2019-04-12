@@ -111,7 +111,7 @@ static struct sockaddr_in6 boundto;
 #ifndef IF_NAMESIZE
 #define IF_NAMESIZE 16
 #endif
-// use an admin local address per default so that network admins can decide on how to handle quake3 traffic.
+// use an admin local address per default so that network admins can decide on how to handle Quake Wars traffic.
 #define NET_MULTICAST_IP6 "ff04::696f:7175:616b:6533"
 #define MAX_IPS 32
 

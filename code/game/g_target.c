@@ -236,7 +236,7 @@ void SP_target_speaker(gentity_t *ent) {
 	G_SpawnFloat("random", "0", &ent->random);
 
 	if (!G_SpawnString("noise", "NOSOUND", &s)) {
-		G_Error("target_speaker without a noise key at %s", vtos(ent->s.origin));
+		G_Error("target_speaker without a noise key at %s", VectorToString(ent->s.origin));
 	}
 	// force all client relative sounds to be "activator" speakers that play on the entity that activates it
 	if (s[0] == '*') {
@@ -359,7 +359,7 @@ void Target_Laser_Start(gentity_t *self) {
 		ent = G_Find(NULL, FOFS(targetname), self->target);
 
 		if (!ent) {
-			G_Printf("%s at %s: %s is a bad target\n", self->classname, vtos(self->s.origin), self->target);
+			G_Printf("%s at %s: %s is a bad target\n", self->classname, VectorToString(self->s.origin), self->target);
 		}
 
 		self->enemy = ent;
@@ -419,7 +419,7 @@ The activator will be teleported away.
 void SP_target_teleporter(gentity_t *self) {
 
 	if (!self->targetname) {
-		G_Printf("untargeted %s at %s\n", self->classname, vtos(self->s.origin));
+		G_Printf("untargeted %s at %s\n", self->classname, VectorToString(self->s.origin));
 	}
 
 	self->use = Use_Target_Teleporter;

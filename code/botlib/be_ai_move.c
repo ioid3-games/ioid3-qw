@@ -318,7 +318,7 @@ int BotReachabilityArea(vec3_t origin, int client) {
 
 	// check if the bot is standing on something
 	AAS_PresenceTypeBoundingBox(PRESENCE_CROUCH, mins, maxs);
-	VectorMA(origin, -3, up, end);
+	VectorMA(origin, -4, up, end);
 	bsptrace = AAS_Trace(origin, mins, maxs, end, client, CONTENTS_SOLID|CONTENTS_PLAYERCLIP);
 
 	if (!bsptrace.startsolid && bsptrace.fraction < 1 && bsptrace.ent != ENTITYNUM_NONE) {
@@ -573,7 +573,7 @@ int BotOnTopOfEntity(bot_movestate_t *ms) {
 	bsp_trace_t trace;
 
 	AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
-	VectorMA(ms->origin, -3, up, end);
+	VectorMA(ms->origin, -4, up, end);
 	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP);
 	// if not started in solid and NOT hitting the world entity
 	if (!trace.startsolid && (trace.ent != ENTITYNUM_WORLD && trace.ent != ENTITYNUM_NONE)) {
@@ -1416,7 +1416,7 @@ void BotCheckBlocked(bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_mover
 	} else if (checkbottom && !AAS_AreaReachability(ms->areanum)) {
 		// check if the bot is standing on something
 		AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
-		VectorMA(ms->origin, -3, up, end);
+		VectorMA(ms->origin, -4, up, end);
 		trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP);
 
 		if (!trace.startsolid && (trace.ent != ENTITYNUM_WORLD && trace.ent != ENTITYNUM_NONE)) {
@@ -3554,8 +3554,8 @@ int BotSetupMoveAI(void) {
 	sv_maxstep = LibVar("sv_step", "18");
 	sv_maxbarrier = LibVar("sv_maxbarrier", "32");
 
-	weapindex_rocketlauncher = LibVar("weapindex_rocketlauncher", "5");
-	weapindex_bfg10k = LibVar("weapindex_bfg10k", "9");
+	weapindex_rocketlauncher = LibVar("weapindex_rocketlauncher", "9");
+	weapindex_bfg10k = LibVar("weapindex_bfg10k", "13");
 	return BLERR_NOERROR;
 }
 

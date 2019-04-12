@@ -219,7 +219,7 @@ void LookAtKiller(gentity_t *self, gentity_t *inflictor, gentity_t *attacker) {
 		return;
 	}
 
-	self->client->ps.stats[STAT_DEAD_YAW] = vectoyaw(dir);
+	self->client->ps.stats[STAT_DEAD_YAW] = VectorToYaw(dir);
 }
 
 /*
@@ -290,6 +290,8 @@ char *modNames[] = {
 	"MOD_PROXIMITY_MINE",
 	"MOD_GRENADE",
 	"MOD_GRENADE_SPLASH",
+	"MOD_NAPALM",
+	"MOD_NAPALM_SPLASH",
 	"MOD_ROCKET",
 	"MOD_ROCKET_SPLASH",
 	"MOD_BEAMGUN",

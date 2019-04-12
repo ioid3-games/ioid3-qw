@@ -122,6 +122,15 @@ void CG_MissileHitWall(int weapon, int clientNum, vec3_t origin, vec3_t dir) {
 			markRadius = 64;
 			sfx = cgs.media.sfx_rockexp;
 			break;
+		case WP_NAPALMLAUNCHER:
+			mod = cgs.media.dishFlashModel;
+			light = 300;
+			shader = cgs.media.grenadeExplosionShader;
+			isSprite = qtrue;
+			mark = cgs.media.burnMarkShader;
+			markRadius = 64;
+			sfx = cgs.media.sfx_rockexp;
+			break;
 		case WP_ROCKETLAUNCHER:
 			mod = cgs.media.dishFlashModel;
 			light = 300;
@@ -1179,7 +1188,7 @@ static void CG_ShotgunPattern(vec3_t origin, vec3_t origin2, int seed, int other
 		r = Q_crandom(&seed) * DEFAULT_SHOTGUN_SPREAD * 16;
 		u = Q_crandom(&seed) * DEFAULT_SHOTGUN_SPREAD * 16;
 
-		VectorMA(origin, 8192 * 16, forward, end);
+		VectorMA(origin, 131072, forward, end); // 8192 * 16
 		VectorMA(end, r, right, end);
 		VectorMA(end, u, up, end);
 		CG_ShotgunPellet(origin, end, otherEntNum);
@@ -1410,6 +1419,14 @@ void CG_RegisterWeapon(int weaponNum) {
 			cgs.media.grenadeExplosionShader = trap_R_RegisterShader("grenadeExplosion");
 			break;
 		case WP_GRENADELAUNCHER:
+			weaponInfo->missileModel = trap_R_RegisterModel("models/ammo/grenade1.md3");
+			weaponInfo->missileTrailFunc = CG_GrenadeTrail;
+			weaponInfo->wiTrailTime = 700;
+			weaponInfo->trailRadius = 32;
+			weaponInfo->flashSound[0] = trap_S_RegisterSound("sound/weapons/grenade/grenlf1a.wav", qfalse);
+			cgs.media.grenadeExplosionShader = trap_R_RegisterShader("grenadeExplosion");
+			break;
+		case WP_NAPALMLAUNCHER:
 			weaponInfo->missileModel = trap_R_RegisterModel("models/ammo/grenade1.md3");
 			weaponInfo->missileTrailFunc = CG_GrenadeTrail;
 			weaponInfo->wiTrailTime = 700;

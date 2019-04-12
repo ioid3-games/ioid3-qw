@@ -168,6 +168,20 @@ gitem_t bg_itemlist[] = {
 /* sounds */ ""
 	},
 
+/*QUAKED item_armor_full (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED
+*/
+	{
+		"item_armor_full",
+		"snd/i/puar.wav",
+		{"models/powerups/armor/armor_red.md3", NULL, NULL, NULL},
+/* icon */		"icons/iconr_red",
+/* pickup */	"Full Armor",
+		200,
+		IT_ARMOR,
+		0,
+/* sounds */ ""
+	},
+
 /**************************************************************************************************************************************
 	WEAPONS
 **************************************************************************************************************************************/
@@ -268,6 +282,20 @@ gitem_t bg_itemlist[] = {
 		IT_WEAPON,
 		WP_GRENADELAUNCHER,
 /* sounds */ "sound/weapons/grenade/hgrenb1a.wav sound/weapons/grenade/hgrenb2a.wav"
+	},
+
+/*QUAKED weapon_napalmlauncher (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED
+*/
+	{
+		"weapon_napalmlauncher",
+		"snd/i/puw.wav",
+		{"models/weapons2/napalml/napalml.md3", NULL, NULL, NULL},
+/* icon */		"icons/iconw_napalm",
+/* pickup */	"Napalm Launcher",
+		10,
+		IT_WEAPON,
+		WP_NAPALMLAUNCHER,
+/* sounds */ ""
 	},
 
 /*QUAKED weapon_rocketlauncher (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED
@@ -425,6 +453,20 @@ gitem_t bg_itemlist[] = {
 		5,
 		IT_AMMO,
 		WP_GRENADELAUNCHER,
+/* sounds */ ""
+	},
+
+/*QUAKED ammo_canisters (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED
+*/
+	{
+		"ammo_canisters",
+		"snd/i/pum.wav",
+		{"models/powerups/ammo/napalmam.md3", NULL, NULL, NULL},
+/* icon */		"icons/icona_napalm",
+/* pickup */	"Canisters",
+		5,
+		IT_AMMO,
+		WP_NAPALMLAUNCHER,
 /* sounds */ ""
 	},
 

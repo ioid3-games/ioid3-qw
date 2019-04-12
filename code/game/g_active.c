@@ -436,6 +436,11 @@ void ClientTimerActions(gentity_t *ent, int msec) {
 					inc = 1;
 					t = 2000;
 					break;
+				case WP_NAPALMLAUNCHER:
+					max = 10;
+					inc = 1;
+					t = 2000;
+					break;
 				case WP_ROCKETLAUNCHER:
 					max = 10;
 					inc = 1;

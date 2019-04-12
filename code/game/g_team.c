@@ -909,7 +909,7 @@ gentity_t *Team_GetLocation(gentity_t *ent) {
 	vec3_t origin;
 
 	best = NULL;
-	bestlen = 3 * 8192.0 * 8192.0;
+	bestlen = 201326592; // 3 * 8192.0 * 8192.0
 
 	VectorCopy(ent->r.currentOrigin, origin);
 
@@ -1302,6 +1302,7 @@ static void ObeliskTouch(gentity_t *self, gentity_t *other, trace_t *trace) {
 	}
 
 	PrintMsg(NULL, "%s" S_COLOR_WHITE " brought in %i %s.\n", other->client->pers.netname, tokens, (tokens == 1) ? "skull" : "skulls");
+
 	other->client->rewardTime = level.time + REWARD_TIME;
 	other->client->ps.persistant[PERS_CAPTURES] += tokens;
 	other->client->ps.generic1 = 0;
@@ -1411,7 +1412,7 @@ void ObeliskInit(gentity_t *ent) {
 
 		if (tr.startsolid) {
 			ent->s.origin[2] -= 1;
-			G_Printf("SpawnObelisk: %s startsolid at %s\n", ent->classname, vtos(ent->s.origin));
+			G_Printf("SpawnObelisk: %s startsolid at %s\n", ent->classname, VectorToString(ent->s.origin));
 
 			ent->s.groundEntityNum = ENTITYNUM_NONE;
 

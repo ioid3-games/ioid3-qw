@@ -435,7 +435,7 @@ gentity_t *fire_nail(gentity_t *self, vec3_t start, vec3_t forward, vec3_t right
 	u = sin(r) * crandom() * NAILGUN_SPREAD * 16;
 	r = cos(r) * crandom() * NAILGUN_SPREAD * 16;
 
-	VectorMA(start, 8192 * 16, forward, end);
+	VectorMA(start, 131072, forward, end); // 8192 * 16
 	VectorMA(end, r, right, end);
 	VectorMA(end, u, up, end);
 	VectorSubtract(end, start, dir);
@@ -520,6 +520,42 @@ gentity_t *fire_grenade(gentity_t *self, vec3_t start, vec3_t dir) {
 
 	VectorCopy(start, bolt->s.pos.trBase);
 	VectorScale(dir, 1100, bolt->s.pos.trDelta);
+	SnapVector(bolt->s.pos.trDelta); // save net bandwidth
+	VectorCopy(start, bolt->r.currentOrigin);
+	return bolt;
+}
+
+/*
+=======================================================================================================================================
+fire_napalm
+=======================================================================================================================================
+*/
+gentity_t *fire_napalm(gentity_t *self, vec3_t start, vec3_t dir) {
+	gentity_t *bolt;
+
+	VectorNormalize(dir);
+
+	bolt = G_Spawn();
+	bolt->classname = "napalm";
+	bolt->nextthink = level.time + 15000;
+	bolt->think = G_ExplodeMissile;
+	bolt->s.eType = ET_MISSILE;
+	bolt->s.weapon = WP_NAPALMLAUNCHER;
+	bolt->r.ownerNum = self->s.number;
+	bolt->parent = self;
+	bolt->damage = 0;
+	bolt->splashDamage = 10;
+	bolt->splashRadius = 300;
+	bolt->methodOfDeath = MOD_NAPALM;
+	bolt->splashMethodOfDeath = MOD_NAPALM_SPLASH;
+	bolt->clipmask = MASK_SHOT;
+	// count is used to check if the missile left the player bbox, if count == 1 then the missile left the player bbox and can attack to it
+	bolt->count = 0;
+	bolt->s.pos.trType = TR_GRAVITY;
+	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME; // move a bit on the very first frame
+
+	VectorCopy(start, bolt->s.pos.trBase);
+	VectorScale(dir, 5000, bolt->s.pos.trDelta);
 	SnapVector(bolt->s.pos.trDelta); // save net bandwidth
 	VectorCopy(start, bolt->r.currentOrigin);
 	return bolt;

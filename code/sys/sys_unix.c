@@ -43,9 +43,9 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 qboolean stdinIsATTY;
 // used to determine where to store user-specific files
 static char homePath[MAX_OSPATH] = {0};
-// used to store the Steam Quake 3 installation path
+// used to store the Steam Quake Wars installation path
 static char steamPath[MAX_OSPATH] = {0};
-// used to store the GOG Quake 3 installation path
+// used to store the GOG Quake Wars installation path
 static char gogPath[MAX_OSPATH] = {0};
 
 /*
@@ -86,7 +86,7 @@ Sys_SteamPath
 =======================================================================================================================================
 */
 char *Sys_SteamPath(void) {
-	// disabled since Steam doesn't let you install Quake 3 on Mac/Linux
+	// disabled since Steam doesn't let you install Quake Wars on Mac/Linux
 #if 0 //#ifdef STEAMPATH_NAME
 	char *p;
 
@@ -108,7 +108,7 @@ Sys_GogPath
 =======================================================================================================================================
 */
 char *Sys_GogPath(void) {
-	// GOG also doesn't let you install Quake 3 on Mac/Linux
+	// GOG also doesn't let you install Quake Wars on Mac/Linux
 	return gogPath;
 }
 

@@ -1277,10 +1277,10 @@ long FS_FOpenFileRead(const char *filename, fileHandle_t *file, qboolean uniqueF
 		Com_Error(ERR_FATAL, "Filesystem call made without initialization");
 	}
 
-	isLocalConfig = !strcmp(filename, "autoexec.cfg") || !strcmp(filename, Q3CONFIG_CFG);
+	isLocalConfig = !strcmp(filename, "autoexec.cfg") || !strcmp(filename, QWCONFIG_CFG);
 
 	for (search = fs_searchpaths; search; search = search->next) {
-		// autoexec.cfg and q3config.cfg can only be loaded outside of pk3 files.
+		// autoexec.cfg and config.cfg can only be loaded outside of pk3 files.
 		if (isLocalConfig && search->pack) {
 			continue;
 		}
@@ -2925,13 +2925,13 @@ void FS_AddGameDirectory(const char *path, const char *dir) {
 
 /*
 =======================================================================================================================================
-FS_idPak
+FS_qwPak
 =======================================================================================================================================
 */
-qboolean FS_idPak(char *pak, char *base, int numPaks) {
+qboolean FS_qwPak(char *pak, char *base, int numPaks) {
 	int i;
 
-	for (i = 0; i < NUM_ID_PAKS; i++) {
+	for (i = 0; i < NUM_QW_PAKS; i++) {
 		if (!FS_FilenameCompare(pak, va("%s/pak%d", base, i))) {
 			break;
 		}
@@ -3017,14 +3017,14 @@ qboolean FS_ComparePaks(char *neededpaks, int len, qboolean dlstring) {
 		// ok, see if we have this pak file
 		havepak = qfalse;
 		// never autodownload any of the id paks
-		if (FS_idPak(fs_serverReferencedPakNames[i], BASEGAME, NUM_ID_PAKS)
+		if (FS_qwPak(fs_serverReferencedPakNames[i], BASEGAME, NUM_QW_PAKS)
 #ifndef STANDALONE
 				|| FS_idPak(fs_serverReferencedPakNames[i], BASETA, NUM_TA_PAKS)
 #endif
 			) {
 			continue;
 		}
-		// make sure the server cannot make us write to non-quake3 directories
+		// make sure the server cannot make us write to non-quake wars directories
 		if (FS_CheckDirTraversal(fs_serverReferencedPakNames[i])) {
 			Com_Printf("WARNING: Invalid download name %s\n", fs_serverReferencedPakNames[i]);
 			continue;
@@ -3341,14 +3341,14 @@ static void FS_CheckPak0(void) {
 				if (pakBasename[3] == '0') {
 					Com_Printf("\n\n"
 							"**************************************************\n"
-							"WARNING: " BASEGAME "/pak0.pk3 is present but its checksum (%u)\n"
+							"WARNING: "BASEGAME"/pak0.pk3 is present but its checksum (%u)\n"
 							"is not correct. Please re-copy pak0.pk3 from your\n"
 							"legitimate Q3 CDROM.\n"
 							"**************************************************\n\n\n", curpack->checksum);
 				} else {
 					Com_Printf("\n\n"
 							"**************************************************\n"
-							"WARNING: " BASEGAME "/pak%d.pk3 is present but its checksum (%u)\n"
+							"WARNING: "BASEGAME"/pak%d.pk3 is present but its checksum (%u)\n"
 							"is not correct. Please re-install the point release\n"
 							"**************************************************\n\n\n", pakBasename[3] - '0', curpack->checksum);
 				}
@@ -3805,7 +3805,7 @@ void FS_Restart(int checksumFeed) {
 	// if we can't find default.cfg, assume that the paths are busted and error out now, rather than getting an unreadable graphics
 	// screen when the font fails to load
 	if (FS_ReadFile("default.cfg", NULL) <= 0) {
-		// this might happen when connecting to a pure server not using BASEGAME/pak0.pk3 (for instance a Team Arena demo server)
+		// this might happen when connecting to a pure server not using BASEGAME/pak0.pk3
 		if (lastValidBase[0]) {
 			FS_PureServerSetLoadedPaks("", "");
 			Cvar_Set("fs_basepath", lastValidBase);
@@ -3831,9 +3831,9 @@ void FS_Restart(int checksumFeed) {
 	if (Q_stricmp(FS_GetCurrentGameDir(), lastGameDir)) {
 		Sys_RemovePIDFile(lastGameDir);
 		Sys_InitPIDFile(FS_GetCurrentGameDir());
-		// skip the q3config.cfg if "safe" is on the command line
+		// skip the config.cfg if "safe" is on the command line
 		if (!Com_SafeMode()) {
-			Cbuf_AddText("exec " Q3CONFIG_CFG "\n");
+			Cbuf_AddText("exec " QWCONFIG_CFG "\n");
 		}
 	}
 

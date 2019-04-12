@@ -158,7 +158,7 @@ void Bullet_Fire(gentity_t *ent, float spread, int damage, int mod) {
 	u = sin(r) * crandom() * spread * 16;
 	r = cos(r) * crandom() * spread * 16;
 
-	VectorMA(muzzle, 8192 * 16, forward, end);
+	VectorMA(muzzle, 131072, forward, end); // 8192 * 16
 	VectorMA(end, r, right, end);
 	VectorMA(end, u, up, end);
 
@@ -273,7 +273,7 @@ void ShotgunPattern(vec3_t origin, vec3_t origin2, int seed, gentity_t *ent) {
 		r = Q_crandom(&seed) * DEFAULT_SHOTGUN_SPREAD * 16;
 		u = Q_crandom(&seed) * DEFAULT_SHOTGUN_SPREAD * 16;
 
-		VectorMA(origin, 8192 * 16, forward, end);
+		VectorMA(origin, 131072, forward, end); // 8192 * 16
 		VectorMA(end, r, right, end);
 		VectorMA(end, u, up, end);
 
@@ -377,6 +377,31 @@ void Weapon_Grenadelauncher_Fire(gentity_t *ent) {
 	VectorNormalize(forward);
 
 	m = fire_grenade(ent, muzzle, forward);
+	m->damage *= s_quadFactor;
+	m->splashDamage *= s_quadFactor;
+
+//	VectorAdd(m->s.pos.trDelta, ent->client->ps.velocity, m->s.pos.trDelta); // "real" physics
+}
+
+/*
+=======================================================================================================================================
+
+	NAPALM LAUNCHER
+
+=======================================================================================================================================
+*/
+
+/*
+=======================================================================================================================================
+Weapon_Napalmlauncher_Fire
+=======================================================================================================================================
+*/
+void Weapon_Napalmlauncher_Fire(gentity_t *ent) {
+	gentity_t *m;
+
+	VectorNormalize(forward);
+
+	m = fire_napalm(ent, muzzle, forward);
 	m->damage *= s_quadFactor;
 	m->splashDamage *= s_quadFactor;
 
@@ -728,6 +753,9 @@ void FireWeapon(gentity_t *ent) {
 			break;
 		case WP_GRENADELAUNCHER:
 			Weapon_Grenadelauncher_Fire(ent);
+			break;
+		case WP_NAPALMLAUNCHER:
+			Weapon_Napalmlauncher_Fire(ent);
 			break;
 		case WP_ROCKETLAUNCHER:
 			Weapon_RocketLauncher_Fire(ent);

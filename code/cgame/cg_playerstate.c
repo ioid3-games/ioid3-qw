@@ -60,6 +60,7 @@ void CG_CheckAmmo(void) {
 			case WP_SHOTGUN:
 			case WP_PROXLAUNCHER:
 			case WP_GRENADELAUNCHER:
+			case WP_NAPALMLAUNCHER:
 			case WP_ROCKETLAUNCHER:
 			case WP_RAILGUN:
 				total += cg.snap->ps.ammo[i] * 1000;

@@ -44,9 +44,9 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #endif
 // used to determine where to store user-specific files
 static char homePath[MAX_OSPATH] = {0};
-// used to store the Steam Quake 3 installation path
+// used to store the Steam Quake Wars installation path
 static char steamPath[MAX_OSPATH] = {0};
-// used to store the GOG Quake 3 installation path
+// used to store the GOG Quake Wars installation path
 static char gogPath[MAX_OSPATH] = {0};
 #ifndef DEDICATED
 static UINT timerResolution = 0;
@@ -339,7 +339,7 @@ Sys_FOpen
 FILE *Sys_FOpen(const char *ospath, const char *mode) {
 	size_t length;
 
-	// Windows API ignores all trailing spaces and periods which can get around Quake 3 file system restrictions.
+	// Windows API ignores all trailing spaces and periods which can get around Quake Wars file system restrictions.
 	length = strlen(ospath);
 
 	if (length == 0 || ospath[length - 1] == ' ' || ospath[length - 1] == '.') {

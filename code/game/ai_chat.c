@@ -284,18 +284,20 @@ char *BotWeaponNameForMeansOfDeath(int mod) {
 		case MOD_GAUNTLET:
 			return "Gauntlet";
 		case MOD_MACHINEGUN:
-			return "Machinegun";
+			return "Machine Gun";
 		case MOD_CHAINGUN:
-			return "Chaingun";
+			return "Chain Gun";
 		case MOD_SHOTGUN:
 			return "Shotgun";
 		case MOD_NAIL:
-			return "Nailgun";
+			return "Nail Gun";
 		case MOD_PROXIMITY_MINE:
 			return "Proximity Launcher";
-		case MOD_GRENADE:
 		case MOD_GRENADE_SPLASH:
 			return "Grenade Launcher";
+		case MOD_NAPALM:
+		case MOD_NAPALM_SPLASH:
+			return "Napalm Launcher";
 		case MOD_ROCKET:
 		case MOD_ROCKET_SPLASH:
 			return "Rocket Launcher";
@@ -305,10 +307,10 @@ char *BotWeaponNameForMeansOfDeath(int mod) {
 			return "Railgun";
 		case MOD_PLASMA:
 		case MOD_PLASMA_SPLASH:
-			return "Plasmagun";
+			return "Plasma Gun";
 		case MOD_BFG:
 		case MOD_BFG_SPLASH:
-			return "BFG10K";
+			return "BFG 10K";
 		case MOD_KAMIKAZE:
 			return "Kamikaze";
 		default:
@@ -324,33 +326,35 @@ BotRandomWeaponName
 char *BotRandomWeaponName(void) {
 	int rnd;
 
-	rnd = random() * 11.9;
+	rnd = random() * 12.9;
 
 	switch (rnd) {
 		case 0:
 			return "Gauntlet";
 		case 1:
-			return "Machinegun";
+			return "Machine Gun";
 		case 2:
-			return "Chaingun";
+			return "Chain Gun";
 		case 3:
 			return "Shotgun";
 		case 4:
-			return "Nailgun";
+			return "Nail Gun";
 		case 5:
 			return "Proximity Launcher";
 		case 6:
 			return "Grenade Launcher";
 		case 7:
-			return "Rocket Launcher";
+			return "Napalm Launcher";
 		case 8:
-			return "Beam Gun";
+			return "Rocket Launcher";
 		case 9:
-			return "Railgun";
+			return "Beam Gun";
 		case 10:
-			return "Plasmagun";
+			return "Railgun";
+		case 11:
+			return "Plasma Gun";
 		default:
-			return "BFG10K";
+			return "BFG 10K";
 	}
 }
 
