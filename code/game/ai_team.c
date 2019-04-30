@@ -516,7 +516,7 @@ X% in defence Y% in offence.
 */
 void BotObeliskOrders(bot_state_t *bs) {
 	int numteammates, defenders, attackers, i;
-	int teammates[MAX_CLIENTS];
+	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
 	// sort team mates by travel time to base
@@ -684,7 +684,7 @@ X% defend the base, Y% get the flag.
 */
 void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 	int numteammates, defenders, attackers, i;
-	int teammates[MAX_CLIENTS];
+	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
 	// sort team mates by travel time to base
@@ -844,7 +844,7 @@ X% towards neutral flag, Y% go towards enemy base and accompany flag carrier if 
 */
 void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 	int numteammates, defenders, attackers, i, other;
-	int teammates[MAX_CLIENTS];
+	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME], carriername[MAX_NETNAME];
 
 	// sort team mates by travel time to base
@@ -1089,7 +1089,7 @@ X% defend the base, Y% towards neutral flag.
 */
 void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 	int numteammates, defenders, attackers, i;
-	int teammates[MAX_CLIENTS];
+	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
 	// sort team mates by travel time to base
@@ -1249,7 +1249,7 @@ X% defend the base, Y% get the flag.
 */
 void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 	int numteammates, defenders, attackers, i;
-	int teammates[MAX_CLIENTS];
+	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
 	// sort team mates by travel time to base
@@ -1574,7 +1574,7 @@ BotCTFOrders_TeamFlagNotAtBase
 */
 void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 	int numteammates, defenders, attackers, i;
-	int teammates[MAX_CLIENTS];
+	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
 	// sort team mates by travel time to base
@@ -1732,7 +1732,7 @@ BotCTFOrders_EnemyFlagNotAtBase
 */
 void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 	int numteammates, defenders, attackers, i, other;
-	int teammates[MAX_CLIENTS];
+	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME], carriername[MAX_NETNAME];
 
 	// sort team mates by travel time to base
@@ -2075,7 +2075,7 @@ FIXME: defend key areas?
 =======================================================================================================================================
 */
 void BotTeamOrders(bot_state_t *bs) {
-	int teammates[MAX_CLIENTS];
+	int teammates[MAX_CLIENTS] = {0};
 	int numteammates, i;
 	char buf[MAX_INFO_STRING];
 
@@ -2254,14 +2254,7 @@ void BotTeamAI(bot_state_t *bs) {
 		}
 		case GT_CTF:
 		{
-			// if the flag status changed or someone wants to know what to do or if the number of teammates changed
-			if (bs->flagstatuschanged || bs->forceorders || bs->numteammates != numteammates) {
-				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
-				bs->flagstatuschanged = qfalse;
-				bs->forceorders = qfalse;
-			}
-			// if there were no flag captures the last 3 minutes
+			// if there were no flag captures the last 4 minutes
 			if (bs->lastflagcapture_time < FloatTime() - 240) {
 				bs->lastflagcapture_time = FloatTime();
 				// randomly change the CTF strategy
@@ -2269,6 +2262,13 @@ void BotTeamAI(bot_state_t *bs) {
 					bs->ctfstrategy ^= CTFS_AGRESSIVE;
 					bs->teamgiveorders_time = FloatTime();
 				}
+			}
+			// if the flag status changed or someone wants to know what to do or if the number of teammates changed
+			if (bs->flagstatuschanged || bs->forceorders || bs->numteammates != numteammates) {
+				bs->teamgiveorders_time = FloatTime();
+				bs->numteammates = numteammates;
+				bs->flagstatuschanged = qfalse;
+				bs->forceorders = qfalse;
 			}
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 3) {
@@ -2281,13 +2281,6 @@ void BotTeamAI(bot_state_t *bs) {
 		}
 		case GT_1FCTF:
 		{
-			// if the flag status changed or someone wants to know what to do or if the number of teammates changed
-			if (bs->flagstatuschanged || bs->forceorders || bs->numteammates != numteammates) {
-				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
-				bs->flagstatuschanged = qfalse;
-				bs->forceorders = qfalse;
-			}
 			// if there were no flag captures the last 4 minutes
 			if (bs->lastflagcapture_time < FloatTime() - 240) {
 				bs->lastflagcapture_time = FloatTime();
@@ -2296,6 +2289,13 @@ void BotTeamAI(bot_state_t *bs) {
 					bs->ctfstrategy ^= CTFS_AGRESSIVE;
 					bs->teamgiveorders_time = FloatTime();
 				}
+			}
+			// if the flag status changed or someone wants to know what to do or if the number of teammates changed
+			if (bs->flagstatuschanged || bs->forceorders || bs->numteammates != numteammates) {
+				bs->teamgiveorders_time = FloatTime();
+				bs->numteammates = numteammates;
+				bs->flagstatuschanged = qfalse;
+				bs->forceorders = qfalse;
 			}
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 2) {
