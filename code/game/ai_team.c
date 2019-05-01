@@ -359,7 +359,7 @@ void BotHarvesterOrders(bot_state_t *bs) {
 	switch (bs->ctfstrategy) {
 		default:
 		// passive strategy
-
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -431,8 +431,10 @@ void BotHarvesterOrders(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		// aggressive strategy
 		case CTFS_AGGRESSIVE:
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -504,6 +506,7 @@ void BotHarvesterOrders(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
 
@@ -535,7 +538,7 @@ void BotObeliskOrders(bot_state_t *bs) {
 	switch (bs->ctfstrategy) {
 		default:
 		// passive strategy
-
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -607,8 +610,10 @@ void BotObeliskOrders(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		// aggressive strategy
 		case CTFS_AGGRESSIVE:
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -680,6 +685,7 @@ void BotObeliskOrders(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
 
@@ -711,7 +717,7 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 	switch (bs->ctfstrategy) {
 		default:
 		// passive strategy
-
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -783,8 +789,10 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		// aggressive strategy
 		case CTFS_AGGRESSIVE:
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -856,6 +864,7 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
 
@@ -879,7 +888,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 	switch (bs->ctfstrategy) {
 		default:
 		// passive strategy
-
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -1003,8 +1012,10 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		// aggressive strategy
 		case CTFS_AGGRESSIVE:
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -1109,6 +1120,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
 
@@ -1132,7 +1144,7 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 	switch (bs->ctfstrategy) {
 		default:
 		// passive strategy
-
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -1204,8 +1216,10 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		// aggressive strategy
 		case CTFS_AGGRESSIVE:
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -1277,6 +1291,7 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
 
@@ -1300,7 +1315,7 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 	switch (bs->ctfstrategy) {
 		default:
 		// passive strategy
-
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -1372,8 +1387,10 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		// aggressive strategy
 		case CTFS_AGGRESSIVE:
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -1445,6 +1462,7 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
 
@@ -1497,7 +1515,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 	switch (bs->ctfstrategy) {
 		default:
 		// passive strategy
-
+		{
 			// different orders based on the number of team mates
 			switch (bs->numteammates) {
 				case 1:
@@ -1620,6 +1638,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
 
@@ -1641,7 +1660,7 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 	switch (bs->ctfstrategy) {
 		default:
 		// passive strategy
-
+		{
 			// different orders based on the number of team mates
 			switch (bs->numteammates) {
 				case 1:
@@ -1713,8 +1732,10 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		// aggressive strategy
 		case CTFS_AGGRESSIVE:
+		{
 			// different orders based on the number of team mates
 			switch (bs->numteammates) {
 				case 1:
@@ -1786,6 +1807,7 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
 
@@ -1807,7 +1829,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 	switch (bs->ctfstrategy) {
 		default:
 		// passive strategy
-
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -1917,6 +1939,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
 
@@ -1938,7 +1961,7 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 	switch (bs->ctfstrategy) {
 		default:
 		// passive strategy
-
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -2009,8 +2032,10 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 			}
 
 			break;
+		}
 		// aggressive strategy
 		case CTFS_AGGRESSIVE:
+		{
 			// different orders based on the number of team mates
 			switch (numteammates) {
 				case 1:
@@ -2081,6 +2106,7 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 			}
 
 			break;
+		}
 	}
 }
 
