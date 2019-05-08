@@ -1589,7 +1589,6 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					if (attackers > 5) {
 						attackers = 5;
 					}
-
 					// if we have a flag carrier
 					if (bs->flagcarrier != -1) {
 						ClientName(bs->flagcarrier, carriername, sizeof(carriername));
