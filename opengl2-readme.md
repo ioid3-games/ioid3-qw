@@ -1,16 +1,14 @@
 # OpenGL2
 <insert ascii art here>
 
-OpenGL2 is an alternate renderer for ioquake3.  It aims to implement modern
-features and technologies into the id tech 3 engine, but without sacrificing
-compatibility with existing Quake 3 mods.
+OpenGL2 is an alternate renderer for Quake Wars.  It aims to implement modern
+features and technologies into the id tech 3 engine.
 
 
 -------------------------------------------------------------------------------
   FEATURES
 -------------------------------------------------------------------------------
 
-  - Compatible with most vanilla Quake 3 mods.
   - HDR Rendering, and support for HDR lightmaps
   - Tone mapping and auto-exposure.
   - Cascaded shadow maps.
@@ -20,43 +18,6 @@ compatibility with existing Quake 3 mods.
   - Advanced shading and specular methods.
   - RGTC and BPTC texture compression support.
   - Screen-space ambient occlusion.
-
-
--------------------------------------------------------------------------------
-  INSTALLATION
--------------------------------------------------------------------------------
-
-For *nix:
-
-1. This should be identical to installing ioq3.  Check their README for more
-   details.
-
-   
-For Win32:
-
-1. Have a Quake 3 install, fully patched.
-
-2. Copy the following files into Quake 3's install directory: 
-     
-     ioquake3.x86.exe
-     renderer_opengl1_x86.dll
-     renderer_opengl2_x86.dll
-     
-   These can be found in build/release-mingw32-x86 after compiling, or bug
-   someone to release binaries.
-  
-
--------------------------------------------------------------------------------
-  RUNNING
--------------------------------------------------------------------------------
-
-1. Start ioquake3. (ioquake3.x86.exe on Win32)
- 
-2. Open the console (the default key is tilde ~) and type 
-`/cl_renderer opengl2` and press enter
-`/vid_restart` then press enter again.
-
-3. Enjoy.
 
 
 -------------------------------------------------------------------------------

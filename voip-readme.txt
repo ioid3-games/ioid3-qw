@@ -1,29 +1,27 @@
-ioquake3 VoIP support documentation.
-Last updated 6/25/2008 by Ryan C. Gordon.
+Quake Wars VoIP support documentation.
+Updated 6/25/2008 by Ryan C. Gordon.
+Updated for Spearmint 12/14/2012 by Zack Middleton.
 
-There are two ways to use VoIP in ioquake3. You can either use Mumble as an
- external program, for which ioq3 now supplies some basic hooks, or you can
+There are two ways to use VoIP in Quake Wars. You can either use Mumble as an
+ external program, for which Quake Wars now supplies some basic hooks, or you can
  use the new built-in VoIP support.
 
-Mumble is here: http://mumble.sourceforge.net/  ... ioquake3 can supply it
+Mumble is here: http://mumble.sourceforge.net/  ... Quake Wars can supply it
  with your in-game position, but everything else is whatever features Mumble
- offers outside of the game. To use it, start Mumble before you start ioq3,
+ offers outside of the game. To use it, start Mumble before you start Quake Wars,
  and run the game with +set cl_useMumble 1. This should work on at least
  Linux, Mac OS X, and Windows, and probably other platforms Mumble supports
  in the future.
 
-The built-in stuff offers tighter in-game integration, works on any platform
- that ioquake3 supports, and doesn't require anything more than a recent build
- of the game. The rest of this document is concerned with the built-in VoIP
- support.
+The built-in stuff offers tighter in-game integration and works on any platform
+ that Quake Wars supports. The rest of this document is concerned with the
+ built-in VoIP support.
 
 
 Quick start for servers:
-    - run a recent build of ioquake3.
     - Make sure your network settings are set to broadband.
 
 Quick start for clients:
-    - run a recent build of ioquake3.
     - Make sure your network settings are set to broadband.
     - +set s_useOpenAL 1
     - \bind q "+voiprecord"
@@ -159,17 +157,8 @@ There is no in-game UI to speak of: we encourage mods to add some. Largely
  they will just need to set cvars and run console commands for choosing
  voice targets and ignoring people, etc.
 
-This requires patched builds to be useful, but remains network compatible with
- legacy quake3 clients and servers. Clients and servers both report in their
- info strings whether they support VoIP, and won't send VoIP data to those not
- reporting support. If a stray VoIP packet makes it to a legacy build, it will
- be ignored without incident.
-
 VoIP packets are saved in demo files! You will be able to playback what you
- heard and what you said on VoIP-compatible clients. Legacy clients can also
- play demo files with VoIP packets in them, but just won't play the voice
- track. For VoIP-supported builds, it's nice to have a record of the
- trash-talk.
+ heard and what you said on VoIP-compatible clients.
 
 Data is processed using the Speex narrowband codec, and is cross-platform.
  Bigendian and littleendian systems can speak to each other, as can 32 and
@@ -192,7 +181,7 @@ Bandwidth: VoIP data is broken up into 20 millisecond frames (this is a Speex
  your network settings lower than "Cable/xDSL/LAN", just in case.
 
 The initial VoIP work was done by Ryan C. Gordon <icculus@icculus.org>, and
- he can be contacted with technical questions, if the ioq3 mailing list or
- forums aren't helpful.
+ he can be contacted with technical questions. Please note that Ryan's work
+ was done for ioquake3, not Quake Wars.
 
 // end of voip-README.txt ...
