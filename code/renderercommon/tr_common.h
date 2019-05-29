@@ -72,6 +72,7 @@ extern glconfig_t glConfig; // outside of TR since it shouldn't be cleared durin
 extern qboolean textureFilterAnisotropic;
 extern int maxAnisotropy;
 extern float displayAspect;
+extern qboolean haveClampToEdge;
 // cvars
 extern cvar_t *r_stencilbits;				// number of desired stencil bits
 extern cvar_t *r_depthbits;					// number of desired depth bits
