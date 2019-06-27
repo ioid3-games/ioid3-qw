@@ -54,7 +54,6 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define MUZZLE_FLASH_TIME 20
 #define SINK_TIME 1000 // time for fragments to sink into ground before going away
 #define ATTACKER_HEAD_TIME 10000
-#define REWARD_TIME 3000
 #define PULSE_SCALE 1.5 // amount to scale up the icons when activating
 #define MAX_STEP_CHANGE 32
 #define MAX_VERTS_ON_POLY 10
@@ -345,7 +344,6 @@ typedef struct {
 	int numpositions;
 } skulltrail_t;
 
-#define MAX_REWARDSTACK 10
 #define MAX_SOUNDBUFFER 20
 
 /**************************************************************************************************************************************
@@ -450,12 +448,6 @@ typedef struct {
 	// attacking player
 	int attackerTime;
 	int voiceTime;
-	// reward medals
-	int rewardStack;
-	int rewardTime;
-	int rewardCount[MAX_REWARDSTACK];
-	qhandle_t rewardShader[MAX_REWARDSTACK];
-	qhandle_t rewardSound[MAX_REWARDSTACK];
 	// sound buffer mainly for announcer sounds
 	int soundBufferIn;
 	int soundBufferOut;
@@ -868,7 +860,6 @@ extern vmCvar_t cg_drawIcons;
 extern vmCvar_t cg_drawAmmoWarning;
 extern vmCvar_t cg_drawCrosshair;
 extern vmCvar_t cg_drawCrosshairNames;
-extern vmCvar_t cg_drawRewards;
 extern vmCvar_t cg_drawTeamOverlay;
 extern vmCvar_t cg_teamOverlayUserinfo;
 extern vmCvar_t cg_crosshairX;
