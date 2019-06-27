@@ -282,6 +282,21 @@ void CG_CheckChangedPredictableEvents(playerState_t *ps) {
 
 /*
 =======================================================================================================================================
+pushReward
+=======================================================================================================================================
+*/
+static void pushReward(sfxHandle_t sfx, qhandle_t shader, int rewardCount) {
+
+	if (cg.rewardStack < (MAX_REWARDSTACK - 1)) {
+		cg.rewardStack++;
+		cg.rewardSound[cg.rewardStack] = sfx;
+		cg.rewardShader[cg.rewardStack] = shader;
+		cg.rewardCount[cg.rewardStack] = rewardCount;
+	}
+}
+
+/*
+=======================================================================================================================================
 CG_CheckLocalSounds
 =======================================================================================================================================
 */
@@ -377,9 +392,6 @@ void CG_CheckLocalSounds(playerState_t *ps, playerState_t *ops) {
 		}
 	}
 	// reward sounds
-	if (ps->persistant[PERS_CAPTURES] != ops->persistant[PERS_CAPTURES]) {
-		trap_S_StartLocalSound(cgs.media.captureAwardSound, CHAN_ANNOUNCER);
-	}
 	// if any of the player event bits changed
 	if (ps->persistant[PERS_PLAYEREVENTS] != ops->persistant[PERS_PLAYEREVENTS]) {
 		if ((ps->persistant[PERS_PLAYEREVENTS] & PLAYEREVENT_DENIEDREWARD) != (ops->persistant[PERS_PLAYEREVENTS] & PLAYEREVENT_DENIEDREWARD)) {
@@ -398,7 +410,7 @@ void CG_CheckLocalSounds(playerState_t *ps, playerState_t *ops) {
 			sfx = cgs.media.excellentSound;
 		}
 
-		trap_S_StartLocalSound(sfx, CHAN_ANNOUNCER);
+		pushReward(sfx, cgs.media.medalExcellent, ps->persistant[PERS_EXCELLENT_COUNT]);
 	}
 	// reward impressive sound
 	if (ps->persistant[PERS_IMPRESSIVE_COUNT] != ops->persistant[PERS_IMPRESSIVE_COUNT]) {
@@ -408,7 +420,7 @@ void CG_CheckLocalSounds(playerState_t *ps, playerState_t *ops) {
 			sfx = cgs.media.impressiveSound;
 		}
 
-		trap_S_StartLocalSound(sfx, CHAN_ANNOUNCER);
+		pushReward(sfx, cgs.media.medalImpressive, ps->persistant[PERS_IMPRESSIVE_COUNT]);
 	}
 	// reward gauntlet sound
 	if (ps->persistant[PERS_GAUNTLET_FRAG_COUNT] != ops->persistant[PERS_GAUNTLET_FRAG_COUNT]) {
@@ -418,15 +430,18 @@ void CG_CheckLocalSounds(playerState_t *ps, playerState_t *ops) {
 			sfx = cgs.media.humiliationSound;
 		}
 
-		trap_S_StartLocalSound(sfx, CHAN_ANNOUNCER);
+		pushReward(sfx, cgs.media.medalGauntlet, ps->persistant[PERS_GAUNTLET_FRAG_COUNT]);
+	}
+	if (ps->persistant[PERS_CAPTURES] != ops->persistant[PERS_CAPTURES]) {
+		pushReward(cgs.media.captureAwardSound, cgs.media.medalCapture, ps->persistant[PERS_CAPTURES]);
 	}
 	// reward defend sound
 	if (ps->persistant[PERS_DEFEND_COUNT] != ops->persistant[PERS_DEFEND_COUNT]) {
-		trap_S_StartLocalSound(cgs.media.defendSound, CHAN_ANNOUNCER);
+		pushReward(cgs.media.defendSound, cgs.media.medalDefend, ps->persistant[PERS_DEFEND_COUNT]);
 	}
 	// reward assist sound
 	if (ps->persistant[PERS_ASSIST_COUNT] != ops->persistant[PERS_ASSIST_COUNT]) {
-		trap_S_StartLocalSound(cgs.media.assistSound, CHAN_ANNOUNCER);
+		pushReward(cgs.media.assistSound, cgs.media.medalAssist, ps->persistant[PERS_ASSIST_COUNT]);
 	}
 }
 
