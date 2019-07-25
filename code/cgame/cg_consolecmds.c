@@ -190,7 +190,7 @@ static void CG_spWin_f(void) {
 	trap_Cvar_Set("cg_thirdPersonAngle", "0");
 	trap_Cvar_Set("cg_thirdPersonRange", "100");
 
-	CG_AddBufferedSound(cgs.media.winnerSound);
+	CG_AddBufferedAnnouncerSound(cgs.media.winnerSound);
 	//trap_S_StartLocalSound(cgs.media.winnerSound, CHAN_ANNOUNCER);
 	CG_CenterPrint("YOU WIN!", SCREEN_HEIGHT * .30, 0);
 }
@@ -208,7 +208,7 @@ static void CG_spLose_f(void) {
 	trap_Cvar_Set("cg_thirdPersonAngle", "0");
 	trap_Cvar_Set("cg_thirdPersonRange", "100");
 
-	CG_AddBufferedSound(cgs.media.loserSound);
+	CG_AddBufferedAnnouncerSound(cgs.media.loserSound);
 	//trap_S_StartLocalSound(cgs.media.loserSound, CHAN_ANNOUNCER);
 	CG_CenterPrint("YOU LOSE...", SCREEN_HEIGHT * .30, 0);
 }

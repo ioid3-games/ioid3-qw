@@ -969,7 +969,7 @@ void CG_TestModelNextSkin_f(void);
 void CG_TestModelPrevSkin_f(void);
 void CG_ZoomDown_f(void);
 void CG_ZoomUp_f(void);
-void CG_AddBufferedSound(sfxHandle_t sfx);
+void CG_AddBufferedAnnouncerSound(sfxHandle_t sfx);
 void CG_DrawActiveFrame(int serverTime, stereoFrame_t stereoView, qboolean demoPlayback);
 // cg_drawtools.c
 void CG_AdjustFrom640(float *x, float *y, float *w, float *h);
