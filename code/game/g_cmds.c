@@ -623,8 +623,6 @@ void SetTeam(gentity_t *ent, const char *s) {
 	if (oldTeam == TEAM_RED || oldTeam == TEAM_BLUE) {
 		CheckTeamLeader(oldTeam);
 	}
-
-	BroadcastTeamChange(client, oldTeam);
 	// get and distribute relevant parameters
 	ClientUserinfoChanged(clientNum);
 	// client hasn't spawned yet, they sent an early team command, teampref userinfo, or g_teamAutoJoin is enabled
@@ -632,6 +630,7 @@ void SetTeam(gentity_t *ent, const char *s) {
 		return;
 	}
 
+	BroadcastTeamChange(client, oldTeam);
 	ClientBegin(clientNum);
 }
 
