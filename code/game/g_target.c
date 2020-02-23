@@ -225,7 +225,7 @@ Global and activator sounds can't be combined with looping.
 Normal sounds play each time the target is used.
 Looped sounds will be toggled by use functions.
 Multiple identical looping sounds will just increase volume without any speed cost.
-"wait" : Seconds between auto triggerings, 0 = don't auto trigger.
+"wait" seconds between auto triggerings, 0 = don't auto trigger.
 "random" wait variance, default is 0.
 */
 void SP_target_speaker(gentity_t *ent) {
