@@ -187,7 +187,7 @@ typedef struct {
 	char pakBasename[MAX_OSPATH];	// pak0
 	char pakGamename[MAX_OSPATH];	// Data
 	unzFile handle;					// handle to zip file
-	int checksum;					// regular checksum
+	int checksum;					// checksum of the zip
 	int pure_checksum;				// checksum for pure
 	int numfiles;					// number of files in pk3
 	int referenced;					// referenced file flags
