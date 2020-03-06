@@ -1675,7 +1675,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 		// check if the bot is blocked
 		BotAIBlocked(bs, &moveresult, qtrue);
 	}
-
+	// check if the bot has to deactivate obstacles
 	BotClearPath(bs, &moveresult);
 	// if the bot has to shoot to activate
 	if (bs->activatestack->shoot) {
@@ -1835,6 +1835,7 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 	}
 	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qtrue);
+	// check if the bot has to deactivate obstacles
 	BotClearPath(bs, &moveresult);
 	// if the view angles are used for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEW|MOVERESULT_MOVEMENTVIEWSET|MOVERESULT_SWIMVIEW)) {
@@ -2032,6 +2033,7 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 	}
 	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, qtrue);
+	// check if the bot has to deactivate obstacles
 	BotClearPath(bs, &moveresult);
 	// if the view angles are used for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEW|MOVERESULT_MOVEMENTVIEWSET|MOVERESULT_SWIMVIEW)) {
@@ -2353,7 +2355,7 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 			return qfalse;
 		}
 	}
-
+	// update the attack inventory values
 	BotUpdateBattleInventory(bs, bs->enemy);
 	// initialize the movement state
 	BotSetupForMovement(bs);
