@@ -81,7 +81,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define FEEDER_PLAYER_LIST		0x07 // players
 #define FEEDER_TEAM_LIST		0x08 // team members for team voting
 #define FEEDER_MODS				0x09 // team members for team voting
-#define FEEDER_DEMOS 			0x0a // team members for team voting
+#define FEEDER_DEMOS			0x0a // team members for team voting
 #define FEEDER_SCOREBOARD		0x0b // team members for team voting
 #define FEEDER_Q3HEADS			0x0c // model heads
 #define FEEDER_SERVERSTATUS		0x0d // server status
@@ -127,168 +127,166 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 // owner draw types
 
 // ideally these should be done outside of this file but this makes it much easier for the macro expansion to convert them for the designers (from the .menu files)
-#define CG_OWNERDRAW_BASE 1
-#define CG_PLAYER_ARMOR_ICON 1              
-#define CG_PLAYER_ARMOR_VALUE 2
-#define CG_PLAYER_HEAD 3
-#define CG_PLAYER_HEALTH 4
-#define CG_PLAYER_AMMO_ICON 5
-#define CG_PLAYER_AMMO_VALUE 6
-#define CG_SELECTEDPLAYER_HEAD 7
-#define CG_SELECTEDPLAYER_NAME 8
-#define CG_SELECTEDPLAYER_LOCATION 9
-#define CG_SELECTEDPLAYER_STATUS 10
-#define CG_SELECTEDPLAYER_WEAPON 11
-#define CG_SELECTEDPLAYER_POWERUP 12
+#define CG_OWNERDRAW_BASE			1
+#define CG_PLAYER_ARMOR_ICON		2
+#define CG_PLAYER_ARMOR_VALUE		3
+#define CG_PLAYER_HEAD				4
+#define CG_PLAYER_HEALTH			5
+#define CG_PLAYER_AMMO_ICON			6
+#define CG_PLAYER_AMMO_VALUE		7
+#define CG_SELECTEDPLAYER_HEAD		8
+#define CG_SELECTEDPLAYER_NAME		9
+#define CG_SELECTEDPLAYER_LOCATION	10
+#define CG_SELECTEDPLAYER_STATUS	11
+#define CG_SELECTEDPLAYER_WEAPON	12
+#define CG_SELECTEDPLAYER_POWERUP	13
+#define CG_FLAGCARRIER_HEAD			14
+#define CG_FLAGCARRIER_NAME			15
+#define CG_FLAGCARRIER_LOCATION		16
+#define CG_FLAGCARRIER_STATUS		17
+#define CG_FLAGCARRIER_WEAPON		18
+#define CG_FLAGCARRIER_POWERUP		19
+#define CG_PLAYER_ITEM				20
+#define CG_PLAYER_SCORE				21
+#define CG_BLUE_FLAGHEAD			22
+#define CG_BLUE_FLAGSTATUS			23
+#define CG_BLUE_FLAGNAME			24
+#define CG_RED_FLAGHEAD				25
+#define CG_RED_FLAGSTATUS			26
+#define CG_RED_FLAGNAME				27
+#define CG_BLUE_SCORE				28
+#define CG_RED_SCORE				29
+#define CG_RED_NAME					30
+#define CG_BLUE_NAME				31
+#define CG_HARVESTER_SKULLS			32 // only shows in harvester
+#define CG_ONEFLAG_STATUS			33 // only shows in one flag
+#define CG_PLAYER_LOCATION			34
+#define CG_TEAM_COLOR				35
+#define CG_CTF_POWERUP				36
+#define CG_AREA_POWERUP				37
+#define CG_AREA_LAGOMETER			38 // painted with old system
+#define CG_PLAYER_HASFLAG			39
+#define CG_GAME_TYPE				40 // not done
+#define CG_SELECTEDPLAYER_ARMOR		41
+#define CG_SELECTEDPLAYER_HEALTH	42
+#define CG_PLAYER_STATUS			43
+#define CG_FRAGGED_MSG				44 // painted with old system
+#define CG_PROXMINED_MSG			45 // painted with old system
+#define CG_AREA_FPSINFO				46 // painted with old system
+#define CG_AREA_SYSTEMCHAT			47 // painted with old system
+#define CG_AREA_TEAMCHAT			48 // painted with old system
+#define CG_AREA_CHAT				49 // painted with old system
+#define CG_GAME_STATUS				50
+#define CG_KILLER					51
+#define CG_PLAYER_ARMOR_ICON2D		52
+#define CG_PLAYER_AMMO_ICON2D		53
+#define CG_ACCURACY					54
+#define CG_ASSISTS					55
+#define CG_DEFEND					56
+#define CG_EXCELLENT				57
+#define CG_IMPRESSIVE				58
+#define CG_PERFECT					59
+#define CG_GAUNTLET					60
+#define CG_SPECTATORS				61
+#define CG_TEAMINFO					62
+#define CG_VOICE_HEAD				63
+#define CG_VOICE_NAME				64
+#define CG_PLAYER_HASFLAG2D			65
+#define CG_HARVESTER_SKULLS2D		66 // only shows in harvester
+#define CG_CAPFRAGLIMIT				67
+#define CG_1STPLACE					68
+#define CG_2NDPLACE					69
+#define CG_CAPTURES					70
 
-#define CG_FLAGCARRIER_HEAD 13
-#define CG_FLAGCARRIER_NAME 14
-#define CG_FLAGCARRIER_LOCATION 15
-#define CG_FLAGCARRIER_STATUS 16
-#define CG_FLAGCARRIER_WEAPON 17
-#define CG_FLAGCARRIER_POWERUP 18
+#define UI_OWNERDRAW_BASE		200
+#define UI_EFFECTS				201
+#define UI_PLAYERMODEL			202
+#define UI_CLANNAME				203
+#define UI_CLANLOGO				204
+#define UI_GAMETYPE				205
+#define UI_MAPPREVIEW			206
+#define UI_SKILL				207
+#define UI_BLUETEAMNAME			208
+#define UI_REDTEAMNAME			209
+#define UI_BLUETEAM1			210
+#define UI_BLUETEAM2			211
+#define UI_BLUETEAM3			212
+#define UI_BLUETEAM4			213
+#define UI_BLUETEAM5			214
+#define UI_REDTEAM1				215
+#define UI_REDTEAM2				216
+#define UI_REDTEAM3				217
+#define UI_REDTEAM4				218
+#define UI_REDTEAM5				219
+#define UI_NETSOURCE			220
+#define UI_NETMAPPREVIEW		221
+#define UI_NETFILTER			222
+#define UI_TIER					223
+#define UI_OPPONENTMODEL		224
+#define UI_TIERMAP1				225
+#define UI_TIERMAP2				226
+#define UI_TIERMAP3				227
+#define UI_PLAYERLOGO			228
+#define UI_OPPONENTLOGO			229
+#define UI_PLAYERLOGO_METAL		230
+#define UI_OPPONENTLOGO_METAL	231
+#define UI_PLAYERLOGO_NAME		232
+#define UI_OPPONENTLOGO_NAME	233
+#define UI_TIER_MAPNAME			234
+#define UI_TIER_GAMETYPE		235
+#define UI_ALLMAPS_SELECTION	236
+#define UI_OPPONENT_NAME		237
+#define UI_VOTE_KICK			238
+#define UI_BOTNAME				239
+#define UI_BOTSKILL				240
+#define UI_REDBLUE				241
+#define UI_CROSSHAIR			242
+#define UI_SELECTEDPLAYER		243
+#define UI_MAPCINEMATIC			244
+#define UI_NETGAMETYPE			245
+#define UI_NETMAPCINEMATIC		246
+#define UI_SERVERREFRESHDATE	247
+#define UI_SERVERMOTD			248
+#define UI_GLINFO				249
+#define UI_KEYBINDSTATUS		250
+#define UI_CLANCINEMATIC		251
+#define UI_MAP_TIMETOBEAT		252
+#define UI_JOINGAMETYPE			253
+#define UI_PREVIEWCINEMATIC		254
+#define UI_STARTMAPCINEMATIC	255
+#define UI_MAPS_SELECTION		256
 
-#define CG_PLAYER_ITEM 19
-#define CG_PLAYER_SCORE 20
-
-#define CG_BLUE_FLAGHEAD 21
-#define CG_BLUE_FLAGSTATUS 22
-#define CG_BLUE_FLAGNAME 23
-#define CG_RED_FLAGHEAD 24
-#define CG_RED_FLAGSTATUS 25
-#define CG_RED_FLAGNAME 26
-
-#define CG_BLUE_SCORE 27
-#define CG_RED_SCORE 28
-#define CG_RED_NAME 29
-#define CG_BLUE_NAME 30
-#define CG_HARVESTER_SKULLS 31					// only shows in harvester
-#define CG_ONEFLAG_STATUS 32						// only shows in one flag
-#define CG_PLAYER_LOCATION 33
-#define CG_TEAM_COLOR 34
-#define CG_CTF_POWERUP 35
-                                        
-#define CG_AREA_POWERUP	36
-#define CG_AREA_LAGOMETER	37        // painted with old system
-#define CG_PLAYER_HASFLAG 38            
-#define CG_GAME_TYPE 39             // not done
-
-#define CG_SELECTEDPLAYER_ARMOR 40      
-#define CG_SELECTEDPLAYER_HEALTH 41
-#define CG_PLAYER_STATUS 42
-#define CG_FRAGGED_MSG 43           // painted with old system
-#define CG_PROXMINED_MSG 44         // painted with old system
-#define CG_AREA_FPSINFO 45          // painted with old system
-#define CG_AREA_SYSTEMCHAT 46       // painted with old system
-#define CG_AREA_TEAMCHAT 47         // painted with old system
-#define CG_AREA_CHAT 48             // painted with old system
-#define CG_GAME_STATUS 49
-#define CG_KILLER 50
-#define CG_PLAYER_ARMOR_ICON2D 51              
-#define CG_PLAYER_AMMO_ICON2D 52
-#define CG_ACCURACY 53
-#define CG_ASSISTS 54
-#define CG_DEFEND 55
-#define CG_EXCELLENT 56
-#define CG_IMPRESSIVE 57
-#define CG_PERFECT 58
-#define CG_GAUNTLET 59
-#define CG_SPECTATORS 60
-#define CG_TEAMINFO 61
-#define CG_VOICE_HEAD 62
-#define CG_VOICE_NAME 63
-#define CG_PLAYER_HASFLAG2D 64            
-#define CG_HARVESTER_SKULLS2D 65					// only shows in harvester
-#define CG_CAPFRAGLIMIT 66	 
-#define CG_1STPLACE 67
-#define CG_2NDPLACE 68
-#define CG_CAPTURES 69
-
-#define UI_OWNERDRAW_BASE 200
-#define UI_HANDICAP 200
-#define UI_EFFECTS 201
-#define UI_PLAYERMODEL 202
-#define UI_CLANNAME 203
-#define UI_CLANLOGO 204
-#define UI_GAMETYPE 205
-#define UI_MAPPREVIEW 206
-#define UI_SKILL 207
-#define UI_BLUETEAMNAME 208
-#define UI_REDTEAMNAME 209
-#define UI_BLUETEAM1 210
-#define UI_BLUETEAM2 211
-#define UI_BLUETEAM3 212
-#define UI_BLUETEAM4 213
-#define UI_BLUETEAM5 214
-#define UI_REDTEAM1 215
-#define UI_REDTEAM2 216
-#define UI_REDTEAM3 217
-#define UI_REDTEAM4 218
-#define UI_REDTEAM5 219
-#define UI_NETSOURCE 220
-#define UI_NETMAPPREVIEW 221
-#define UI_NETFILTER 222
-#define UI_TIER 223
-#define UI_OPPONENTMODEL 224
-#define UI_TIERMAP1 225
-#define UI_TIERMAP2 226
-#define UI_TIERMAP3 227
-#define UI_PLAYERLOGO 228
-#define UI_OPPONENTLOGO 229
-#define UI_PLAYERLOGO_METAL 230
-#define UI_OPPONENTLOGO_METAL 231
-#define UI_PLAYERLOGO_NAME 232
-#define UI_OPPONENTLOGO_NAME 233
-#define UI_TIER_MAPNAME 234
-#define UI_TIER_GAMETYPE 235
-#define UI_ALLMAPS_SELECTION 236
-#define UI_OPPONENT_NAME 237
-#define UI_VOTE_KICK 238
-#define UI_BOTNAME 239
-#define UI_BOTSKILL 240
-#define UI_REDBLUE 241
-#define UI_CROSSHAIR 242
-#define UI_SELECTEDPLAYER 243
-#define UI_MAPCINEMATIC 244
-#define UI_NETGAMETYPE 245
-#define UI_NETMAPCINEMATIC 246
-#define UI_SERVERREFRESHDATE 247
-#define UI_SERVERMOTD 248
-#define UI_GLINFO  249
-#define UI_KEYBINDSTATUS 250
-#define UI_CLANCINEMATIC 251
-#define UI_MAP_TIMETOBEAT 252
-#define UI_JOINGAMETYPE 253
-#define UI_PREVIEWCINEMATIC 254
-#define UI_STARTMAPCINEMATIC 255
-#define UI_MAPS_SELECTION 256
-
-#define VOICECHAT_GETFLAG			"getflag"				// command someone to get the flag
-#define VOICECHAT_OFFENSE			"offense"				// command someone to go on offense
-#define VOICECHAT_DEFEND			"defend"				// command someone to go on defense
-#define VOICECHAT_DEFENDFLAG		"defendflag"			// command someone to defend the flag
-#define VOICECHAT_PATROL			"patrol"				// command someone to go on patrol (roam)
-#define VOICECHAT_CAMP				"camp"					// command someone to camp (we don't have sounds for this one)
-#define VOICECHAT_FOLLOWME			"followme"				// command someone to follow you
-#define VOICECHAT_RETURNFLAG		"returnflag"			// command someone to return our flag
-#define VOICECHAT_FOLLOWFLAGCARRIER	"followflagcarrier"		// command someone to follow the flag carrier
-#define VOICECHAT_YES				"yes"					// yes, affirmative, etc.
-#define VOICECHAT_NO				"no"					// no, negative, etc.
-#define VOICECHAT_ONGETFLAG			"ongetflag"				// I'm getting the flag
-#define VOICECHAT_ONOFFENSE			"onoffense"				// I'm on offense
-#define VOICECHAT_ONDEFENSE			"ondefense"				// I'm on defense
-#define VOICECHAT_ONPATROL			"onpatrol"				// I'm on patrol (roaming)
-#define VOICECHAT_ONCAMPING			"oncamp"				// I'm camping somewhere
-#define VOICECHAT_ONFOLLOW			"onfollow"				// I'm following
-#define VOICECHAT_ONFOLLOWCARRIER	"onfollowcarrier"		// I'm following the flag carrier
-#define VOICECHAT_ONRETURNFLAG		"onreturnflag"			// I'm returning our flag
-#define VOICECHAT_INPOSITION		"inposition"			// I'm in position
-#define VOICECHAT_IHAVEFLAG			"ihaveflag"				// I have the flag
-#define VOICECHAT_BASEATTACK		"baseattack"			// the base is under attack
-#define VOICECHAT_ENEMYHASFLAG		"enemyhasflag"			// the enemy has our flag (CTF)
-#define VOICECHAT_STARTLEADER		"startleader"			// I'm the leader
-#define VOICECHAT_STOPLEADER		"stopleader"			// I resign leadership
-#define VOICECHAT_TRASH				"trash"					// lots of trash talk
-#define VOICECHAT_WHOISLEADER		"whoisleader"			// who is the team leader
-#define VOICECHAT_WANTONDEFENSE		"wantondefense"			// I want to be on defense
-#define VOICECHAT_WANTONOFFENSE		"wantonoffense"			// I want to be on offense
+#define VOICECHAT_GETFLAG "getflag" // command someone to get the flag
+#define VOICECHAT_OFFENSE "offense" // command someone to go on offense
+#define VOICECHAT_DEFENDFLAG "defendflag" // command someone to defend the flag
+#define VOICECHAT_DEFEND "defend" // command someone to go on defense
+#define VOICECHAT_RETURNFLAG "returnflag" // command someone to return our flag
+#define VOICECHAT_FOLLOWFLAGCARRIER "followflagcarrier" // command someone to follow the flag carrier
+#define VOICECHAT_FOLLOWME "followme" // command someone to follow you
+#define VOICECHAT_CAMP "camp" // command someone to camp (we don't have sounds for this one)
+#define VOICECHAT_PATROL "patrol" // command someone to go on patrol (roam)
+#define VOICECHAT_WANTONOFFENSE "wantonoffense" // I want to be on offense
+#define VOICECHAT_WANTONDEFENSE "wantondefense" // I want to be on defense
+#define VOICECHAT_WHOISLEADER "whoisleader" // who is the team leader
+#define VOICECHAT_STOPLEADER "stopleader" // I resign leadership
+#define VOICECHAT_STARTLEADER "startleader" // I'm the leader
+#define VOICECHAT_YES "yes" // yes, affirmative, etc.
+#define VOICECHAT_NO "no" // no, negative, etc.
+#define VOICECHAT_ONGETFLAG "ongetflag" // I'm getting the flag
+#define VOICECHAT_ONOFFENSE "onoffense" // I'm on offense
+#define VOICECHAT_ONDEFENSE "ondefense" // I'm on defense
+#define VOICECHAT_ONRETURNFLAG "onreturnflag" // I'm returning our flag
+#define VOICECHAT_ONFOLLOWCARRIER "onfollowcarrier" // I'm following the flag carrier
+#define VOICECHAT_ONFOLLOW "onfollow" // I'm following
+#define VOICECHAT_ONCAMPING "oncamp" // I'm camping somewhere
+#define VOICECHAT_ONPATROL "onpatrol" // I'm on patrol (roaming)
+#define VOICECHAT_INPOSITION "inposition" // I'm in position
+#define VOICECHAT_IHAVEFLAG "ihaveflag" // I have the flag
+#define VOICECHAT_ENEMYHASFLAG "enemyhasflag" // the enemy has our flag (CTF)
+#define VOICECHAT_BASEATTACK "baseattack" // the base is under attack
+#define VOICECHAT_PRAISE "praise" // you did something good
+#define VOICECHAT_TAUNT "taunt" // I want to taunt you
+#define VOICECHAT_KILLGAUNTLET "kill_gauntlet" // I just killed you with the gauntlet
+#define VOICECHAT_KILLINSULT "kill_insult" // I just killed you
+#define VOICECHAT_DEATHINSULT "death_insult" // you just killed me
+#define VOICECHAT_TRASH "trash" // lots of trash talk
