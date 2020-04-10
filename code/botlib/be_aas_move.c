@@ -500,9 +500,9 @@ int AAS_ClipToBBox(aas_trace_t *trace, vec3_t start, vec3_t end, int presencetyp
 		trace->startsolid = qfalse;
 		trace->fraction = frac;
 		trace->ent = 0;
-		trace->planenum = 0;
 		trace->area = 0;
 		trace->lastarea = 0;
+		trace->planenum = 0;
 		// trace endpos
 		for (j = 0; j < 3; j++) {
 			trace->endpos[j] = start[j] + dir[j] * frac;

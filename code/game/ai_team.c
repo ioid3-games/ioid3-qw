@@ -523,6 +523,14 @@ void BotHarvesterOrders(bot_state_t *bs) {
 BotObeliskOrders
 
 X% in defence Y% in offence.
+-----------------------------------------------------------------
+  Maximum passive strategy:    70% in defence 20% in offence. *NEW*
+-----------------------------------------------------------------
+  Passive strategy:            50% in defence 40% in offence.
+-----------------------------------------------------------------
+  Aggressive strategy:         30% in defence 60% in offence.
+-----------------------------------------------------------------
+  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
 =======================================================================================================================================
 */
 void BotObeliskOrders(bot_state_t *bs) {
@@ -702,6 +710,14 @@ void BotObeliskOrders(bot_state_t *bs) {
 Bot1FCTFOrders_FlagAtCenter
 
 X% defend the base, Y% get the flag.
+-----------------------------------------------------------------
+  Maximum passive strategy:    70% in defence 20% in offence. *NEW*
+-----------------------------------------------------------------
+  Passive strategy:            50% in defence 40% in offence.
+-----------------------------------------------------------------
+  Aggressive strategy:         40% in defence 50% in offence.
+-----------------------------------------------------------------
+  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
 =======================================================================================================================================
 */
 void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
@@ -873,6 +889,14 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 Bot1FCTFOrders_TeamHasFlag
 
 X% towards neutral flag, Y% go towards enemy base and accompany flag carrier if visible.
+-----------------------------------------------------------------
+  Maximum passive strategy:    50% in defence 40% in offence. *NEW*
+-----------------------------------------------------------------
+  Passive strategy:            30% in defence 60% in offence.
+-----------------------------------------------------------------
+  Aggressive strategy:         20% in defence 70% in offence.
+-----------------------------------------------------------------
+  Maximum aggressive strategy: 10% in defence 80% in offence. *NEW*
 =======================================================================================================================================
 */
 void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
@@ -1129,6 +1153,14 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 Bot1FCTFOrders_EnemyHasFlag
 
 X% defend the base, Y% towards neutral flag.
+-----------------------------------------------------------------
+  Maximum passive strategy:    80% in defence 10% in offence. *NEW*
+-----------------------------------------------------------------
+  Passive strategy:            80% in defence 10% in offence.
+-----------------------------------------------------------------
+  Aggressive strategy:         70% in defence 20% in offence.
+-----------------------------------------------------------------
+  Maximum aggressive strategy: 70% in defence 20% in offence. *NEW*
 =======================================================================================================================================
 */
 void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
@@ -1300,6 +1332,14 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 Bot1FCTFOrders_EnemyDroppedFlag
 
 X% defend the base, Y% get the flag.
+-----------------------------------------------------------------
+  Maximum passive strategy:    70% in defence 20% in offence. *NEW*
+-----------------------------------------------------------------
+  Passive strategy:            50% in defence 40% in offence.
+-----------------------------------------------------------------
+  Aggressive strategy:         30% in defence 60% in offence.
+-----------------------------------------------------------------
+  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
 =======================================================================================================================================
 */
 void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
@@ -1500,6 +1540,16 @@ void Bot1FCTFOrders(bot_state_t *bs) {
 /*
 =======================================================================================================================================
 BotCTFOrders_BothFlagsNotAtBase
+
+X% defend the base, Y% get the flag.
+-----------------------------------------------------------------
+  Maximum passive strategy:    60% in defence 30% in offence. *NEW*
+-----------------------------------------------------------------
+  Passive strategy:            40% in defence 50% in offence.
+-----------------------------------------------------------------
+  Aggressive strategy:         30% in defence 60% in offence.
+-----------------------------------------------------------------
+  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
 =======================================================================================================================================
 */
 void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
@@ -1646,6 +1696,16 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 /*
 =======================================================================================================================================
 BotCTFOrders_TeamFlagNotAtBase
+
+X% defend the base, Y% get the flag.
+-----------------------------------------------------------------
+  Maximum passive strategy:    30% in defence 60% in offence. *NEW*
+-----------------------------------------------------------------
+  Passive strategy:            30% in defence 60% in offence.
+-----------------------------------------------------------------
+  Aggressive strategy:         20% in defence 70% in offence.
+-----------------------------------------------------------------
+  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
 =======================================================================================================================================
 */
 void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
@@ -1815,6 +1875,16 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 /*
 =======================================================================================================================================
 BotCTFOrders_EnemyFlagNotAtBase
+
+X% defend the base, Y% get the flag.
+-----------------------------------------------------------------
+  Maximum passive strategy:    70% in defence 20% in offence. *NEW*
+-----------------------------------------------------------------
+  Passive strategy:            60% in defence 30% in offence.
+-----------------------------------------------------------------
+  Aggressive strategy:         40% in defence 50% in offence.
+-----------------------------------------------------------------
+  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
 =======================================================================================================================================
 */
 void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
@@ -1947,6 +2017,16 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 /*
 =======================================================================================================================================
 BotCTFOrders_BothFlagsAtBase
+
+X% defend the base, Y% get the flag.
+-----------------------------------------------------------------
+  Maximum passive strategy:    70% in defence 20% in offence. *NEW*
+-----------------------------------------------------------------
+  Passive strategy:            50% in defence 40% in offence.
+-----------------------------------------------------------------
+  Aggressive strategy:         40% in defence 50% in offence.
+-----------------------------------------------------------------
+  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
 =======================================================================================================================================
 */
 void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
