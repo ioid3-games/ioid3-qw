@@ -1239,7 +1239,7 @@ static void PM_Footsteps(void) {
 	}
 
 	footstep = qfalse;
-
+	// ducked
 	if (pm->ps->pm_flags & PMF_DUCKED) {
 		bobmove = 0.5; // ducked characters bob much faster
 

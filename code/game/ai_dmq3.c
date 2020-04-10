@@ -3140,7 +3140,7 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
-		// if this player is active
+		// if the entity information is valid
 		if (!entinfo.valid) {
 			continue;
 		}
@@ -3244,7 +3244,7 @@ int BotTeamFlagCarrierVisible(bot_state_t *bs) {
 		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
-		// if this player is active
+		// if the entity information is valid
 		if (!entinfo.valid) {
 			continue;
 		}
@@ -3284,7 +3284,7 @@ int BotTeamFlagCarrier(bot_state_t *bs) {
 		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
-		// if this player is active
+		// if the entity information is valid
 		if (!entinfo.valid) {
 			continue;
 		}
@@ -3319,7 +3319,7 @@ int BotEnemyFlagCarrierVisible(bot_state_t *bs) {
 		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
-		// if this player is active
+		// if the entity information is valid
 		if (!entinfo.valid) {
 			continue;
 		}
@@ -3369,7 +3369,7 @@ void BotVisibleTeamMatesAndEnemies(bot_state_t *bs, int *teammates, int *enemies
 		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
-		// if this player is active
+		// if the entity information is valid
 		if (!entinfo.valid) {
 			continue;
 		}
@@ -3418,7 +3418,7 @@ int BotTeamCubeCarrierVisible(bot_state_t *bs) {
 		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
-		// if this player is active
+		// if the entity information is valid
 		if (!entinfo.valid) {
 			continue;
 		}
@@ -3459,7 +3459,7 @@ int BotEnemyCubeCarrierVisible(bot_state_t *bs) {
 		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
-		// if this player is active
+		// if the entity information is valid
 		if (!entinfo.valid) {
 			continue;
 		}
@@ -3806,7 +3806,7 @@ void BotCheckAttack(bot_state_t *bs) {
 	if (attackentity >= MAX_CLIENTS) {
 		// if attacking an obelisk
 		if (entinfo.number == redobelisk.entitynum || entinfo.number == blueobelisk.entitynum) {
-			// if obelisk is respawning return
+			// if the obelisk is respawning
 			if (g_entities[entinfo.number].activator && g_entities[entinfo.number].activator->s.frame == 2) {
 				return;
 			}
@@ -3965,7 +3965,7 @@ void BotMapScripts(bot_state_t *bs) {
 			}
 			// get the entity information
 			BotEntityInfo(i, &entinfo);
-			// if this player is active
+			// if the entity information is valid
 			if (!entinfo.valid) {
 				continue;
 			}
@@ -4725,7 +4725,7 @@ int BotGoForActivateGoal(bot_state_t *bs, bot_activategoal_t *activategoal) {
 
 	if (BotPushOntoActivateGoalStack(bs, activategoal)) {
 		// enter the activate entity AI node
-		AIEnter_Seek_ActivateEntity(bs, "BotGoForActivateGoal");
+		AIEnter_Seek_ActivateEntity(bs, "BotGoForActivateGoal: entering activate ent.");
 		return qtrue;
 	} else {
 		// enable any routing areas that were disabled
