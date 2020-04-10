@@ -2655,6 +2655,7 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 	// update the last time the enemy was visible
 	if (BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->enemy)) {
 		bs->enemyvisible_time = FloatTime();
+
 		VectorCopy(entinfo.origin, target);
 		// if not a player enemy
 		if (bs->enemy >= MAX_CLIENTS) {
