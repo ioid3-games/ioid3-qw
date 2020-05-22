@@ -2954,7 +2954,7 @@ float BotEntityVisible(int viewer, vec3_t eye, vec3_t viewangles, float fov, int
 
 	// get the entity information
 	BotEntityInfo(ent, &entinfo);
-	// if this player is active
+	// if the entity information is valid
 	if (!entinfo.valid) {
 		return 0;
 	}
