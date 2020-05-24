@@ -657,8 +657,6 @@ float AAS_MaxJumpHeight(float phys_jumpvel) {
 /*
 =======================================================================================================================================
 AAS_MaxJumpDistance
-
-Returns true if a player can only crouch in the area.
 =======================================================================================================================================
 */
 float AAS_MaxJumpDistance(float phys_jumpvel) {
@@ -1044,8 +1042,8 @@ int AAS_Reachability_EqualFloorHeight(int area1num, int area2num) {
 					CrossProduct(edgevec, plane2->normal, normal);
 					VectorNormalize(normal);
 					//VectorMA(start, -1, normal, start);
-					VectorMA(end, INSIDEUNITS_WALKEND, normal, end);
 					VectorMA(start, INSIDEUNITS_WALKSTART, normal, start);
+					VectorMA(end, INSIDEUNITS_WALKEND, normal, end);
 
 					end[2] += 0.125;
 					height = DotProduct(invgravity, start);
@@ -1290,7 +1288,7 @@ int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, int area2
 					}
 					// if the two projected edge lines have no overlap
 					if (x2 <= x3 || x4 <= x1) {
-//						Log_Write("lines no overlap: from area %d to %d\r\n", area1num, area2num);
+						//Log_Write("lines no overlap: from area %d to %d\r\n", area1num, area2num);
 						continue;
 					}
 					// if the two lines fully overlap
@@ -2385,6 +2383,7 @@ int AAS_Reachability_Jump(int area1num, int area2num) {
 
 			VectorNormalize(dir);
 			VectorScale(dir, speed, velocity);
+			// movement prediction
 			AAS_PredictClientMovement(&move, -1, beststart, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 3, 30, 0.1f, stopevent, 0, qfalse);
 			// if prediction time wasn't enough to fully predict the movement
 			if (move.frames >= 30) {
@@ -2748,6 +2747,7 @@ int AAS_Reachability_Ladder(int area1num, int area2num) {
 					lreach->traveltype = TRAVEL_LADDER;
 					lreach->traveltime = 10;
 					lreach->next = areareachability[area1num];
+
 					areareachability[area1num] = lreach;
 
 					reach_ladder++;
@@ -3009,6 +3009,7 @@ void AAS_Reachability_Teleport(void) {
 				}
 
 				VectorClear(cmdmove);
+				// movement prediction
 				AAS_PredictClientMovement(&move, -1, destorigin, PRESENCE_NORMAL, qfalse, velocity, cmdmove, 0, 30, 0.1f, SE_HITGROUND|SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE|SE_TOUCHJUMPPAD|SE_TOUCHTELEPORTER, 0, qfalse); //qtrue
 
 				area2num = AAS_PointAreaNum(move.endpos);
@@ -3064,6 +3065,7 @@ void AAS_Reachability_Teleport(void) {
 			lreach->traveltype |= AAS_TravelFlagsForTeam(ent);
 			lreach->traveltime = aassettings.rs_teleport;
 			lreach->next = areareachability[area1num];
+
 			areareachability[area1num] = lreach;
 
 			reach_teleport++;
@@ -3708,12 +3710,11 @@ void AAS_Reachability_FuncBobbing(void) {
 					lreach->traveltype = TRAVEL_FUNCBOB;
 					lreach->traveltype |= AAS_TravelFlagsForTeam(ent);
 					lreach->traveltime = aassettings.rs_funcbob;
-
-					reach_funcbob++;
-
 					lreach->next = areareachability[startreach->areanum];
 
 					areareachability[startreach->areanum] = lreach;
+
+					reach_funcbob++;
 				}
 			}
 
@@ -3817,6 +3818,7 @@ void AAS_Reachability_JumpPad(void) {
 		}
 
 		areastart[2] += 0.125;
+
 		//AAS_DrawPermanentCross(origin, 4, 4);
 		// get the target entity
 		AAS_ValueForBSPEpairKey(ent, "target", target, MAX_EPAIRKEY);
@@ -3892,6 +3894,7 @@ void AAS_Reachability_JumpPad(void) {
 			area2num = 0;
 
 			for (i = 0; i < 20; i++) {
+				// movement prediction
 				AAS_PredictClientMovement(&move, -1, areastart, PRESENCE_NORMAL, qfalse, velocity, cmdmove, 0, 30, 0.1f, SE_HITGROUND|SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE|SE_TOUCHJUMPPAD|SE_TOUCHTELEPORTER, 0, bot_visualizejumppads);
 
 				area2num = move.endarea;
@@ -3923,7 +3926,7 @@ void AAS_Reachability_JumpPad(void) {
 					if (AAS_ReachabilityExists(link->areanum, area2num)) {
 						continue;
 					}
-					// create a rocket or bfg jump reachability from area1 to area2
+					// create a rocket jump reachability from area1 to area2
 					lreach = AAS_AllocReachability();
 
 					if (!lreach) {
@@ -4016,6 +4019,7 @@ void AAS_Reachability_JumpPad(void) {
 					{
 						// get command movement
 						VectorScale(dir, speed, cmdmove);
+						// movement prediction
 						AAS_PredictClientMovement(&move, -1, areastart, PRESENCE_NORMAL, qfalse, velocity, cmdmove, 30, 30, 0.1f, SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE|SE_TOUCHJUMPPAD|SE_TOUCHTELEPORTER|SE_HITGROUNDAREA, area2num, visualize);
 						// if prediction time wasn't enough to fully predict the movement
 						// don't enter slime or lava and don't fall from too high
@@ -4622,7 +4626,7 @@ int AAS_ContinueInitReachability(float time) {
 			if (AAS_ReachabilityExists(i, j)) {
 				continue;
 			}
-			// check for a weapon jump reachability
+			// check for a rocket jump reachability
 			AAS_Reachability_WeaponJump(i, j);
 		}
 		// if the calculation took more time than the max reachability delay
