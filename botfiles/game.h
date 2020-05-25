@@ -22,20 +22,26 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 =======================================================================================================================================
 */
 
-int BotChat_EnterGame(bot_state_t *bs);
-int BotChat_ExitGame(bot_state_t *bs);
-int BotChat_StartLevel(bot_state_t *bs);
-int BotChat_EndLevel(bot_state_t *bs);
-int BotChat_HitTalking(bot_state_t *bs);
-int BotChat_HitNoDeath(bot_state_t *bs);
-int BotChat_HitNoKill(bot_state_t *bs);
-int BotChat_Death(bot_state_t *bs);
-int BotChat_Kill(bot_state_t *bs);
-int BotChat_EnemySuicide(bot_state_t *bs);
-int BotChat_Random(bot_state_t *bs);
-// time the selected chat takes to type in
-float BotChatTime(bot_state_t *bs);
-// returns true if the bot can chat at the current position
-int BotValidChatPosition(bot_state_t *bs);
-// test the initial bot chats
-void BotChatTest(bot_state_t *bs);
+#ifndef DEATHMATCH
+#define DEATHMATCH 1
+#endif
+#ifndef DMFLAGS
+#define DMFLAGS 0
+#endif
+
+#define DF_NO_HEALTH		    1 // Health, Adrenaline and the AncientHead are removed
+#define DF_NO_ITEMS			    2 // all powerups are removed
+#define DF_WEAPONS_STAY		    4 // weapons stay
+#define DF_NO_FALLING		    8 // no falling damage
+#define DF_INSTANT_ITEMS	   16 // powerups are used instantly when picked up
+#define DF_SAME_LEVEL		   32 // same level is played over and over again
+#define DF_SKINTEAMS		   64 // teamplay based on skin
+#define DF_MODELTEAMS		  128 // eamplay based on model
+#define DF_NO_FRIENDLY_FIRE	  256 // no friendly fire
+#define DF_SPAWN_FARTHEST	  512 // spawn as far away from the death point
+#define DF_FORCE_RESPAWN	 1024 // force players to respawn
+#define DF_NO_ARMOR			 2048 // All armor is removed
+#define DF_ALLOW_EXIT		 4096 // allow player to exit the map
+#define DF_INFINITE_AMMO	 8192 // all ammo and the bfg are removed
+#define DF_QUAD_DROP		16384 // drop the quad when died when using
+#define DF_FIXED_FOV		32768 // field of vision is fixed

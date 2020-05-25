@@ -357,5 +357,5 @@ char *UI_GetBotNameByNumber(int num) {
 		return Info_ValueForKey(info, "name");
 	}
 
-	return "Sarge";
+	return "Random";
 }

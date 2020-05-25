@@ -86,7 +86,7 @@ static const int numNetSources = ARRAY_LEN(netSources);
 static const serverFilter_t serverFilters[] = {
 	{"All", ""},
 	{"Quake 3 Arena", ""},
-	{"Team Arena", BASETA},
+	{"Team Arena", "teamarena"},
 	{"Rocket Arena", "arena"},
 	{"Alliance", "alliance20"},
 	{"Weapons Factory Arena", "wfa"},
@@ -1147,44 +1147,6 @@ int UI_SourceForLAN(void) {
 	}
 }
 
-static const char *handicapValues[] = {
-	"None",
-	"95",
-	"90",
-	"85",
-	"80",
-	"75",
-	"70",
-	"65",
-	"60",
-	"55",
-	"50",
-	"45",
-	"40",
-	"35",
-	"30",
-	"25",
-	"20",
-	"15",
-	"10",
-	"5",
-	NULL
-};
-
-/*
-=======================================================================================================================================
-UI_DrawHandicap
-=======================================================================================================================================
-*/
-static void UI_DrawHandicap(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
-	int i, h;
-
-	h = Com_Clamp(5, 100, trap_Cvar_VariableValue("handicap"));
-	i = 20 - h / 5;
-
-	Text_Paint(rect->x, rect->y, scale, color, handicapValues[i], 0, 0, textStyle);
-}
-
 /*
 =======================================================================================================================================
 UI_DrawClanName
@@ -1988,16 +1950,11 @@ UI_OwnerDrawWidth
 =======================================================================================================================================
 */
 static int UI_OwnerDrawWidth(int ownerDraw, float scale) {
-	int i, h, value;
+	int i, value;
 	const char *text;
 	const char *s = NULL;
 
 	switch (ownerDraw) {
-		case UI_HANDICAP:
-			h = Com_Clamp(5, 100, trap_Cvar_VariableValue("handicap"));
-			i = 20 - h / 5;
-			s = handicapValues[i];
-			break;
 		case UI_CLANNAME:
 			s = UI_Cvar_VariableString("ui_teamName");
 			break;
@@ -2442,9 +2399,6 @@ static void UI_OwnerDraw(float x, float y, float w, float h, float text_x, float
 	rect.h = h;
 
 	switch (ownerDraw) {
-		case UI_HANDICAP:
-			UI_DrawHandicap(&rect, scale, color, textStyle);
-			break;
 		case UI_EFFECTS:
 			UI_DrawEffects(&rect, scale, color);
 			break;
@@ -2737,33 +2691,6 @@ static qboolean UI_OwnerDrawVisible(int flags) {
 	}
 
 	return vis;
-}
-
-/*
-=======================================================================================================================================
-UI_Handicap_HandleKey
-=======================================================================================================================================
-*/
-static qboolean UI_Handicap_HandleKey(int flags, float *special, int key) {
-	int select = UI_SelectForKey(key);
-
-	if (select != 0) {
-		int h;
-
-		h = Com_Clamp(5, 100, trap_Cvar_VariableValue("handicap"));
-		h += 5 * select;
-
-		if (h > 100) {
-			h = 5;
-		} else if (h < 5) {
-			h = 100;
-		}
-
-		trap_Cvar_SetValue("handicap", h);
-		return qtrue;
-	}
-
-	return qfalse;
 }
 
 /*
@@ -3255,9 +3182,6 @@ UI_OwnerDrawHandleKey
 static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, int key) {
 
 	switch (ownerDraw) {
-		case UI_HANDICAP:
-			return UI_Handicap_HandleKey(flags, special, key);
-			break;
 		case UI_EFFECTS:
 			return UI_Effects_HandleKey(flags, special, key);
 			break;

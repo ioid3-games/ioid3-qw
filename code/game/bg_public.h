@@ -447,6 +447,12 @@ typedef struct animation_s {
 } animation_t;
 // flip the togglebit every time an animation changes so a restart of the same anim can be detected
 #define ANIM_TOGGLEBIT 128
+// default player model names
+#define DEFAULT_MODEL "sarge"
+#define DEFAULT_HEAD "sarge"
+// default team player model names
+#define DEFAULT_TEAM_MODEL "james"
+#define DEFAULT_TEAM_HEAD "*james"
 
 typedef enum {
 	TEAM_RED,
