@@ -904,7 +904,7 @@ void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
 	if (bs->viewangles[PITCH] > 180) {
 		bs->viewangles[PITCH] -= 360;
 	}
-	// elementary action: view
+	// elementary action view
 	trap_EA_View(bs->client, bs->viewangles);
 }
 

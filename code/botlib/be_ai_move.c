@@ -1449,8 +1449,9 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 	hordir[0] = reach->start[0] - ms->origin[0];
 	hordir[1] = reach->start[1] - ms->origin[1];
 	hordir[2] = 0;
-	dist = VectorNormalize(hordir);
 
+	dist = VectorNormalize(hordir);
+	// check if blocked
 	BotCheckBlocked(ms, hordir, qtrue, &result);
 
 	if (dist < 10) {
@@ -1458,6 +1459,7 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 		hordir[0] = reach->end[0] - ms->origin[0];
 		hordir[1] = reach->end[1] - ms->origin[1];
 		hordir[2] = 0;
+
 		dist = VectorNormalize(hordir);
 	}
 	// if going towards a crouch area
@@ -2897,16 +2899,7 @@ bot_moveresult_t BotFinishTravel_WeaponJump(bot_movestate_t *ms, aas_reachabilit
 	if (!ms->jumpreach) {
 		return result;
 	}
-	/*
-	// go straight to the reachability end
-	hordir[0] = reach->end[0] - ms->origin[0];
-	hordir[1] = reach->end[1] - ms->origin[1];
-	hordir[2] = 0;
-	VectorNormalize(hordir);
-	// always use max speed when traveling through the air
-	EA_Move(ms->client, hordir, 800);
-	VectorCopy(hordir, result.movedir);
-	*/
+
 	if (!BotAirControl(ms->origin, ms->velocity, reach->end, hordir, &speed)) {
 		// move straight to the reachability end
 		VectorSubtract(reach->end, ms->origin, hordir);

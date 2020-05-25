@@ -2784,7 +2784,7 @@ bot_moveresult_t BotAttackMove(bot_state_t *bs, int tfl) {
 			bs->crouch_time = FloatTime() + croucher * 5;
 		}
 	}
-
+	// if the bot wants to crouch
 	if (bs->crouch_time > FloatTime()) {
 		movetype = MOVE_CROUCH;
 	}
@@ -3617,8 +3617,11 @@ void BotAimAtEnemy(bot_state_t *bs) {
 		}
 		// if it is not an instant hit weapon the bot might want to predict the enemy
 		if (wi.speed) {
+			// direction towards the enemy
 			VectorSubtract(bestorigin, bs->origin, dir);
+			// distance towards the enemy
 			dist = VectorLength(dir);
+			// direction the enemy is moving in
 			VectorSubtract(entinfo.origin, bs->enemyorigin, dir);
 			// if the enemy is NOT pretty far away and strafing just small steps left and right
 			if (!(dist > 100 && VectorLengthSquared(dir) < Square(32))) {
@@ -3639,11 +3642,13 @@ void BotAimAtEnemy(bot_state_t *bs) {
 
 					VectorClear(cmdmove);
 					//AAS_ClearShownDebugLines();
+					// movement prediction
 					trap_AAS_PredictClientMovement(&move, bs->enemy, origin, PRESENCE_CROUCH, qfalse, dir, cmdmove, 0, dist * 10 / wi.speed, 0.1f, 0, 0, qfalse);
 					VectorCopy(move.endpos, bestorigin);
 					//BotAI_Print(PRT_MESSAGE, "%1.1f predicted speed = %f, frames = %f\n", FloatTime(), VectorLength(dir), dist * 10 / wi.speed);
 				// if not that skilled do linear prediction
 				} else if (aim_skill > 0.4) {
+					// direction towards the enemy
 					VectorSubtract(entinfo.origin, bs->origin, dir);
 					// distance towards the enemy
 					dist = VectorLength(dir);
@@ -3721,7 +3726,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 
 				if (trap_BotPredictVisiblePosition(bs->lastenemyorigin, bs->lastenemyareanum, &goal, TFL_DEFAULT, target)) {
 					VectorSubtract(target, bs->eye, dir);
-
+					// if the hitpoint is far enough from the bot
 					if (VectorLengthSquared(dir) > Square(80)) {
 						VectorCopy(target, bestorigin);
 						bestorigin[2] -= 20;
@@ -5272,7 +5277,7 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 				}
 
 				bs->num_deaths++;
-			// else if this client was killed by the bot
+			// if this player was killed by the bot
 			} else if (attacker == bs->client) {
 				bs->enemydeathtype = mod;
 				bs->lastkilledplayer = target;
@@ -5561,7 +5566,7 @@ void BotDeathmatchAI(bot_state_t *bs, float thinktime) {
 	}
 	// no ideal view set
 	bs->flags &= ~BFL_IDEALVIEWSET;
-
+	// if not in the intermission and not in observer mode
 	if (!BotIntermission(bs)) {
 		// check out the snapshot
 		BotCheckSnapshot(bs);

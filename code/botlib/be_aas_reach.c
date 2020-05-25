@@ -1414,7 +1414,7 @@ int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, int area2
 		// if area2 is higher but lower than the maximum step height
 		// NOTE: ground_bestdist >= 0 also catches equal floor reachabilities
 		if (ground_bestdist >= 0 && ground_bestdist < aassettings.phys_maxstep) {
-			// create walk reachability from area1 to area2
+			// create a walk reachability from area1 to area2
 			lreach = AAS_AllocReachability();
 
 			if (!lreach) {
@@ -1480,7 +1480,7 @@ int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, int area2
 			if (water_bestdist < aassettings.phys_maxwaterjump + 24) {
 				// waterjumping from or towards a crouch only area is not possible
 				if ((aasworld.areasettings[area1num].presencetype & PRESENCE_NORMAL) && (aasworld.areasettings[area2num].presencetype & PRESENCE_NORMAL)) {
-					// create water jump reachability from area1 to area2
+					// create a water jump reachability from area1 to area2
 					lreach = AAS_AllocReachability();
 
 					if (!lreach) {
@@ -1531,7 +1531,7 @@ int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, int area2
 			if (!water_foundreach || (ground_bestdist - water_bestdist < 16)) {
 				// cannot perform a barrier jump towards or from a crouch area
 				if (!AAS_AreaCrouch(area1num) && !AAS_AreaCrouch(area2num)) {
-					// create barrier jump reachability from area1 to area2
+					// create a barrier jump reachability from area1 to area2
 					lreach = AAS_AllocReachability();
 
 					if (!lreach) {
@@ -1582,7 +1582,7 @@ int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, int area2
 	if (ground_foundreach) {
 		if (ground_bestdist < 0) {
 			if (ground_bestdist > -aassettings.phys_maxstep) {
-				// create walk reachability from area1 to area2
+				// create a walk reachability from area1 to area2
 				lreach = AAS_AllocReachability();
 
 				if (!lreach) {
@@ -2626,7 +2626,7 @@ int AAS_Reachability_Ladder(int area1num, int area2num) {
 			return qtrue;
 		}
 		// if the second ladder face is also a ground face
-		// create ladder end (just ladder) reachability and walk off a ladder (ledge) reachability
+		// create a ladder end (just ladder) reachability and a walk off a ladder (ledge) reachability
 		if (ladderface1vertical && (ladderface2->faceflags & FACE_GROUND)) {
 			// create a new reachability link
 			lreach = AAS_AllocReachability();
@@ -3926,7 +3926,7 @@ void AAS_Reachability_JumpPad(void) {
 					if (AAS_ReachabilityExists(link->areanum, area2num)) {
 						continue;
 					}
-					// create a rocket jump reachability from area1 to area2
+					// create a rocket or bfg jump reachability from area1 to area2
 					lreach = AAS_AllocReachability();
 
 					if (!lreach) {
@@ -4527,23 +4527,23 @@ void AAS_StoreReachability(void) {
 =======================================================================================================================================
 AAS_ContinueInitReachability
 
- TRAVEL_WALK		100% equal floor height + steps
- TRAVEL_CROUCH		100%
- TRAVEL_BARRIERJUMP	100%
- TRAVEL_JUMP		 80%
- TRAVEL_LADDER		100% + fall down from ladder + jump up to ladder
- TRAVEL_WALKOFFLEDGE 90% walk off very steep walls?
- TRAVEL_SWIM		100%
- TRAVEL_WATERJUMP	100%
- TRAVEL_TELEPORT	100%
- TRAVEL_ELEVATOR	100%
- TRAVEL_DOUBLEJUMP	  0%
- TRAVEL_RAMPJUMP	  0%
- TRAVEL_STRAFEJUMP	  0%
- TRAVEL_ROCKETJUMP	100% (currently limited towards areas with items)
- TRAVEL_BFGJUMP		  0% (currently disabled)
- TRAVEL_JUMPPAD		100%
- TRAVEL_FUNCBOB		100%
+ TRAVEL_WALK			100% equal floor height + steps
+ TRAVEL_CROUCH			100%
+ TRAVEL_BARRIERJUMP		100%
+ TRAVEL_JUMP			 80%
+ TRAVEL_LADDER			100% + fall down from ladder + jump up to ladder
+ TRAVEL_WALKOFFLEDGE	 90% walk off very steep walls?
+ TRAVEL_SWIM			100%
+ TRAVEL_WATERJUMP		100%
+ TRAVEL_TELEPORT		100%
+ TRAVEL_ELEVATOR		100%
+ TRAVEL_DOUBLEJUMP		  0%
+ TRAVEL_RAMPJUMP		  0%
+ TRAVEL_STRAFEJUMP		  0%
+ TRAVEL_ROCKETJUMP		100% (currently limited towards areas with items)
+ TRAVEL_BFGJUMP			  0% (currently disabled)
+ TRAVEL_JUMPPAD			100%
+ TRAVEL_FUNCBOB			100%
 
 Returns: true if NOT finished.
 =======================================================================================================================================
@@ -4626,7 +4626,7 @@ int AAS_ContinueInitReachability(float time) {
 			if (AAS_ReachabilityExists(i, j)) {
 				continue;
 			}
-			// check for a rocket jump reachability
+			// check for a weapon jump reachability
 			AAS_Reachability_WeaponJump(i, j);
 		}
 		// if the calculation took more time than the max reachability delay
