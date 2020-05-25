@@ -1,0 +1,293 @@
+Index: code/botlib/be_aas_reach.c
+===================================================================
+--- code/botlib/be_aas_reach.c	(revision 3426)
++++ code/botlib/be_aas_reach.c	(working copy)
+@@ -44,11 +44,6 @@
+ #include "be_aas_def.h"
+ #include "be_interface.h"
+ 
+-extern int Sys_MilliSeconds(void);
+-
+-
+-extern botlib_import_t botimport;
+-
+ //#define REACH_DEBUG
+ 
+ //NOTE: all travel times are in hundreth of a second
+@@ -4377,7 +4372,7 @@
+ 	} //end if
+ 	//number of areas to calculate reachability for this cycle
+ 	todo = aasworld.numreachabilityareas + (int) framereachability;
+-	start_time = Sys_MilliSeconds();
++	start_time = botimport.MilliSeconds();
+ 	//loop over the areas
+ 	for (i = aasworld.numreachabilityareas; i < aasworld.numareas && i < todo; i++)
+ 	{
+@@ -4429,7 +4424,7 @@
+ 			AAS_Reachability_WeaponJump(i, j);
+ 		} //end for
+ 		//if the calculation took more time than the max reachability delay
+-		if (Sys_MilliSeconds() - start_time > (int) reachability_delay) break;
++		if (botimport.MilliSeconds() - start_time > (int) reachability_delay) break;
+ 		//
+ 		if (aasworld.numreachabilityareas * 1000 / aasworld.numareas > lastpercentage) break;
+ 	} //end for
+Index: code/botlib/be_aas_route.c
+===================================================================
+--- code/botlib/be_aas_route.c	(revision 3426)
++++ code/botlib/be_aas_route.c	(working copy)
+@@ -426,7 +426,7 @@
+ #ifdef DEBUG
+ 	int starttime;
+ 
+-	starttime = Sys_MilliSeconds();
++	starttime = botimport.MilliSeconds();
+ #endif
+ 	//free reversed links that have already been created
+ 	if (aasworld.reversedreachability) FreeMemory(aasworld.reversedreachability);
+@@ -462,7 +462,7 @@
+ 		} //end for
+ 	} //end for
+ #ifdef DEBUG
+-	botimport.Print(PRT_MESSAGE, "reversed reachability %d msec\n", Sys_MilliSeconds() - starttime);
++	botimport.Print(PRT_MESSAGE, "reversed reachability %d msec\n", botimport.MilliSeconds() - starttime);
+ #endif
+ } //end of the function AAS_CreateReversedReachability
+ //===========================================================================
+@@ -509,7 +509,7 @@
+ #ifdef DEBUG
+ 	int starttime;
+ 
+-	starttime = Sys_MilliSeconds();
++	starttime = botimport.MilliSeconds();
+ #endif
+ 	//if there are still area travel times, free the memory
+ 	if (aasworld.areatraveltimes) FreeMemory(aasworld.areatraveltimes);
+@@ -557,7 +557,7 @@
+ 		} //end for
+ 	} //end for
+ #ifdef DEBUG
+-	botimport.Print(PRT_MESSAGE, "area travel times %d msec\n", Sys_MilliSeconds() - starttime);
++	botimport.Print(PRT_MESSAGE, "area travel times %d msec\n", botimport.MilliSeconds() - starttime);
+ #endif
+ } //end of the function AAS_CalculateAreaTravelTimes
+ //===========================================================================
+Index: code/botlib/be_aas_routealt.c
+===================================================================
+--- code/botlib/be_aas_routealt.c	(revision 3426)
++++ code/botlib/be_aas_routealt.c	(working copy)
+@@ -111,7 +111,7 @@
+ #ifdef ALTROUTE_DEBUG
+ 	int startmillisecs;
+ 
+-	startmillisecs = Sys_MilliSeconds();
++	startmillisecs = botimport.MilliSeconds();
+ #endif
+ 
+ 	if (!startareanum || !goalareanum)
+@@ -202,7 +202,7 @@
+ 		if (numaltroutegoals >= maxaltroutegoals) break;
+ 	} //end for
+ #ifdef ALTROUTE_DEBUG
+-	botimport.Print(PRT_MESSAGE, "alternative route goals in %d msec\n", Sys_MilliSeconds() - startmillisecs);
++	botimport.Print(PRT_MESSAGE, "alternative route goals in %d msec\n", botimport.MilliSeconds() - startmillisecs);
+ #endif
+ 	return numaltroutegoals;
+ #endif
+Index: code/botlib/be_ai_char.c
+===================================================================
+--- code/botlib/be_ai_char.c	(revision 3426)
++++ code/botlib/be_ai_char.c	(working copy)
+@@ -113,7 +113,7 @@
+ 		{
+ 			ch->refcnt += refmod;
+ 			if ( ch->refcnt == 0 )
+-				ch->reftime = botimport.Sys_Milliseconds();
++				ch->reftime = botimport.MilliSeconds();
+ 		}
+ 	}
+ 
+@@ -218,7 +218,7 @@
+ 	int handle, now, t, r;
+ 
+ 	r = t = 0;
+-	now = botimport.Sys_Milliseconds();
++	now = botimport.MilliSeconds();
+ 	for ( handle = 1; handle < MAX_HANDLES; handle++ )
+ 	{
+ 		ch = botcharacters[ handle ];
+@@ -458,7 +458,7 @@
+ #ifdef DEBUG
+ 	int starttime;
+ 
+-	starttime = Sys_MilliSeconds();
++	starttime = botimport.MilliSeconds();
+ #endif //DEBUG
+ 
+ 	//find a free spot for a character
+@@ -496,7 +496,7 @@
+ #ifdef DEBUG
+ 		if (botDeveloper)
+ 		{
+-			botimport.Print(PRT_MESSAGE, "skill %d loaded in %d msec from %s\n", intskill, Sys_MilliSeconds() - starttime, charfile);
++			botimport.Print(PRT_MESSAGE, "skill %d loaded in %d msec from %s\n", intskill, botimport.MilliSeconds() - starttime, charfile);
+ 		} //end if
+ #endif //DEBUG
+ 		return handle;
+Index: code/botlib/be_ai_chat.c
+===================================================================
+--- code/botlib/be_ai_chat.c	(revision 3426)
++++ code/botlib/be_ai_chat.c	(working copy)
+@@ -969,7 +969,7 @@
+ 	size_t len;
+ 
+ #ifdef DEBUG
+-	int starttime = Sys_MilliSeconds();
++	int starttime = botimport.MilliSeconds();
+ #endif //DEBUG
+ 
+ 	size = 0;
+@@ -1053,7 +1053,7 @@
+ 	botimport.Print(PRT_MESSAGE, "loaded %s\n", filename);
+ 	//
+ #ifdef DEBUG
+-	botimport.Print(PRT_MESSAGE, "random strings %d msec\n", Sys_MilliSeconds() - starttime);
++	botimport.Print(PRT_MESSAGE, "random strings %d msec\n", botimport.MilliSeconds() - starttime);
+ 	//BotDumpRandomStringList(randomlist);
+ #endif //DEBUG
+ 	//
+@@ -2041,7 +2041,7 @@
+ #ifdef DEBUG
+ 	int starttime;
+ 
+-	starttime = Sys_MilliSeconds();
++	starttime = botimport.MilliSeconds();
+ #endif //DEBUG
+ 	//
+ 	size = 0;
+@@ -2192,7 +2192,7 @@
+ 		BotCheckInitialChatIntegrety(chat);
+ 	} //end if
+ #ifdef DEBUG
+-	botimport.Print(PRT_MESSAGE, "initial chats loaded in %d msec\n", Sys_MilliSeconds() - starttime);
++	botimport.Print(PRT_MESSAGE, "initial chats loaded in %d msec\n", botimport.MilliSeconds() - starttime);
+ #endif //DEBUG
+ 	//character was read successfully
+ 	return chat;
+@@ -2967,7 +2967,7 @@
+ 	const char *file;
+ 
+ #ifdef DEBUG
+-	int starttime = Sys_MilliSeconds();
++	int starttime = botimport.MilliSeconds();
+ #endif //DEBUG
+ 
+ 	file = LibVarString("synfile", "syn.c");
+@@ -2986,7 +2986,7 @@
+ 	InitConsoleMessageHeap();
+ 
+ #ifdef DEBUG
+-	botimport.Print(PRT_MESSAGE, "setup chat AI %d msec\n", Sys_MilliSeconds() - starttime);
++	botimport.Print(PRT_MESSAGE, "setup chat AI %d msec\n", botimport.MilliSeconds() - starttime);
+ #endif //DEBUG
+ 	return BLERR_NOERROR;
+ } //end of the function BotSetupChatAI
+Index: code/botlib/be_ai_weight.c
+===================================================================
+--- code/botlib/be_ai_weight.c	(revision 3426)
++++ code/botlib/be_ai_weight.c	(working copy)
+@@ -292,7 +292,7 @@
+ #ifdef DEBUG
+ 	int starttime;
+ 
+-	starttime = Sys_MilliSeconds();
++	starttime = botimport.MilliSeconds();
+ #endif //DEBUG
+ 
+ 	if (!LibVarGetValue("bot_reloadcharacters"))
+@@ -430,7 +430,7 @@
+ #ifdef DEBUG
+ 	if (botDeveloper)
+ 	{
+-		botimport.Print(PRT_MESSAGE, "weights loaded in %d msec\n", Sys_MilliSeconds() - starttime);
++		botimport.Print(PRT_MESSAGE, "weights loaded in %d msec\n", botimport.MilliSeconds() - starttime);
+ 	} //end if
+ #endif //DEBUG
+ 	//
+Index: code/botlib/be_interface.c
+===================================================================
+--- code/botlib/be_interface.c	(revision 3426)
++++ code/botlib/be_interface.c	(working copy)
+@@ -75,16 +75,6 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-int Sys_MilliSeconds(void)
+-{
+-	return clock() * 1000 / CLOCKS_PER_SEC;
+-} //end of the function Sys_MilliSeconds
+-//===========================================================================
+-//
+-// Parameter:				-
+-// Returns:					-
+-// Changes Globals:		-
+-//===========================================================================
+ static qboolean ValidEntityNumber(int num, const char *str)
+ {
+ 	if (num < 0 || (unsigned)num > botlibglobals.maxentities)
+@@ -242,7 +232,7 @@
+ int Export_BotLibLoadMap(const char *mapname)
+ {
+ #ifdef DEBUG
+-	int starttime = Sys_MilliSeconds();
++	int starttime = botimport.MilliSeconds();
+ #endif
+ 	int errnum;
+ 
+@@ -258,7 +248,7 @@
+ 	//
+ 	botimport.Print(PRT_MESSAGE, "-------------------------------------\n");
+ #ifdef DEBUG
+-	botimport.Print(PRT_MESSAGE, "map loaded in %d msec\n", Sys_MilliSeconds() - starttime);
++	botimport.Print(PRT_MESSAGE, "map loaded in %d msec\n", botimport.MilliSeconds() - starttime);
+ #endif
+ 	//
+ 	return BLERR_NOERROR;
+Index: code/botlib/be_interface.h
+===================================================================
+--- code/botlib/be_interface.h	(revision 3426)
++++ code/botlib/be_interface.h	(working copy)
+@@ -51,7 +51,3 @@
+ extern botlib_globals_t botlibglobals;
+ extern botlib_import_t botimport;
+ extern int botDeveloper;					//true if developer is on
+-
+-//
+-int Sys_MilliSeconds(void);
+-
+Index: code/botlib/botlib.h
+===================================================================
+--- code/botlib/botlib.h	(revision 3426)
++++ code/botlib/botlib.h	(working copy)
+@@ -142,6 +142,8 @@
+ //bot AI library exported functions
+ typedef struct botlib_import_s
+ {
++	//get time for measuring time lapse
++	int			(*MilliSeconds)(void);
+ 	//print messages from the bot library
+ 	void		(QDECL *Print)(int type, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+ 	//trace a bbox through the world
+Index: code/server/sv_bot.c
+===================================================================
+--- code/server/sv_bot.c	(revision 3426)
++++ code/server/sv_bot.c	(working copy)
+@@ -523,7 +523,7 @@
+ 	botlib_import.DebugPolygonCreate = BotImport_DebugPolygonCreate;
+ 	botlib_import.DebugPolygonDelete = BotImport_DebugPolygonDelete;
+ 
+-	botlib_import.Sys_Milliseconds = Sys_Milliseconds;
++	botlib_import.MilliSeconds = Sys_Milliseconds;
+ 
+ 	botlib_export = (botlib_export_t *)GetBotLibAPI( BOTLIB_API_VERSION, &botlib_import );
+ 	assert(botlib_export); 	// somehow we end up with a zero import.

@@ -1,0 +1,1375 @@
+Index: code/botlib/be_aas_bspq3.c
+===================================================================
+--- code/botlib/be_aas_bspq3.c	(revision 3355)
++++ code/botlib/be_aas_bspq3.c	(working copy)
+@@ -229,8 +229,7 @@
+ 	{
+ 		if (!strcmp(epair->key, key))
+ 		{
+-			strncpy(value, epair->value, size-1);
+-			value[size-1] = '\0';
++			Q_strncpyz( value, epair->value, size );
+ 			return qtrue;
+ 		} //end if
+ 	} //end for
+Index: code/botlib/be_aas_file.c
+===================================================================
+--- code/botlib/be_aas_file.c	(revision 3355)
++++ code/botlib/be_aas_file.c	(working copy)
+@@ -311,11 +311,11 @@
+ 	//allocate memory
+ 	buf = (char *) GetClearedHunkMemory(length+1);
+ 	//read the data
+-	if (length)
+-	{
++	//if (length)
++	//{
+ 		botimport.FS_Read(buf, length, fp );
+ 		*lastoffset += length;
+-	} //end if
++	//} //end if
+ 	return buf;
+ } //end of the function AAS_LoadAASLump
+ //===========================================================================
+Index: code/botlib/be_aas_move.c
+===================================================================
+--- code/botlib/be_aas_move.c	(revision 3355)
++++ code/botlib/be_aas_move.c	(working copy)
+@@ -419,7 +419,7 @@
+ // Returns:				-
+ // Changes Globals:		-
+ //===========================================================================
+-int AAS_ClipToBBox(aas_trace_t *trace, vec3_t start, vec3_t end, int presencetype, vec3_t mins, vec3_t maxs)
++static qboolean AAS_ClipToBBox( aas_trace_t *trace, const vec3_t start, const vec3_t end, int presencetype, const vec3_t mins, const vec3_t maxs )
+ {
+ 	int i, j, side;
+ 	float front, back, frac, planedist;
+@@ -441,6 +441,8 @@
+ 	frac = 1;
+ 	for (i = 0; i < 3; i++)
+ 	{
++		if ( fabsf( dir[i] ) < 0.001f ) // this may cause denormalization or division by zero
++			continue;
+ 		//get plane to test collision with for the current axis direction
+ 		if (dir[i] > 0) planedist = absmins[i];
+ 		else planedist = absmaxs[i];
+@@ -500,14 +502,14 @@
+ // Returns:				aas_clientmove_t
+ // Changes Globals:		-
+ //===========================================================================
+-int AAS_ClientMovementPrediction(struct aas_clientmove_s *move,
+-								int entnum, vec3_t origin,
++static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
++								int entnum, const vec3_t origin,
+ 								int presencetype, int onground,
+-								vec3_t velocity, vec3_t cmdmove,
++								const vec3_t velocity, const vec3_t cmdmove,
+ 								int cmdframes,
+ 								int maxframes, float frametime,
+ 								int stopevent, int stopareanum,
+-								vec3_t mins, vec3_t maxs, int visualize)
++								const vec3_t mins, const vec3_t maxs, int visualize )
+ {
+ 	float phys_friction, phys_stopspeed, phys_gravity, phys_waterfriction;
+ 	float phys_watergravity;
+@@ -543,8 +545,8 @@
+ 	phys_maxsteepness = aassettings.phys_maxsteepness;
+ 	phys_jumpvel = aassettings.phys_jumpvel * frametime;
+ 	//
+-	Com_Memset(move, 0, sizeof(aas_clientmove_t));
+-	Com_Memset(&trace, 0, sizeof(aas_trace_t));
++	Com_Memset( move, 0, sizeof( *move ) );
++	Com_Memset( &trace, 0, sizeof( trace ) );
+ 	//start at the current origin
+ 	VectorCopy(origin, org);
+ 	org[2] += 0.25;
+Index: code/botlib/be_aas_route.c
+===================================================================
+--- code/botlib/be_aas_route.c	(revision 3355)
++++ code/botlib/be_aas_route.c	(working copy)
+@@ -168,8 +168,9 @@
+ //===========================================================================
+ static ID_INLINE int AAS_TravelFlagForType_inline(int traveltype)
+ {
+-	int tfl = 0;
++	int tfl;
+ 
++	tfl = 0;
+ 	if (traveltype & TRAVELFLAG_NOTTEAM1)
+ 		tfl |= TFL_NOTTEAM1;
+ 	if (traveltype & TRAVELFLAG_NOTTEAM2)
+@@ -442,7 +443,7 @@
+ 		//settings of the area
+ 		settings = &aasworld.areasettings[i];
+ 		//
+-		if (settings->numreachableareas >= 128)
++		if (settings->numreachableareas > 128)
+ 			botimport.Print(PRT_WARNING, "area %d has more than 128 reachabilities\n", i);
+ 		//create reversed links for the reachabilities
+ 		for (n = 0; n < settings->numreachableareas && n < 128; n++)
+@@ -1296,8 +1297,8 @@
+ 	unsigned short int t, startareatraveltimes[128]; //NOTE: not more than 128 reachabilities per area allowed
+ 	aas_routingupdate_t *updateliststart, *updatelistend, *curupdate, *nextupdate;
+ 	aas_reachability_t *reach;
+-	aas_reversedreachability_t *revreach;
+-	aas_reversedlink_t *revlink;
++	const aas_reversedreachability_t *revreach;
++	const aas_reversedlink_t *revlink;
+ 
+ #ifdef ROUTING_DEBUG
+ 	numareacacheupdates++;
+Index: code/botlib/be_ai_char.c
+===================================================================
+--- code/botlib/be_ai_char.c	(revision 3355)
++++ code/botlib/be_ai_char.c	(working copy)
+@@ -69,13 +69,17 @@
+ //a bot character
+ typedef struct bot_character_s
+ {
++	bot_characteristic_t c[MAX_CHARACTERISTICS];
+ 	char filename[MAX_QPATH];
+ 	float skill;
+-	bot_characteristic_t c[1];		//variable sized
++	int refcnt;
++	int reftime;
+ } bot_character_t;
+ 
+-bot_character_t *botcharacters[MAX_CLIENTS + 1];
++#define MAX_HANDLES (MAX_CLIENTS*2)
+ 
++bot_character_t *botcharacters[MAX_HANDLES + 1];
++
+ //========================================================================
+ //
+ // Parameter:			-
+@@ -84,7 +88,7 @@
+ //========================================================================
+ bot_character_t *BotCharacterFromHandle(int handle)
+ {
+-	if (handle <= 0 || handle > MAX_CLIENTS)
++	if (handle <= 0 || handle > MAX_HANDLES)
+ 	{
+ 		botimport.Print(PRT_FATAL, "character handle %d out of range\n", handle);
+ 		return NULL;
+@@ -96,6 +100,27 @@
+ 	} //end if
+ 	return botcharacters[handle];
+ } //end of the function BotCharacterFromHandle
++
++
++static bot_character_t *BotReferenceHandle( int handle, int refmod )
++{
++	bot_character_t *ch;
++
++	if ( handle > 0 && handle <= MAX_HANDLES )
++	{
++		ch = botcharacters[ handle ];
++		if ( ch )
++		{
++			ch->refcnt += refmod;
++			if ( ch->refcnt == 0 )
++				ch->reftime = botimport.MilliSeconds();
++		}
++	}
++
++	return NULL;
++}
++
++
+ //===========================================================================
+ //
+ // Parameter:			-
+@@ -146,7 +171,7 @@
+ //========================================================================
+ void BotFreeCharacter2(int handle)
+ {
+-	if (handle <= 0 || handle > MAX_CLIENTS)
++	if (handle <= 0 || handle > MAX_HANDLES)
+ 	{
+ 		botimport.Print(PRT_FATAL, "character handle %d out of range\n", handle);
+ 		return;
+@@ -168,9 +193,59 @@
+ //========================================================================
+ void BotFreeCharacter(int handle)
+ {
+-	if (!LibVarGetValue("bot_reloadcharacters")) return;
+-	BotFreeCharacter2(handle);
+-} //end of the function BotFreeCharacter
++	bot_character_t *ch;
++
++	ch = BotCharacterFromHandle( handle );
++	if ( ch )
++	{
++		if ( ch->refcnt > 0 )
++			ch->refcnt--;
++		//else
++		//	botimport.Print( PRT_FATAL, "INVALID REFERENCE COUNT FOR HANDLE %d\n", handle );
++
++		if ( ch->refcnt )
++			return; // we can't release referenced characters
++	}
++	else
++		return;
++
++	if ( !LibVarGetValue( "bot_reloadcharacters" ) )
++		return;
++
++	BotFreeCharacter2( handle );
++}
++
++
++static int BotReleaseUnreferencedHandle( void )
++{
++	const bot_character_t *ch;
++	int handle, now, t, r;
++
++	r = t = 0;
++	now = botimport.MilliSeconds();
++	for ( handle = 1; handle < MAX_HANDLES; handle++ )
++	{
++		ch = botcharacters[ handle ];
++		if ( ch && ch->refcnt == 0 )
++		{
++			if ( r == 0 || now - ch->reftime > t )
++			{
++				t = now - ch->reftime;
++				r = handle;
++			}
++		}
++	}
++
++	if ( r != 0 )
++	{
++		BotFreeCharacter2( r );
++		return r;
++	}
++
++	return 0;
++}
++
++
+ //===========================================================================
+ //
+ // Parameter:			-
+@@ -225,8 +300,7 @@
+ 		botimport.Print(PRT_ERROR, "counldn't load %s\n", charfile);
+ 		return NULL;
+ 	} //end if
+-	ch = (bot_character_t *) GetClearedMemory(sizeof(bot_character_t) +
+-					MAX_CHARACTERISTICS * sizeof(bot_characteristic_t));
++	ch = (bot_character_t *) GetClearedMemory( sizeof( *ch ) );
+ 	strcpy(ch->filename, charfile);
+ 	while(PC_ReadToken(source, &token))
+ 	{
+@@ -247,7 +321,7 @@
+ 				return NULL;
+ 			} //end if
+ 			//if it's the correct skill
+-			if (skill < 0 || token.intvalue == skill)
++			if (skill < 0 || (int)token.intvalue == skill)
+ 			{
+ 				foundcharacter = qtrue;
+ 				ch->skill = token.intvalue;
+@@ -263,7 +337,7 @@
+ 						return NULL;
+ 					} //end if
+ 					index = token.intvalue;
+-					if (index < 0 || index > MAX_CHARACTERISTICS)
++					if (index < 0 || index >= MAX_CHARACTERISTICS)
+ 					{
+ 						SourceError(source, "characteristic index out of range [0, %d]", MAX_CHARACTERISTICS);
+ 						FreeSource(source);
+@@ -363,7 +437,7 @@
+ {
+ 	int handle;
+ 
+-	for (handle = 1; handle <= MAX_CLIENTS; handle++)
++	for (handle = 1; handle <= MAX_HANDLES; handle++)
+ 	{
+ 		if ( !botcharacters[handle] ) continue;
+ 		if ( strcmp( botcharacters[handle]->filename, charfile ) == 0 &&
+@@ -391,11 +465,18 @@
+ #endif //DEBUG
+ 
+ 	//find a free spot for a character
+-	for (handle = 1; handle <= MAX_CLIENTS; handle++)
++	for (handle = 1; handle <= MAX_HANDLES; handle++)
+ 	{
+ 		if (!botcharacters[handle]) break;
+ 	} //end for
+-	if (handle > MAX_CLIENTS) return 0;
++
++	if ( handle > MAX_HANDLES )
++	{
++		handle = BotReleaseUnreferencedHandle();
++		if ( !handle )
++			return 0;
++	}
++
+ 	//try to load a cached character with the given skill
+ 	if (!reload)
+ 	{
+@@ -498,7 +579,9 @@
+ 	int ch, defaultch;
+ 
+ 	defaultch = BotLoadCachedCharacter(DEFAULT_CHARACTER, skill, qfalse);
++	BotReferenceHandle( defaultch, 1 );
+ 	ch = BotLoadCachedCharacter(charfile, skill, LibVarGetValue("bot_reloadcharacters"));
++	BotReferenceHandle( ch, 1 );
+ 
+ 	if (defaultch && ch)
+ 	{
+@@ -505,6 +588,7 @@
+ 		BotDefaultCharacteristics(botcharacters[ch], botcharacters[defaultch]);
+ 	} //end if
+ 
++	BotReferenceHandle( defaultch, -1 );
+ 	return ch;
+ } //end of the function BotLoadCharacterSkill
+ //===========================================================================
+@@ -517,7 +601,7 @@
+ {
+ 	bot_character_t *ch1, *ch2, *out;
+ 	int i, handle;
+-	float scale;
++	float scale, v1, v2;
+ 
+ 	ch1 = BotCharacterFromHandle(handle1);
+ 	ch2 = BotCharacterFromHandle(handle2);
+@@ -524,13 +608,19 @@
+ 	if (!ch1 || !ch2)
+ 		return 0;
+ 	//find a free spot for a character
+-	for (handle = 1; handle <= MAX_CLIENTS; handle++)
++	for (handle = 1; handle <= MAX_HANDLES; handle++)
+ 	{
+ 		if (!botcharacters[handle]) break;
+ 	} //end for
+-	if (handle > MAX_CLIENTS) return 0;
+-	out = (bot_character_t *) GetClearedMemory(sizeof(bot_character_t) +
+-					MAX_CHARACTERISTICS * sizeof(bot_characteristic_t));
++
++	if ( handle > MAX_HANDLES )
++	{
++		handle = BotReleaseUnreferencedHandle();
++		if ( !handle )
++			return 0;
++	}
++
++	out = (bot_character_t *) GetClearedMemory( sizeof( *out ) );
+ 	out->skill = desiredskill;
+ 	strcpy(out->filename, ch1->filename);
+ 	botcharacters[handle] = out;
+@@ -539,12 +629,17 @@
+ 	for (i = 0; i < MAX_CHARACTERISTICS; i++)
+ 	{
+ 		//
+-		if (ch1->c[i].type == CT_FLOAT && ch2->c[i].type == CT_FLOAT)
++		if (ch1->c[i].type == CT_FLOAT && (ch2->c[i].type == CT_FLOAT || ch2->c[i].type == CT_INTEGER) )
+ 		{
+ 			out->c[i].type = CT_FLOAT;
+-			out->c[i].value._float = ch1->c[i].value._float +
+-								(ch2->c[i].value._float - ch1->c[i].value._float) * scale;
+-		} //end if
++			v1 = ch1->c[i].value._float;
++			// convert second value from integer to float
++			if ( ch2->c[i].type == CT_INTEGER )
++				v2 = ch2->c[i].value.integer;
++			else
++				v2 = ch2->c[i].value._float;
++			out->c[i].value._float = v1 + (v2 - v1) * scale;
++		}
+ 		else if (ch1->c[i].type == CT_INTEGER)
+ 		{
+ 			out->c[i].type = CT_INTEGER;
+@@ -582,6 +677,7 @@
+ 	if (handle)
+ 	{
+ 		botimport.Print(PRT_MESSAGE, "loaded cached skill %f from %s\n", skill, charfile);
++		BotReferenceHandle( handle, 1 );
+ 		return handle;
+ 	} //end if
+ 	if (skill < 4.0)
+@@ -602,7 +698,13 @@
+ 	} //end else
+ 	//interpolate between the two skills
+ 	handle = BotInterpolateCharacters(firstskill, secondskill, skill);
++	BotReferenceHandle( firstskill, -1 );
++	BotReferenceHandle( secondskill, -1 );
++
+ 	if (!handle) return 0;
++
++	BotReferenceHandle( handle, 1 );
++
+ 	//write the character to the log file
+ 	BotDumpCharacter(botcharacters[handle]);
+ 	//
+@@ -758,8 +860,7 @@
+ 	//an integer will be converted to a float
+ 	if (ch->c[index].type == CT_STRING)
+ 	{
+-		strncpy(buf, ch->c[index].value.string, size-1);
+-		buf[size-1] = '\0';
++		Q_strncpyz( buf, ch->c[index].value.string, size );
+ 	} //end if
+ 	else
+ 	{
+@@ -776,7 +877,7 @@
+ {
+ 	int handle;
+ 
+-	for (handle = 1; handle <= MAX_CLIENTS; handle++)
++	for (handle = 1; handle <= MAX_HANDLES; handle++)
+ 	{
+ 		if (botcharacters[handle])
+ 		{
+Index: code/botlib/be_ai_chat.c
+===================================================================
+--- code/botlib/be_ai_chat.c	(revision 3355)
++++ code/botlib/be_ai_chat.c	(working copy)
+@@ -342,7 +342,7 @@
+ 	m->handle = cs->handle;
+ 	m->time = AAS_Time();
+ 	m->type = type;
+-	Q_strncpyz(m->message, message, MAX_MESSAGE_SIZE);
++	Q_strncpyz(m->message, message, sizeof( m->message) );
+ 	m->next = NULL;
+ 	if (cs->lastmessage)
+ 	{
+@@ -371,7 +371,7 @@
+ 
+ 	cs = BotChatStateFromHandle(chatstate);
+ 	if (!cs) return 0;
+-	if ((firstmsg = cs->firstmessage))
++	if ((firstmsg = cs->firstmessage) != NULL ) // Tobias CHECK (ec)
+ 	{
+ 		cm->handle = firstmsg->handle;
+ 		cm->time = firstmsg->time;
+@@ -605,7 +605,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-bot_synonymlist_t *BotLoadSynonyms(char *filename)
++bot_synonymlist_t *BotLoadSynonyms( const char *filename)
+ {
+ 	int pass, size, contextlevel, numsynonyms;
+ 	unsigned long int context, contextstack[32];
+@@ -696,14 +696,14 @@
+ 							return NULL;
+ 						} //end if
+ 						StripDoubleQuotes(token.string);
+-						if (strlen(token.string) <= 0)
++						len = (int)strlen(token.string);
++						if (len==0)
+ 						{
+ 							SourceError(source, "empty string");
+ 							FreeSource(source);
+ 							return NULL;
+ 						} //end if
+-						len = strlen(token.string) + 1;
+-						len = PAD(len, sizeof(long));
++						len = PAD(len+1, sizeof(long));
+ 						size += sizeof(bot_synonym_t) + len;
+ 						if (pass && ptr)
+ 						{
+@@ -958,7 +958,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-bot_randomlist_t *BotLoadRandomStrings(char *filename)
++bot_randomlist_t *BotLoadRandomStrings( const char *filename)
+ {
+ 	int pass, size;
+ 	char *ptr = NULL, chatmessagestring[MAX_MESSAGE_SIZE];
+@@ -966,6 +966,7 @@
+ 	token_t token;
+ 	bot_randomlist_t *randomlist, *lastrandom, *random;
+ 	bot_randomstring_t *randomstring;
++	size_t len;
+ 
+ #ifdef DEBUG
+ 	int starttime = botimport.MilliSeconds();
+@@ -993,7 +994,6 @@
+ 		//
+ 		while(PC_ReadToken(source, &token))
+ 		{
+-			size_t len;
+ 			if (token.type != TT_NAME)
+ 			{
+ 				SourceError(source, "unknown random %s", token.string);
+@@ -1275,7 +1275,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-bot_matchtemplate_t *BotLoadMatchTemplates(char *matchfile)
++bot_matchtemplate_t *BotLoadMatchTemplates( const char *matchfile)
+ {
+ 	source_t *source;
+ 	token_t token;
+@@ -1456,7 +1456,7 @@
+ 	int i;
+ 	bot_matchtemplate_t *ms;
+ 
+-	Q_strncpyz(match->string, str, MAX_MESSAGE_SIZE);
++	Q_strncpyz( match->string, str, sizeof( match->string ) );
+ 	//remove any trailing enters
+ 	while(strlen(match->string) &&
+ 			match->string[strlen(match->string)-1] == '\n')
+@@ -1499,8 +1499,7 @@
+ 		if (match->variables[variable].length < size)
+ 			size = match->variables[variable].length+1;
+ 		assert( match->variables[variable].offset >= 0 );
+-		strncpy(buf, &match->string[ (int) match->variables[variable].offset], size-1);
+-		buf[size-1] = '\0';
++		Q_strncpyz( buf, &match->string[ (int) match->variables[variable].offset], size );
+ 	} //end if
+ 	else
+ 	{
+@@ -1844,7 +1843,7 @@
+ // Returns:				-
+ // Changes Globals:		-
+ //===========================================================================
+-bot_replychat_t *BotLoadReplyChat(char *filename)
++bot_replychat_t *BotLoadReplyChat( const char *filename)
+ {
+ 	char chatmessagestring[MAX_MESSAGE_SIZE];
+ 	char namebuffer[MAX_MESSAGE_SIZE];
+@@ -2114,7 +2113,7 @@
+ 						if (pass && ptr)
+ 						{
+ 							chattype = (bot_chattype_t *) ptr;
+-							Q_strncpyz(chattype->name, token.string, MAX_CHATTYPE_NAME);
++							Q_strncpyz(chattype->name, token.string, sizeof( chattype->name ) );
+ 							chattype->firstchatmessage = NULL;
+ 							//add the chat type to the chat
+ 							chattype->next = chat->types;
+@@ -2306,7 +2305,7 @@
+ 					} //end while
+ 					//step over the trailing escape char
+ 					if (*msgptr) msgptr++;
+-					if (num > MAX_MATCHVARIABLES)
++					if (num >= MAX_MATCHVARIABLES)
+ 					{
+ 						botimport.Print(PRT_ERROR, "BotConstructChat: message %s variable %d out of range\n", message, num);
+ 						return qfalse;
+@@ -2846,8 +2845,7 @@
+ 	if (!cs) return;
+ 
+ 	BotRemoveTildes(cs->chatmessage);
+-	strncpy(buf, cs->chatmessage, size-1);
+-	buf[size-1] = '\0';
++	Q_strncpyz( buf, cs->chatmessage, size );
+ 	//clear the chat message from the state
+ 	strcpy(cs->chatmessage, "");
+ } //end of the function BotGetChatMessage
+@@ -2883,9 +2881,7 @@
+ 	cs = BotChatStateFromHandle(chatstate);
+ 	if (!cs) return;
+ 	cs->client = client;
+-	Com_Memset(cs->name, 0, sizeof(cs->name));
+-	strncpy(cs->name, name, sizeof(cs->name)-1);
+-	cs->name[sizeof(cs->name)-1] = '\0';
++	Q_strncpyz( cs->name, name, sizeof( cs->name ) );
+ } //end of the function BotSetChatName
+ //===========================================================================
+ //
+@@ -2968,7 +2964,7 @@
+ //===========================================================================
+ int BotSetupChatAI(void)
+ {
+-	char *file;
++	const char *file;
+ 
+ #ifdef DEBUG
+ 	int starttime = botimport.MilliSeconds();
+Index: code/botlib/be_ai_goal.c
+===================================================================
+--- code/botlib/be_ai_goal.c	(revision 3355)
++++ code/botlib/be_ai_goal.c	(working copy)
+@@ -249,7 +249,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-itemconfig_t *LoadItemConfig(char *filename)
++itemconfig_t *LoadItemConfig( const char *filename )
+ {
+ 	int max_iteminfo;
+ 	token_t token;
+@@ -1761,7 +1761,7 @@
+ //===========================================================================
+ int BotSetupGoalAI(void)
+ {
+-	char *filename;
++	const char *filename;
+ 
+ 	//check if teamplay is on
+ 	g_gametype = LibVarValue("g_gametype", "0");
+Index: code/botlib/be_ai_weap.c
+===================================================================
+--- code/botlib/be_ai_weap.c	(revision 3355)
++++ code/botlib/be_ai_weap.c	(working copy)
+@@ -195,7 +195,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-weaponconfig_t *LoadWeaponConfig(char *filename)
++weaponconfig_t *LoadWeaponConfig(const char *filename)
+ {
+ 	int max_weaponinfo, max_projectileinfo;
+ 	token_t token;
+@@ -491,7 +491,7 @@
+ //===========================================================================
+ int BotSetupWeaponAI(void)
+ {
+-	char *file;
++	const char *file;
+ 
+ 	file = LibVarString("weaponconfig", "weapons.c");
+ 	weaponconfig = LoadWeaponConfig(file);
+Index: code/botlib/be_ea.c
+===================================================================
+--- code/botlib/be_ea.c	(revision 3355)
++++ code/botlib/be_ea.c	(working copy)
+@@ -48,7 +48,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-void EA_Say(int client, char *str)
++void EA_Say(int client, const char *str)
+ {
+ 	botimport.BotClientCommand(client, va("say %s", str) );
+ } //end of the function EA_Say
+@@ -58,7 +58,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-void EA_SayTeam(int client, char *str)
++void EA_SayTeam(int client, const char *str)
+ {
+ 	botimport.BotClientCommand(client, va("say_team %s", str));
+ } //end of the function EA_SayTeam
+@@ -68,7 +68,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-void EA_Tell(int client, int clientto, char *str)
++void EA_Tell(int client, int clientto, const char *str)
+ {
+ 	botimport.BotClientCommand(client, va("tell %d, %s", clientto, str));
+ } //end of the function EA_SayTeam
+@@ -78,7 +78,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-void EA_UseItem(int client, char *it)
++void EA_UseItem(int client, const char *it)
+ {
+ 	botimport.BotClientCommand(client, va("use %s", it));
+ } //end of the function EA_UseItem
+@@ -88,7 +88,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-void EA_DropItem(int client, char *it)
++void EA_DropItem(int client, const char *it)
+ {
+ 	botimport.BotClientCommand(client, va("drop %s", it));
+ } //end of the function EA_DropItem
+@@ -98,7 +98,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-void EA_UseInv(int client, char *inv)
++void EA_UseInv(int client, const char *inv)
+ {
+ 	botimport.BotClientCommand(client, va("invuse %s", inv));
+ } //end of the function EA_UseInv
+@@ -108,7 +108,7 @@
+ // Returns:				-
+ // Changes Globals:		-
+ //===========================================================================
+-void EA_DropInv(int client, char *inv)
++void EA_DropInv(int client, const char *inv)
+ {
+ 	botimport.BotClientCommand(client, va("invdrop %s", inv));
+ } //end of the function EA_DropInv
+@@ -132,7 +132,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-void EA_Command(int client, char *command)
++void EA_Command(int client, const char *command)
+ {
+ 	botimport.BotClientCommand(client, command);
+ } //end of the function EA_Command
+@@ -428,7 +428,7 @@
+ void EA_ResetInput(int client)
+ {
+ 	bot_input_t *bi;
+-	int jumped = qfalse;
++	int jumped;
+ 
+ 	bi = &botinputs[client];
+ 
+Index: code/botlib/be_ea.h
+===================================================================
+--- code/botlib/be_ea.h	(revision 3355)
++++ code/botlib/be_ea.h	(working copy)
+@@ -31,9 +31,9 @@
+  *****************************************************************************/
+ 
+ //ClientCommand elementary actions
+-void EA_Say(int client, char *str);
+-void EA_SayTeam(int client, char *str);
+-void EA_Command(int client, char *command );
++void EA_Say(int client, const char *str);
++void EA_SayTeam(int client, const char *str);
++void EA_Command(int client, const char *command );
+ 
+ void EA_Action(int client, int action);
+ void EA_Crouch(int client);
+Index: code/botlib/be_interface.c
+===================================================================
+--- code/botlib/be_interface.c	(revision 3355)
++++ code/botlib/be_interface.c	(working copy)
+@@ -75,27 +75,10 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-qboolean ValidClientNumber(int num, char *str)
++static qboolean ValidEntityNumber(int num, const char *str)
+ {
+-	if (num < 0 || num > botlibglobals.maxclients)
++	if (num < 0 || (unsigned)num > botlibglobals.maxentities)
+ 	{
+-		//weird: the disabled stuff results in a crash
+-		botimport.Print(PRT_ERROR, "%s: invalid client number %d, [0, %d]\n",
+-										str, num, botlibglobals.maxclients);
+-		return qfalse;
+-	} //end if
+-	return qtrue;
+-} //end of the function BotValidateClientNumber
+-//===========================================================================
+-//
+-// Parameter:				-
+-// Returns:					-
+-// Changes Globals:		-
+-//===========================================================================
+-qboolean ValidEntityNumber(int num, char *str)
+-{
+-	if (num < 0 || num > botlibglobals.maxentities)
+-	{
+ 		botimport.Print(PRT_ERROR, "%s: invalid entity number %d, [0, %d]\n",
+ 										str, num, botlibglobals.maxentities);
+ 		return qfalse;
+@@ -108,7 +91,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-qboolean BotLibSetup(char *str)
++static qboolean BotLibSetup(const char *str)
+ {
+ 	if (!botlibglobals.botlibsetup)
+ 	{
+@@ -140,7 +123,7 @@
+ 
+ 	botimport.Print(PRT_MESSAGE, "------- BotLib Initialization -------\n");
+ 
+-	botlibglobals.maxclients = (int) LibVarValue("maxclients", "128");
++	botlibglobals.maxclients = (int) LibVarValue("maxclients", "64");
+ 	botlibglobals.maxentities = (int) LibVarValue("maxentities", "1024");
+ 
+ 	errnum = AAS_Setup();			//be_aas_main.c
+@@ -223,11 +206,10 @@
+ //===========================================================================
+ int Export_BotLibVarGet(const char *var_name, char *value, int size)
+ {
+-	char *varvalue;
++	const char *varvalue;
+ 
+ 	varvalue = LibVarGetString(var_name);
+-	strncpy(value, varvalue, size-1);
+-	value[size-1] = '\0';
++	Q_strncpyz( value, varvalue, size );
+ 	return BLERR_NOERROR;
+ } //end of the function Export_BotLibVarGet
+ //===========================================================================
+@@ -277,7 +259,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-int Export_BotLibUpdateEntity(int ent, bot_entitystate_t *state)
++static int Export_BotLibUpdateEntity(int ent, bot_entitystate_t *state)
+ {
+ 	if (!BotLibSetup("BotUpdateEntity")) return BLERR_LIBRARYNOTSETUP;
+ 	if (!ValidEntityNumber(ent, "BotUpdateEntity")) return BLERR_INVALIDENTITYNUMBER;
+@@ -330,8 +312,8 @@
+ //	bot_goal_t goal;
+ 
+ 	// clock_t start_time, end_time;
+-	vec3_t mins = {-16, -16, -24};
+-	vec3_t maxs = {16, 16, 56};
++	//vec3_t mins = {-16, -16, -24};
++	//vec3_t maxs = {16, 16, 56};
+ 
+ //	int areas[10], numareas;
+ 
+Index: code/botlib/botlib.h
+===================================================================
+--- code/botlib/botlib.h	(revision 3355)
++++ code/botlib/botlib.h	(working copy)
+@@ -145,7 +145,7 @@
+ 	//get time for measuring time lapse
+ 	int			(*MilliSeconds)(void);
+ 	//print messages from the bot library
+-	void		(QDECL *Print)(int type, char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
++	void		(QDECL *Print)(int type, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+ 	//trace a bbox through the world
+ 	void		(*Trace)(bsp_trace_t *trace, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask);
+ 	//trace a bbox against a specific entity
+@@ -159,7 +159,7 @@
+ 	//
+ 	void		(*BSPModelMinsMaxsOrigin)(int modelnum, vec3_t angles, vec3_t mins, vec3_t maxs, vec3_t origin);
+ 	//send a bot client command
+-	void		(*BotClientCommand)(int client, char *command);
++	void		(*BotClientCommand)(int client, const char *command);
+ 	//memory allocation
+ 	void		*(*GetMemory)(int size);		// allocate from Zone
+ 	void		(*FreeMemory)(void *ptr);		// free memory from Zone
+@@ -243,9 +243,9 @@
+ typedef struct ea_export_s
+ {
+ 	//ClientCommand elementary actions
+-	void	(*EA_Command)(int client, char *command );
+-	void	(*EA_Say)(int client, char *str);
+-	void	(*EA_SayTeam)(int client, char *str);
++	void	(*EA_Command)(int client, const char *command );
++	void	(*EA_Say)(int client, const char *str);
++	void	(*EA_SayTeam)(int client, const char *str);
+ 	//
+ 	void	(*EA_Action)(int client, int action);
+ 	void	(*EA_Gesture)(int client);
+@@ -389,7 +389,7 @@
+ 	int (*BotLibVarGet)(const char *var_name, char *value, int size);
+ 
+ 	//sets a C-like define returns BLERR_
+-	int (*PC_AddGlobalDefine)(char *string);
++	int (*PC_AddGlobalDefine)(const char *string);
+ 	int (*PC_LoadSourceHandle)(const char *filename);
+ 	int (*PC_FreeSourceHandle)(int handle);
+ 	int (*PC_ReadTokenHandle)(int handle, pc_token_t *pc_token);
+Index: code/botlib/l_libvar.c
+===================================================================
+--- code/botlib/l_libvar.c	(revision 3355)
++++ code/botlib/l_libvar.c	(working copy)
+@@ -147,7 +147,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-char *LibVarGetString(const char *var_name)
++const char *LibVarGetString(const char *var_name)
+ {
+ 	libvar_t *v;
+ 
+@@ -210,7 +210,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-char *LibVarString(const char *var_name, const char *value)
++const char *LibVarString(const char *var_name, const char *value)
+ {
+ 	libvar_t *v;
+ 
+Index: code/botlib/l_libvar.h
+===================================================================
+--- code/botlib/l_libvar.h	(revision 3355)
++++ code/botlib/l_libvar.h	(working copy)
+@@ -45,7 +45,7 @@
+ //gets the library variable with the given name
+ libvar_t *LibVarGet(const char *var_name);
+ //gets the string of the library variable with the given name
+-char *LibVarGetString(const char *var_name);
++const char *LibVarGetString(const char *var_name);
+ //gets the value of the library variable with the given name
+ float LibVarGetValue(const char *var_name);
+ //creates the library variable if not existing already and returns it
+@@ -53,7 +53,7 @@
+ //creates the library variable if not existing already and returns the value
+ float LibVarValue(const char *var_name, const char *value);
+ //creates the library variable if not existing already and returns the value string
+-char *LibVarString(const char *var_name, const char *value);
++const char *LibVarString(const char *var_name, const char *value);
+ //sets the library variable
+ void LibVarSet(const char *var_name, const char *value);
+ //returns true if the library variable has been modified
+Index: code/botlib/l_log.c
+===================================================================
+--- code/botlib/l_log.c	(revision 3355)
++++ code/botlib/l_log.c	(working copy)
+@@ -57,11 +57,11 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-void Log_Open(char *filename)
++void Log_Open(const char *filename)
+ {
+-	char *ospath;
++	const char *ospath;
+ 	if (!LibVarValue("log", "0")) return;
+-	if (!filename || !strlen(filename))
++	if (!filename || !*filename)
+ 	{
+ 		botimport.Print(PRT_MESSAGE, "openlog <filename>\n");
+ 		return;
+@@ -78,7 +78,7 @@
+ 		botimport.Print(PRT_ERROR, "can't open the log file %s\n", filename);
+ 		return;
+ 	} //end if
+-	Q_strncpyz(logfile.filename, filename, MAX_LOGFILENAMESIZE);
++	Q_strncpyz(logfile.filename, filename, sizeof( logfile.filename ) );
+ 	botimport.Print(PRT_MESSAGE, "Opened log %s\n", logfile.filename);
+ } //end of the function Log_Create
+ //===========================================================================
+Index: code/botlib/l_log.h
+===================================================================
+--- code/botlib/l_log.h	(revision 3355)
++++ code/botlib/l_log.h	(working copy)
+@@ -30,7 +30,7 @@
+  *****************************************************************************/
+ 
+ //open a log file
+-void Log_Open(char *filename);
++void Log_Open(const char *filename);
+ //close the current log file
+ void Log_Close(void);
+ //close log file if present
+Index: code/botlib/l_precomp.c
+===================================================================
+--- code/botlib/l_precomp.c	(revision 3355)
++++ code/botlib/l_precomp.c	(working copy)
+@@ -101,13 +101,13 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //============================================================================
+-void QDECL SourceError(source_t *source, char *str, ...)
++void QDECL SourceError(source_t *source, const char *fmt, ...)
+ {
+ 	char text[1024];
+ 	va_list ap;
+ 
+-	va_start(ap, str);
+-	Q_vsnprintf(text, sizeof(text), str, ap);
++	va_start(ap, fmt);
++	Q_vsnprintf(text, sizeof(text), fmt, ap);
+ 	va_end(ap);
+ #ifdef BOTLIB
+ 	botimport.Print(PRT_ERROR, "file %s, line %d: %s\n", source->scriptstack->filename, source->scriptstack->line, text);
+@@ -122,13 +122,13 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-void QDECL SourceWarning(source_t *source, char *str, ...)
++void QDECL SourceWarning(source_t *source, const char *fmt, ...)
+ {
+ 	char text[1024];
+ 	va_list ap;
+ 
+-	va_start(ap, str);
+-	Q_vsnprintf(text, sizeof(text), str, ap);
++	va_start(ap, fmt);
++	Q_vsnprintf(text, sizeof(text), fmt, ap);
+ 	va_end(ap);
+ #ifdef BOTLIB
+ 	botimport.Print(PRT_WARNING, "file %s, line %d: %s\n", source->scriptstack->filename, source->scriptstack->line, text);
+@@ -427,20 +427,26 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //============================================================================
+-int PC_StringizeTokens(token_t *tokens, token_t *token)
++int PC_StringizeTokens(const token_t *tokens, token_t *token)
+ {
+-	token_t *t;
++	const token_t *t;
++	int len, total;
+ 
+ 	token->type = TT_STRING;
+ 	token->whitespace_p = NULL;
+ 	token->endwhitespace_p = NULL;
+-	token->string[0] = '\0';
+-	strcat(token->string, "\"");
++	token->string[0] = '"';
++	total = 1;
+ 	for (t = tokens; t; t = t->next)
+ 	{
+-		strncat(token->string, t->string, MAX_TOKEN - strlen(token->string) - 1);
+-	} //end for
+-	strncat(token->string, "\"", MAX_TOKEN - strlen(token->string) - 1);
++		len = (int)strlen( t->string );
++		if ( len + total >= sizeof( token->string ) - 1 ) // reserve space for '"' and '\0'
++			return qfalse;
++		strcpy( token->string + total, t->string );
++		total += len;
++	}
++	strcpy( token->string + total, "\"" );
++
+ 	return qtrue;
+ } //end of the function PC_StringizeTokens
+ //============================================================================
+@@ -454,6 +460,8 @@
+ 	//merging of a name with a name or number
+ 	if (t1->type == TT_NAME && (t2->type == TT_NAME || t2->type == TT_NUMBER))
+ 	{
++		if ( strlen( t1->string ) + strlen( t2->string ) >= sizeof( t1->string ) )
++			return qfalse;
+ 		strcat(t1->string, t2->string);
+ 		return qtrue;
+ 	} //end if
+@@ -460,8 +468,11 @@
+ 	//merging of two strings
+ 	if (t1->type == TT_STRING && t2->type == TT_STRING)
+ 	{
++		int len1 = (int)strlen( t1->string );
++		if ( strlen( t1->string ) + strlen( t2->string ) - 2 >= sizeof( t1->string ) )
++			return qfalse;
+ 		//remove trailing double quote
+-		t1->string[strlen(t1->string)-1] = '\0';
++		t1->string[len1-1] = '\0';
+ 		//concat without leading double quote
+ 		strcat(t1->string, &t2->string[1]);
+ 		return qtrue;
+@@ -712,7 +723,6 @@
+ 			strncat(token->string, curtime+4, 7);
+ 			strncat(token->string+7, curtime+20, 4);
+ 			strcat(token->string, "\"");
+-			free(curtime);
+ 			token->type = TT_NAME;
+ 			token->subtype = strlen(token->string);
+ 			*firsttoken = token;
+@@ -726,7 +736,6 @@
+ 			strcpy(token->string, "\"");
+ 			strncat(token->string, curtime+11, 8);
+ 			strcat(token->string, "\"");
+-			free(curtime);
+ 			token->type = TT_NAME;
+ 			token->subtype = strlen(token->string);
+ 			*firsttoken = token;
+@@ -1269,7 +1278,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //============================================================================
+-define_t *PC_DefineFromString(char *string)
++define_t *PC_DefineFromString(const char *string)
+ {
+ 	script_t *script;
+ 	source_t src;
+@@ -1348,7 +1357,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //============================================================================
+-int PC_AddGlobalDefine(char *string)
++int PC_AddGlobalDefine(const char *string)
+ {
+ 	define_t *define;
+ 
+@@ -1636,7 +1645,7 @@
+ 		op = &operator_heap[numoperators++];
+ #define FreeOperator(op)
+ 
+-int PC_EvaluateTokens(source_t *source, token_t *tokens, signed long int *intvalue,
++static int PC_EvaluateTokens(source_t *source, token_t *tokens, int *intvalue,
+ 																	float *floatvalue, int integer)
+ {
+ 	operator_t *o, *firstoperator, *lastoperator;
+@@ -2089,7 +2098,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //============================================================================
+-int PC_Evaluate(source_t *source, signed long int *intvalue,
++static int PC_Evaluate(source_t *source, int *intvalue,
+ 												float *floatvalue, int integer)
+ {
+ 	token_t token, *firsttoken, *lasttoken;
+@@ -2188,7 +2197,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //============================================================================
+-int PC_DollarEvaluate(source_t *source, signed long int *intvalue,
++static int PC_DollarEvaluate(source_t *source, int *intvalue,
+ 												float *floatvalue, int integer)
+ {
+ 	int indent, defined = qfalse;
+@@ -2298,7 +2307,7 @@
+ //============================================================================
+ int PC_Directive_elif(source_t *source)
+ {
+-	signed long int value;
++	int value;
+ 	int type, skip;
+ 
+ 	PC_PopIndent(source, &type, &skip);
+@@ -2320,7 +2329,7 @@
+ //============================================================================
+ int PC_Directive_if(source_t *source)
+ {
+-	signed long int value;
++	int value;
+ 	int skip;
+ 
+ 	if (!PC_Evaluate(source, &value, NULL, qtrue)) return qfalse;
+@@ -2395,7 +2404,7 @@
+ //============================================================================
+ int PC_Directive_eval(source_t *source)
+ {
+-	signed long int value;
++	int value;
+ 	token_t token;
+ 
+ 	if (!PC_Evaluate(source, &value, NULL, qtrue)) return qfalse;
+@@ -2500,7 +2509,7 @@
+ //============================================================================
+ int PC_DollarDirective_evalint(source_t *source)
+ {
+-	signed long int value;
++	int value;
+ 	token_t token;
+ 
+ 	if (!PC_DollarEvaluate(source, &value, NULL, qtrue)) return qfalse;
+@@ -2857,7 +2866,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //============================================================================
+-void PC_SetIncludePath(source_t *source, char *path)
++void PC_SetIncludePath(source_t *source, const char *path)
+ {
+ 	size_t len;
+ 
+@@ -3109,7 +3118,7 @@
+ // Returns:				-
+ // Changes Globals:		-
+ //============================================================================
+-void PC_SetBaseFolder(char *path)
++void PC_SetBaseFolder(const char *path)
+ {
+ 	PS_SetBaseFolder(path);
+ } //end of the function PC_SetBaseFolder
+Index: code/botlib/l_precomp.h
+===================================================================
+--- code/botlib/l_precomp.h	(revision 3355)
++++ code/botlib/l_precomp.h	(working copy)
+@@ -128,7 +128,7 @@
+ //add a define to the source
+ int PC_AddDefine(source_t *source, const char *string);
+ //add a globals define that will be added to all opened sources
+-int PC_AddGlobalDefine(char *string);
++int PC_AddGlobalDefine(const char *string);
+ //remove the given global define
+ int PC_RemoveGlobalDefine(char *name);
+ //remove all globals defines
+@@ -136,11 +136,11 @@
+ //add builtin defines
+ void PC_AddBuiltinDefines(source_t *source);
+ //set the source include path
+-void PC_SetIncludePath(source_t *source, char *path);
++void PC_SetIncludePath(source_t *source, const char *path);
+ //set the punction set
+ void PC_SetPunctuations(source_t *source, punctuation_t *p);
+ //set the base folder to load files from
+-void PC_SetBaseFolder(char *path);
++void PC_SetBaseFolder(const char *path);
+ //load a source file
+ source_t *LoadSourceFile(const char *filename);
+ //load a source from memory
+@@ -148,9 +148,9 @@
+ //free the given source
+ void FreeSource(source_t *source);
+ //print a source error
+-void QDECL SourceError(source_t *source, char *str, ...) __attribute__ ((format (printf, 2, 3)));
++void QDECL SourceError(source_t *source, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+ //print a source warning
+-void QDECL SourceWarning(source_t *source, char *str, ...)  __attribute__ ((format (printf, 2, 3)));
++void QDECL SourceWarning(source_t *source, const char *fmt, ...)  __attribute__ ((format (printf, 2, 3)));
+ 
+ //
+ int PC_LoadSourceHandle(const char *filename);
+Index: code/botlib/l_script.c
+===================================================================
+--- code/botlib/l_script.c	(revision 3355)
++++ code/botlib/l_script.c	(working copy)
+@@ -212,7 +212,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-void QDECL ScriptError(script_t *script, char *str, ...)
++void QDECL ScriptError(script_t *script, const char *fmt, ...)
+ {
+ 	char text[1024];
+ 	va_list ap;
+@@ -219,8 +219,8 @@
+ 
+ 	if (script->flags & SCFL_NOERRORS) return;
+ 
+-	va_start(ap, str);
+-	Q_vsnprintf(text, sizeof(text), str, ap);
++	va_start(ap, fmt);
++	Q_vsnprintf(text, sizeof(text), fmt, ap);
+ 	va_end(ap);
+ #ifdef BOTLIB
+ 	botimport.Print(PRT_ERROR, "file %s, line %d: %s\n", script->filename, script->line, text);
+@@ -235,7 +235,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //===========================================================================
+-void QDECL ScriptWarning(script_t *script, char *str, ...)
++void QDECL ScriptWarning(script_t *script, const char *fmt, ...)
+ {
+ 	char text[1024];
+ 	va_list ap;
+@@ -242,8 +242,8 @@
+ 
+ 	if (script->flags & SCFL_NOWARNINGS) return;
+ 
+-	va_start(ap, str);
+-	Q_vsnprintf(text, sizeof(text), str, ap);
++	va_start(ap, fmt);
++	Q_vsnprintf(text, sizeof(text), fmt, ap);
+ 	va_end(ap);
+ #ifdef BOTLIB
+ 	botimport.Print(PRT_WARNING, "file %s, line %d: %s\n", script->filename, script->line, text);
+@@ -623,7 +623,7 @@
+ 		//hexadecimal
+ 		while((c >= '0' && c <= '9') ||
+ 					(c >= 'a' && c <= 'f') ||
+-					(c >= 'A' && c <= 'A'))
++					(c >= 'A' && c <= 'F'))
+ 		{
+ 			token->string[len++] = *script->script_p++;
+ 			if (len >= MAX_TOKEN)
+@@ -782,7 +782,7 @@
+ 			//if the script contains the punctuation
+ 			if (!strncmp(script->script_p, p, len))
+ 			{
+-				Q_strncpyz(token->string, p, MAX_TOKEN);
++				Q_strncpyz( token->string, p, sizeof( token->string ) );
+ 				script->script_p += len;
+ 				token->type = TT_PUNCTUATION;
+ 				//sub type is the number of the punctuation
+@@ -899,7 +899,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //============================================================================
+-int PS_ExpectTokenString(script_t *script, char *string)
++int PS_ExpectTokenString(script_t *script, const char *string)
+ {
+ 	token_t token;
+ 
+@@ -1000,7 +1000,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //============================================================================
+-int PS_CheckTokenString(script_t *script, char *string)
++int PS_CheckTokenString(script_t *script, const char *string)
+ {
+ 	token_t tok;
+ 
+@@ -1039,7 +1039,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //============================================================================
+-int PS_SkipUntilString(script_t *script, char *string)
++int PS_SkipUntilString(script_t *script, const char *string)
+ {
+ 	token_t token;
+ 
+@@ -1368,7 +1368,7 @@
+ // Returns:				-
+ // Changes Globals:		-
+ //============================================================================
+-script_t *LoadScriptMemory(char *ptr, int length, char *name)
++script_t *LoadScriptMemory(const char *ptr, int length, const char *name)
+ {
+ 	void *buffer;
+ 	script_t *script;
+@@ -1417,7 +1417,7 @@
+ // Returns:					-
+ // Changes Globals:		-
+ //============================================================================
+-void PS_SetBaseFolder(char *path)
++void PS_SetBaseFolder(const char *path)
+ {
+ #ifdef BOTLIB
+ 	Com_sprintf(basefolder, sizeof(basefolder), "%s", path);
+Index: code/botlib/l_script.h
+===================================================================
+--- code/botlib/l_script.h	(revision 3355)
++++ code/botlib/l_script.h	(working copy)
+@@ -191,17 +191,17 @@
+ //read a token from the script
+ int PS_ReadToken(script_t *script, token_t *token);
+ //expect a certain token
+-int PS_ExpectTokenString(script_t *script, char *string);
++int PS_ExpectTokenString(script_t *script, const char *string);
+ //expect a certain token type
+ int PS_ExpectTokenType(script_t *script, int type, int subtype, token_t *token);
+ //expect a token
+ int PS_ExpectAnyToken(script_t *script, token_t *token);
+ //returns true when the token is available
+-int PS_CheckTokenString(script_t *script, char *string);
++int PS_CheckTokenString(script_t *script, const char *string);
+ //returns true and reads the token when a token with the given type is available
+ int PS_CheckTokenType(script_t *script, int type, int subtype, token_t *token);
+ //skip tokens until the given token string is read
+-int PS_SkipUntilString(script_t *script, char *string);
++int PS_SkipUntilString(script_t *script, const char *string);
+ //unread the last token read from the script
+ void PS_UnreadLastToken(script_t *script);
+ //unread the given token
+@@ -231,14 +231,14 @@
+ //load a script from the given file at the given offset with the given length
+ script_t *LoadScriptFile(const char *filename);
+ //load a script from the given memory with the given length
+-script_t *LoadScriptMemory(char *ptr, int length, char *name);
++script_t *LoadScriptMemory(const char *ptr, int length, const char *name);
+ //free a script
+ void FreeScript(script_t *script);
+ //set the base folder to load files from
+-void PS_SetBaseFolder(char *path);
++void PS_SetBaseFolder(const char *path);
+ //print a script error with filename and line number
+-void QDECL ScriptError(script_t *script, char *str, ...) __attribute__ ((format (printf, 2, 3)));
++void QDECL ScriptError(script_t *script, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+ //print a script warning with filename and line number
+-void QDECL ScriptWarning(script_t *script, char *str, ...) __attribute__ ((format (printf, 2, 3)));
++void QDECL ScriptWarning(script_t *script, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+ 
+ 
+Index: code/botlib/l_struct.c
+===================================================================
+--- code/botlib/l_struct.c	(revision 3355)
++++ code/botlib/l_struct.c	(working copy)
+@@ -217,11 +217,8 @@
+ 	if (!PC_ExpectTokenType(source, TT_STRING, 0, &token)) return 0;
+ 	//remove the double quotes
+ 	StripDoubleQuotes(token.string);
+-	//copy the string
+-	strncpy((char *) p, token.string, MAX_STRINGFIELD-1);
+-	//make sure the string is closed with a zero
+-	((char *)p)[MAX_STRINGFIELD-1] = '\0';
+-	//
++	//copy the string and make sure it is closed with a zero
++	Q_strncpyz( (char *)p, token.string, MAX_STRINGFIELD );
+ 	return 1;
+ } //end of the function ReadString
+ //===========================================================================
+Index: code/server/sv_bot.c
+===================================================================
+--- code/server/sv_bot.c	(revision 3355)
++++ code/server/sv_bot.c	(working copy)
+@@ -133,7 +133,7 @@
+ BotImport_Print
+ ==================
+ */
+-static __attribute__ ((format (printf, 2, 3))) void QDECL BotImport_Print(int type, char *fmt, ...)
++static __attribute__ ((format (printf, 2, 3))) void QDECL BotImport_Print(int type, const char *fmt, ...)
+ {
+ 	char str[2048];
+ 	va_list ap;

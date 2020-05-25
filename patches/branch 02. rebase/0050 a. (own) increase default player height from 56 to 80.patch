@@ -1,0 +1,139 @@
+Index: code/botlib/be_aas_move.c
+===================================================================
+--- code/botlib/be_aas_move.c	(revision 3338)
++++ code/botlib/be_aas_move.c	(working copy)
+@@ -301,7 +301,7 @@
+ 	float	mass, knockback, points;
+ 	vec3_t rocketoffset = {8, 8, -8};
+ 	vec3_t botmins = {-16, -16, -24};
+-	vec3_t botmaxs = {16, 16, 32};
++	vec3_t botmaxs = {16, 16, 56};
+ 	bsp_trace_t bsptrace;
+ 
+ 	//look down (90 degrees)
+Index: code/botlib/be_interface.c
+===================================================================
+--- code/botlib/be_interface.c	(revision 3338)
++++ code/botlib/be_interface.c	(working copy)
+@@ -331,7 +331,7 @@
+ 
+ 	// clock_t start_time, end_time;
+ 	vec3_t mins = {-16, -16, -24};
+-	vec3_t maxs = {16, 16, 32};
++	vec3_t maxs = {16, 16, 56};
+ 
+ //	int areas[10], numareas;
+ 
+Index: code/botlib/be_aas_sample.c
+===================================================================
+--- code/botlib/be_aas_sample.c	(revision 3338)
++++ code/botlib/be_aas_sample.c	(working copy)
+@@ -74,7 +74,7 @@
+ 	int index;
+ 	//bounding box size for each presence type
+ 	vec3_t boxmins[3] = {{0, 0, 0}, {-15, -15, -24}, {-15, -15, -24}};
+-	vec3_t boxmaxs[3] = {{0, 0, 0}, { 15,  15,  32}, { 15,  15,   8}};
++	vec3_t boxmaxs[3] = {{0, 0, 0}, { 15,  15,  56}, { 15,  15,   8}};
+ 
+ 	if (presencetype == PRESENCE_NORMAL) index = 1;
+ 	else if (presencetype == PRESENCE_CROUCH) index = 2;
+Index: code/game/bg_pmove.c
+===================================================================
+--- code/game/bg_pmove.c	(revision 3338)
++++ code/game/bg_pmove.c	(working copy)
+@@ -1294,7 +1294,7 @@
+ 		if (pm->ps->pm_flags & PMF_DUCKED)
+ 		{
+ 			// try to stand up
+-			pm->maxs[2] = 32;
++			pm->maxs[2] = 56; // 56 + 24 = 80 (80 * 2.5 = 200)
+ 			pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, pm->ps->origin, pm->ps->clientNum, pm->tracemask );
+ 			if (!trace.allsolid)
+ 				pm->ps->pm_flags &= ~PMF_DUCKED;
+@@ -1308,7 +1308,7 @@
+ 	}
+ 	else
+ 	{
+-		pm->maxs[2] = 32;
++		pm->maxs[2] = 56; // 56 + 24 = 80 (80 * 2.5 = 200)
+ 		pm->ps->viewheight = DEFAULT_VIEWHEIGHT;
+ 	}
+ }
+Index: code/game/g_client.c
+===================================================================
+--- code/game/g_client.c	(revision 3338)
++++ code/game/g_client.c	(working copy)
+@@ -25,9 +25,9 @@
+ // g_client.c -- client functions that don't happen every frame
+ 
+ static vec3_t	playerMins = {-15, -15, -24};
+-static vec3_t	playerMaxs = {15, 15, 32};
++static vec3_t	playerMaxs = {15, 15, 56}; // 56 + 24 = 80 (80 * 2.5 = 200)
+ 
+-/*QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32) initial
++/*QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 56) initial
+ potential spawning position for deathmatch games.
+ The first time a player enters the game, they will be at an 'initial' spot.
+ Targets will be fired when someone spawns in on them.
+@@ -47,7 +47,7 @@
+ 	}
+ }
+ 
+-/*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
++/*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 56)
+ equivalent to info_player_deathmatch
+ */
+ void SP_info_player_start(gentity_t *ent) {
+Index: code/game/g_team.c
+===================================================================
+--- code/game/g_team.c	(revision 3338)
++++ code/game/g_team.c	(working copy)
+@@ -1145,7 +1145,7 @@
+ 
+ /*-----------------------------------------------------------------*/
+ 
+-/*QUAKED team_CTF_redplayer (1 0 0) (-16 -16 -16) (16 16 32)
++/*QUAKED team_CTF_redplayer (1 0 0) (-16 -16 -16) (16 16 56)
+ Only in CTF games.  Red players spawn here at game start.
+ */
+ void SP_team_CTF_redplayer( gentity_t *ent ) {
+@@ -1152,7 +1152,7 @@
+ }
+ 
+ 
+-/*QUAKED team_CTF_blueplayer (0 0 1) (-16 -16 -16) (16 16 32)
++/*QUAKED team_CTF_blueplayer (0 0 1) (-16 -16 -16) (16 16 56)
+ Only in CTF games.  Blue players spawn here at game start.
+ */
+ void SP_team_CTF_blueplayer( gentity_t *ent ) {
+@@ -1159,7 +1159,7 @@
+ }
+ 
+ 
+-/*QUAKED team_CTF_redspawn (1 0 0) (-16 -16 -24) (16 16 32)
++/*QUAKED team_CTF_redspawn (1 0 0) (-16 -16 -24) (16 16 56)
+ potential spawning position for red team in CTF games.
+ Targets will be fired when someone spawns in on them.
+ */
+@@ -1166,7 +1166,7 @@
+ void SP_team_CTF_redspawn(gentity_t *ent) {
+ }
+ 
+-/*QUAKED team_CTF_bluespawn (0 0 1) (-16 -16 -24) (16 16 32)
++/*QUAKED team_CTF_bluespawn (0 0 1) (-16 -16 -24) (16 16 56)
+ potential spawning position for blue team in CTF games.
+ Targets will be fired when someone spawns in on them.
+ */
+Index: code/ui/ui_players.c
+===================================================================
+--- code/ui/ui_players.c	(revision 3348)
++++ code/ui/ui_players.c	(working copy)
+@@ -744,7 +744,7 @@
+ 	vec3_t			origin;
+ 	int				renderfx;
+ 	vec3_t			mins = {-16, -16, -24};
+-	vec3_t			maxs = {16, 16, 32};
++	vec3_t			maxs = {16, 16, 56};
+ 	float			len;
+ 	float			xx;
+ 

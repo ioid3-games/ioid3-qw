@@ -1,0 +1,150 @@
+Index: code/cgame/cg_draw.c
+===================================================================
+--- code/cgame/cg_draw.c	(revision 3321)
++++ code/cgame/cg_draw.c	(working copy)
+@@ -1113,7 +1113,7 @@
+ 	s1 = cgs.scores1;
+ 	s2 = cgs.scores2;
+ 
+-	y -=  BIGCHAR_HEIGHT + 8;
++	y -=  BIGCHAR_HEIGHT + 16;
+ 
+ 	y1 = y;
+ 
+@@ -1400,7 +1400,7 @@
+ 	charWidth = BIGCHAR_WIDTH*cg_drawPickups.value;
+ 	charHeight = BIGCHAR_HEIGHT*cg_drawPickups.value;
+ 
+-	y -= iconSize;
++	y -= iconSize + 12;
+ 
+ 	value = cg.itemPickup;
+ 	if ( value ) {
+Index: code/cgame/cg_newdraw.c
+===================================================================
+--- code/cgame/cg_newdraw.c	(revision 3321)
++++ code/cgame/cg_newdraw.c	(working copy)
+@@ -737,7 +737,7 @@
+ 			VectorClear(angles);
+ 			origin[0] = 90;
+ 			origin[1] = 0;
+-			origin[2] = -10;
++			origin[2] = -6;
+ 			angles[YAW] = ( cg.time & 2047 ) * 360 / 2048.0;
+ 			if( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+ 				handle = cgs.media.redCubeModel;
+Index: code/q3_ui/ui_servers2.c
+===================================================================
+--- code/q3_ui/ui_servers2.c	(revision 3321)
++++ code/q3_ui/ui_servers2.c	(working copy)
+@@ -41,7 +41,7 @@
+ #define MAX_LOCALSERVERS		128
+ #define MAX_STATUSLENGTH		64
+ #define MAX_LEAGUELENGTH		28
+-#define MAX_LISTBOXWIDTH		68
++#define MAX_LISTBOXWIDTH		62
+ 
+ #define ART_BACK0				"menu/art/back_0"
+ #define ART_BACK1				"menu/art/back_1"
+@@ -198,7 +198,7 @@
+ } servernode_t; 
+ 
+ typedef struct {
+-	char			buff[MAX_LISTBOXWIDTH];
++	char			buff[MAX_LISTBOXWIDTH+3];
+ 	servernode_t*	servernode;
+ } table_t;
+ 
+@@ -1409,7 +1409,7 @@
+ 	g_arenaservers.showempty.generic.x			= 320;
+ 	g_arenaservers.showempty.generic.y			= y;
+ 
+-	y += 3 * SMALLCHAR_HEIGHT;
++	y += 3 * SMALLCHAR_HEIGHT - 10;
+ 	g_arenaservers.list.generic.type			= MTYPE_SCROLLLIST;
+ 	g_arenaservers.list.generic.flags			= QMF_HIGHLIGHT_IF_FOCUS;
+ 	g_arenaservers.list.generic.id				= ID_LIST;
+@@ -1436,7 +1436,7 @@
+ 	g_arenaservers.arrows.generic.flags			= QMF_LEFT_JUSTIFY|QMF_INACTIVE;
+ 	g_arenaservers.arrows.generic.callback		= ArenaServers_Event;
+ 	g_arenaservers.arrows.generic.x				= 512+48;
+-	g_arenaservers.arrows.generic.y				= 240-64+16;
++	g_arenaservers.arrows.generic.y				= 240-64+32;
+ 	g_arenaservers.arrows.width					= 64;
+ 	g_arenaservers.arrows.height				= 128;
+ 
+@@ -1445,7 +1445,7 @@
+ 	g_arenaservers.up.generic.callback			= ArenaServers_Event;
+ 	g_arenaservers.up.generic.id				= ID_SCROLL_UP;
+ 	g_arenaservers.up.generic.x					= 512+48;
+-	g_arenaservers.up.generic.y					= 240-64+16;
++	g_arenaservers.up.generic.y					= 240-64+32;
+ 	g_arenaservers.up.width						= 64;
+ 	g_arenaservers.up.height					= 64;
+ 	g_arenaservers.up.focuspic					= ART_ARROWS_UP;
+@@ -1455,12 +1455,12 @@
+ 	g_arenaservers.down.generic.callback		= ArenaServers_Event;
+ 	g_arenaservers.down.generic.id				= ID_SCROLL_DOWN;
+ 	g_arenaservers.down.generic.x				= 512+48;
+-	g_arenaservers.down.generic.y				= 240+16;
++	g_arenaservers.down.generic.y				= 240+32;
+ 	g_arenaservers.down.width					= 64;
+ 	g_arenaservers.down.height					= 64;
+ 	g_arenaservers.down.focuspic				= ART_ARROWS_DOWN;
+ 
+-	y = 376;
++	y = 378;
+ 	g_arenaservers.status.generic.type		= MTYPE_TEXT;
+ 	g_arenaservers.status.generic.x			= 320;
+ 	g_arenaservers.status.generic.y			= y;
+@@ -1554,8 +1554,8 @@
+ 	g_arenaservers.pblogo.generic.type			= MTYPE_BITMAP;
+ 	g_arenaservers.pblogo.generic.name			= ART_PUNKBUSTER;
+ 	g_arenaservers.pblogo.generic.flags			= QMF_LEFT_JUSTIFY|QMF_INACTIVE;
+-	g_arenaservers.pblogo.generic.x				= 526;
+-	g_arenaservers.pblogo.generic.y				= 176;
++	g_arenaservers.pblogo.generic.x				= 522;
++	g_arenaservers.pblogo.generic.y				= 162;
+ 	g_arenaservers.pblogo.width					= 32;
+ 	g_arenaservers.pblogo.height				= 16;
+ 	g_arenaservers.pblogo.errorpic				= ART_UNKNOWNMAP;
+@@ -1569,12 +1569,12 @@
+ 	Menu_AddItem( &g_arenaservers.menu, (void*) &g_arenaservers.showempty );
+ 
+ 	Menu_AddItem( &g_arenaservers.menu, (void*) &g_arenaservers.mappic );
++	Menu_AddItem( &g_arenaservers.menu, (void*) &g_arenaservers.list );
+ 	Menu_AddItem( &g_arenaservers.menu, (void*) &g_arenaservers.status );
+ 	Menu_AddItem( &g_arenaservers.menu, (void*) &g_arenaservers.statusbar );
+ 	Menu_AddItem( &g_arenaservers.menu, (void*) &g_arenaservers.arrows );
+ 	Menu_AddItem( &g_arenaservers.menu, (void*) &g_arenaservers.up );
+ 	Menu_AddItem( &g_arenaservers.menu, (void*) &g_arenaservers.down );
+-	Menu_AddItem( &g_arenaservers.menu, (void*) &g_arenaservers.list );
+ 
+ 	Menu_AddItem( &g_arenaservers.menu, (void*) &g_arenaservers.remove );
+ 	Menu_AddItem( &g_arenaservers.menu, (void*) &g_arenaservers.back );
+Index: code/q3_ui/ui_splevel.c
+===================================================================
+--- code/q3_ui/ui_splevel.c	(revision 3321)
++++ code/q3_ui/ui_splevel.c	(working copy)
+@@ -667,7 +667,7 @@
+ 			UI_FillRect( x, y, 64, 64, color_black );
+ 			UI_DrawProportionalString( x+22, y+18, "?", UI_BIGFONT, color_orange );
+ 		}
+-		UI_DrawString( x, y + 64, levelMenuInfo.botNames[n], UI_SMALLFONT|UI_LEFT, color_orange );
++		UI_DrawString( x + 32, y + 64, levelMenuInfo.botNames[n], UI_CENTER|UI_SMALLFONT, color_orange );
+ 	}
+ }
+ 
+Index: code/q3_ui/ui_sppostgame.c
+===================================================================
+--- code/q3_ui/ui_sppostgame.c	(revision 3321)
++++ code/q3_ui/ui_sppostgame.c	(working copy)
+@@ -486,7 +486,7 @@
+ 	Q_CleanStr( name );
+ 	len = strlen( name );
+ 
+-	while( len && UI_ProportionalStringWidth( name ) > 256 ) {
++	while( len && UI_ProportionalStringWidth( name ) > 257 ) {
+ 		len--;
+ 		name[len] = 0;
+ 	}

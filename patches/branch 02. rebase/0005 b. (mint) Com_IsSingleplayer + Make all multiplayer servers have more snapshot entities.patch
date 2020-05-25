@@ -1,0 +1,251 @@
+Index: code/cgame/cg_event.c
+===================================================================
+--- code/cgame/cg_event.c	(revision 3359)
++++ code/cgame/cg_event.c	(working copy)
+@@ -222,7 +222,7 @@
+ 			s = va("You fragged %s", targetName );
+ 		}
+ #ifdef MISSIONPACK
+-		if (!(cg_singlePlayerActive.integer && cg_cameraOrbit.integer)) {
++		if (!(cg_singlePlayer.integer && cg_cameraOrbit.integer)) {
+ 			CG_CenterPrint( s, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH );
+ 		} 
+ #else
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 3366)
++++ code/cgame/cg_local.h	(working copy)
+@@ -1188,7 +1188,6 @@
+ extern	vmCvar_t		cg_singlePlayer;
+ extern	vmCvar_t		cg_enableDust;
+ extern	vmCvar_t		cg_enableBreath;
+-extern	vmCvar_t		cg_singlePlayerActive;
+ extern  vmCvar_t		cg_recordSPDemo;
+ extern  vmCvar_t		cg_recordSPDemoName;
+ extern	vmCvar_t		cg_obeliskRespawnDelay;
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 3361)
++++ code/cgame/cg_main.c	(working copy)
+@@ -145,6 +145,7 @@
+ vmCvar_t	cg_lagometer;
+ vmCvar_t	cg_drawAttacker;
+ vmCvar_t	cg_synchronousClients;
++vmCvar_t	cg_singlePlayer;
+ vmCvar_t 	cg_teamChatTime;
+ vmCvar_t 	cg_teamChatHeight;
+ vmCvar_t 	cg_stats;
+@@ -188,13 +189,11 @@
+ 
+ #ifdef MISSIONPACK
+ vmCvar_t 	cg_redTeamName;
+-vmCvar_t 	cg_blueTeamName;
+-vmCvar_t	cg_currentSelectedPlayer;
+-vmCvar_t	cg_currentSelectedPlayerName;
+-vmCvar_t	cg_singlePlayer;
+-vmCvar_t	cg_enableDust;
+-vmCvar_t	cg_enableBreath;
+-vmCvar_t	cg_singlePlayerActive;
++vmCvar_t 	cg_blueTeamName;
++vmCvar_t	cg_currentSelectedPlayer;
++vmCvar_t	cg_currentSelectedPlayerName;
++vmCvar_t	cg_enableDust;
++vmCvar_t	cg_enableBreath;
+ vmCvar_t	cg_recordSPDemo;
+ vmCvar_t	cg_recordSPDemoName;
+ vmCvar_t	cg_obeliskRespawnDelay;
+@@ -286,15 +285,14 @@
+ 	{ &cg_paused, "cl_paused", "0", CVAR_ROM },
+ 	{ &cg_blood, "com_blood", "1", CVAR_ARCHIVE },
+ 	{ &cg_synchronousClients, "g_synchronousClients", "0", CVAR_SYSTEMINFO },
++	{ &cg_singlePlayer, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO | CVAR_ROM },
+ #ifdef MISSIONPACK
+ 	{ &cg_redTeamName, "g_redteam", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_USERINFO },
+ 	{ &cg_blueTeamName, "g_blueteam", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_USERINFO },
+ 	{ &cg_currentSelectedPlayer, "cg_currentSelectedPlayer", "0", CVAR_ARCHIVE},
+ 	{ &cg_currentSelectedPlayerName, "cg_currentSelectedPlayerName", "", CVAR_ARCHIVE},
+-	{ &cg_singlePlayer, "ui_singlePlayerActive", "0", CVAR_USERINFO},
+ 	{ &cg_enableDust, "g_enableDust", "0", CVAR_SERVERINFO},
+ 	{ &cg_enableBreath, "g_enableBreath", "0", CVAR_SERVERINFO},
+-	{ &cg_singlePlayerActive, "ui_singlePlayerActive", "0", CVAR_USERINFO},
+ 	{ &cg_recordSPDemo, "ui_recordSPDemo", "0", CVAR_ARCHIVE},
+ 	{ &cg_recordSPDemoName, "ui_recordSPDemoName", "", CVAR_ARCHIVE},
+ 	{ &cg_obeliskRespawnDelay, "g_obeliskRespawnDelay", "10", CVAR_SERVERINFO},
+Index: code/cgame/cg_servercmds.c
+===================================================================
+--- code/cgame/cg_servercmds.c	(revision 3361)
++++ code/cgame/cg_servercmds.c	(working copy)
+@@ -478,7 +478,7 @@
+ 		CG_CenterPrint( "FIGHT!", 120, GIANTCHAR_WIDTH*2 );
+ 	}
+ #ifdef MISSIONPACK
+-	if (cg_singlePlayerActive.integer) {
++	if (cg_singlePlayer.integer) {
+ 		trap_Cvar_SetValue("ui_matchStartTime", cg.time);
+ 		if (cg_recordSPDemo.integer && *cg_recordSPDemoName.string) {
+ 			trap_Cmd_ExecuteText(EXEC_APPEND, va("set g_synchronousclients 1 ; record %s \n", cg_recordSPDemoName.string));
+Index: code/client/cl_main.c
+===================================================================
+--- code/client/cl_main.c	(revision 3359)
++++ code/client/cl_main.c	(working copy)
+@@ -255,7 +255,7 @@
+ 		reason = "Voip codec not initialized";
+ 	else if (!clc.voipEnabled)
+ 		reason = "Server doesn't support VoIP";
+-	else if (!clc.demoplaying && (Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableValue("ui_singlePlayerActive")))
++	else if (!clc.demoplaying && Com_GameIsSinglePlayer())
+ 		reason = "running in single-player mode";
+ 
+ 	if (reason != NULL) {
+Index: code/game/g_main.c
+===================================================================
+--- code/game/g_main.c	(revision 3361)
++++ code/game/g_main.c	(working copy)
+@@ -167,7 +167,7 @@
+ 	{ &g_cubeTimeout, "g_cubeTimeout", "30", 0, 0, qfalse },
+ 	{ &g_redteam, "g_redteam", "Stroggs", CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_USERINFO , 0, qtrue, qtrue },
+ 	{ &g_blueteam, "g_blueteam", "Pagans", CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_USERINFO , 0, qtrue, qtrue  },
+-	{ &g_singlePlayer, "ui_singlePlayerActive", "", 0, 0, qfalse, qfalse  },
++	{ &g_singlePlayer, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO | CVAR_ROM, 0, qfalse, qfalse  },
+ 
+ 	{ &g_enableDust, "g_enableDust", "0", CVAR_SERVERINFO, 0, qtrue, qfalse },
+ 	{ &g_enableBreath, "g_enableBreath", "0", CVAR_SERVERINFO, 0, qtrue, qfalse },
+Index: code/qcommon/common.c
+===================================================================
+--- code/qcommon/common.c	(revision 3359)
++++ code/qcommon/common.c	(working copy)
+@@ -70,6 +70,7 @@
+ cvar_t	*com_pipefile;
+ cvar_t	*com_showtrace;
+ cvar_t	*com_version;
++cvar_t	*com_singlePlayerActive;
+ cvar_t	*com_blood;
+ cvar_t	*com_buildScript;	// for automated data building scripts
+ #ifdef CINEMATICS_INTRO
+@@ -2743,6 +2744,7 @@
+ 	com_altivec = Cvar_Get ("com_altivec", "1", CVAR_ARCHIVE);
+ 	com_maxfps = Cvar_Get ("com_maxfps", "85", CVAR_ARCHIVE);
+ 	com_blood = Cvar_Get ("com_blood", "1", CVAR_ARCHIVE);
++	com_singlePlayerActive = Cvar_Get ("ui_singlePlayerActive", "0", CVAR_SYSTEMINFO | CVAR_ROM);
+ 
+ 	com_logfile = Cvar_Get ("logfile", "0", CVAR_TEMP );
+ 
+@@ -3609,6 +3611,15 @@
+ }
+ 
+ /*
++====================
++Com_GameIsSinglePlayer
++====================
++*/
++qboolean Com_GameIsSinglePlayer( void ) {
++	return ( com_singlePlayerActive->integer );
++}
++
++/*
+ ===============
+ Field_CompletePlayerName
+ ===============
+Index: code/qcommon/qcommon.h
+===================================================================
+--- code/qcommon/qcommon.h	(revision 3361)
++++ code/qcommon/qcommon.h	(working copy)
+@@ -840,6 +840,8 @@
+ 
+ qboolean	Com_IsVoipTarget(uint8_t *voipTargets, int voipTargetsSize, int clientNum);
+ 
++qboolean	Com_GameIsSinglePlayer(void);
++
+ void		Com_StartupVariable( const char *match );
+ // checks for and removes command line "+set var arg" constructs
+ // if match is NULL, all set commands will be executed, otherwise
+@@ -857,6 +859,7 @@
+ extern	cvar_t	*com_sv_running;
+ extern	cvar_t	*com_cl_running;
+ extern	cvar_t	*com_version;
++extern	cvar_t	*com_singlePlayerActive;
+ extern	cvar_t	*com_blood;
+ extern	cvar_t	*com_buildScript;		// for building release pak files
+ extern	cvar_t	*com_journal;
+Index: code/server/sv_client.c
+===================================================================
+--- code/server/sv_client.c	(revision 3359)
++++ code/server/sv_client.c	(working copy)
+@@ -63,7 +63,7 @@
+ 	qboolean gameMismatch;
+ 
+ 	// ignore if we are in single player
+-	if ( Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableValue("ui_singlePlayerActive")) {
++	if ( Com_GameIsSinglePlayer() ) {
+ 		return;
+ 	}
+ 
+Index: code/server/sv_init.c
+===================================================================
+--- code/server/sv_init.c	(revision 3359)
++++ code/server/sv_init.c	(working copy)
+@@ -270,7 +270,7 @@
+ 	SV_BoundMaxClients( 1 );
+ 
+ 	svs.clients = Z_Malloc (sizeof(client_t) * sv_maxclients->integer );
+-	if ( com_dedicated->integer ) {
++	if ( !Com_GameIsSinglePlayer() ) {
+ 		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES;
+ 	} else {
+ 		// we don't need nearly as many when playing locally
+@@ -348,7 +348,7 @@
+ 	Hunk_FreeTempMemory( oldClients );
+ 	
+ 	// allocate new snapshot entities
+-	if ( com_dedicated->integer ) {
++	if ( !Com_GameIsSinglePlayer() ) {
+ 		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES;
+ 	} else {
+ 		// we don't need nearly as many when playing locally
+Index: code/server/sv_main.c
+===================================================================
+--- code/server/sv_main.c	(revision 3359)
++++ code/server/sv_main.c	(working copy)
+@@ -244,6 +244,11 @@
+ 	int			res;
+ 	int			netenabled;
+ 
++	// do not send heartbeats in single player
++	if ( Com_GameIsSinglePlayer() ) {
++		return;
++	}
++
+ 	netenabled = Cvar_VariableIntegerValue("net_enabled");
+ 
+ 	// "dedicated 1" is for lan play, "dedicated 2" is for inet public play
+@@ -535,7 +540,7 @@
+ 	char	infostring[MAX_INFO_STRING];
+ 
+ 	// ignore if we are in single player
+-	if ( Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableValue("ui_singlePlayerActive")) {
++	if ( Com_GameIsSinglePlayer() ) {
+ 		return;
+ 	}
+ 
+@@ -598,7 +603,7 @@
+ 	char	infostring[MAX_INFO_STRING];
+ 
+ 	// ignore if we are in single player
+-	if ( Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableValue("ui_singlePlayerActive")) {
++	if ( Com_GameIsSinglePlayer() ) {
+ 		return;
+ 	}
+ 
+Index: code/ui/ui_main.c
+===================================================================
+--- code/ui/ui_main.c	(revision 3361)
++++ code/ui/ui_main.c	(working copy)
+@@ -5848,7 +5848,7 @@
+ 	{ &ui_lastServerRefresh_4, "ui_lastServerRefresh_4", "", CVAR_ARCHIVE},
+ 	{ &ui_lastServerRefresh_5, "ui_lastServerRefresh_5", "", CVAR_ARCHIVE},
+ 	{ &ui_lastServerRefresh_6, "ui_lastServerRefresh_6", "", CVAR_ARCHIVE},
+-	{ &ui_singlePlayerActive, "ui_singlePlayerActive", "0", 0},
++	{ &ui_singlePlayerActive, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO | CVAR_ROM},
+ 	{ &ui_scoreAccuracy, "ui_scoreAccuracy", "0", CVAR_ARCHIVE},
+ 	{ &ui_scoreImpressives, "ui_scoreImpressives", "0", CVAR_ARCHIVE},
+ 	{ &ui_scoreExcellents, "ui_scoreExcellents", "0", CVAR_ARCHIVE},

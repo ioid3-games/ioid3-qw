@@ -1,0 +1,96 @@
+Index: code/server/server.h
+===================================================================
+--- code/server/server.h	(revision 3342)
++++ code/server/server.h	(working copy)
+@@ -344,7 +344,7 @@
+ void SV_GetUserinfo( int index, char *buffer, int bufferSize );
+ 
+ void SV_ChangeMaxClients( void );
+-void SV_SpawnServer( char *server, qboolean killBots );
++void SV_SpawnServer( char *server );
+ 
+ 
+ 
+Index: code/server/sv_ccmds.c
+===================================================================
+--- code/server/sv_ccmds.c	(revision 3342)
++++ code/server/sv_ccmds.c	(working copy)
+@@ -153,7 +153,6 @@
+ static void SV_Map_f( void ) {
+ 	char		*cmd;
+ 	char		*map;
+-	qboolean	killBots, cheat;
+ 	char		expanded[MAX_QPATH];
+ 	char		mapname[MAX_QPATH];
+ 
+@@ -181,21 +180,8 @@
+ 		// may not set sv_maxclients directly, always set latched
+ 		Cvar_SetLatched( "sv_maxclients", "8" );
+ 		cmd += 2;
+-		if (!Q_stricmp( cmd, "devmap" ) ) {
+-			cheat = qtrue;
+-		} else {
+-			cheat = qfalse;
+-		}
+-		killBots = qtrue;
+ 	}
+ 	else {
+-		if ( !Q_stricmp( cmd, "devmap" ) ) {
+-			cheat = qtrue;
+-			killBots = qtrue;
+-		} else {
+-			cheat = qfalse;
+-			killBots = qfalse;
+-		}
+ 		if( sv_gametype->integer == GT_SINGLE_PLAYER ) {
+ 			Cvar_SetValue( "g_gametype", GT_FFA );
+ 		}
+@@ -206,13 +192,13 @@
+ 	Q_strncpyz(mapname, map, sizeof(mapname));
+ 
+ 	// start up the map
+-	SV_SpawnServer( mapname, killBots );
++	SV_SpawnServer( mapname );
+ 
+ 	// set the cheat value
+ 	// if the level was started with "map <levelname>", then
+ 	// cheats will not be allowed.  If started with "devmap <levelname>"
+ 	// then cheats will be allowed
+-	if ( cheat ) {
++	if ( !Q_stricmp( cmd, "devmap" ) ) {
+ 		Cvar_SetValue( "sv_cheats", 1 );
+ 	} else {
+ 		Cvar_SetValue( "sv_cheats", 0 );
+@@ -270,7 +256,7 @@
+ 		// restart the map the slow way
+ 		Q_strncpyz( mapname, Cvar_VariableString( "mapname" ), sizeof( mapname ) );
+ 
+-		SV_SpawnServer( mapname, qfalse );
++		SV_SpawnServer( mapname );
+ 		return;
+ 	}
+ 
+Index: code/server/sv_init.c
+===================================================================
+--- code/server/sv_init.c	(revision 3342)
++++ code/server/sv_init.c	(working copy)
+@@ -395,7 +395,7 @@
+ This is NOT called for map_restart
+ ================
+ */
+-void SV_SpawnServer( char *server, qboolean killBots ) {
++void SV_SpawnServer( char *server ) {
+ 	int			i;
+ 	int			checksum;
+ 	qboolean	isBot;
+@@ -512,10 +512,6 @@
+ 			char	*denied;
+ 
+ 			if ( svs.clients[i].netchan.remoteAddress.type == NA_BOT ) {
+-				if ( killBots ) {
+-					SV_DropClient( &svs.clients[i], "" );
+-					continue;
+-				}
+ 				isBot = qtrue;
+ 			}
+ 			else {

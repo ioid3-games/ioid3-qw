@@ -1,0 +1,389 @@
+Index: code/cgame/cg_info.c
+===================================================================
+--- code/cgame/cg_info.c	(revision 3374)
++++ code/cgame/cg_info.c	(working copy)
+@@ -115,10 +115,6 @@
+ 		
+ 		loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
+ 		if ( !loadingPlayerIcons[loadingPlayerIconCount] ) {
+-			Com_sprintf( iconName, MAX_QPATH, "models/players/characters/%s/icon_%s.tga", model, skin );
+-			loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
+-		}
+-		if ( !loadingPlayerIcons[loadingPlayerIconCount] ) {
+ 			Com_sprintf( iconName, MAX_QPATH, "models/players/%s/icon_%s.tga", DEFAULT_MODEL, "default" );
+ 			loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
+ 		}
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 3374)
++++ code/cgame/cg_local.h	(working copy)
+@@ -1305,6 +1305,8 @@
+ void CG_AddRefEntityWithPowerups( refEntity_t *ent, entityState_t *state, int team );
+ void CG_NewClientInfo( int clientNum );
+ sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName );
++void CG_CachePlayerSounds( const char *modelName );
++void CG_CachePlayerModels( const char *modelName, const char *headModelName );
+ 
+ //
+ // cg_predict.c
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 3374)
++++ code/cgame/cg_main.c	(working copy)
+@@ -780,31 +780,10 @@
+ 	cgs.media.hgrenb2aSound = trap_S_RegisterSound("sound/weapons/grenade/hgrenb2a.wav", qfalse);
+ 
+ #ifdef MISSIONPACK
+-	trap_S_RegisterSound("sound/player/james/death1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/james/death2.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/james/death3.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/james/jump1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/james/pain25_1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/james/pain75_1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/james/pain100_1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/james/falling1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/james/gasp.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/james/drown.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/james/fall1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/james/taunt.wav", qfalse );
+-
+-	trap_S_RegisterSound("sound/player/janet/death1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/janet/death2.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/janet/death3.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/janet/jump1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/janet/pain25_1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/janet/pain75_1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/janet/pain100_1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/janet/falling1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/janet/gasp.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/janet/drown.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/janet/fall1.wav", qfalse );
+-	trap_S_RegisterSound("sound/player/janet/taunt.wav", qfalse );
++	if ( cgs.gametype >= GT_TEAM || cg_buildScript.integer ) {
++		CG_CachePlayerSounds( DEFAULT_TEAM_MODEL_MALE );
++		CG_CachePlayerSounds( DEFAULT_TEAM_MODEL_FEMALE );
++	}
+ #endif
+ 
+ }
+@@ -1092,14 +1071,10 @@
+ 	cgs.media.flagShaders[1] = trap_R_RegisterShaderNoMip("ui/assets/statusbar/flag_capture.tga");
+ 	cgs.media.flagShaders[2] = trap_R_RegisterShaderNoMip("ui/assets/statusbar/flag_missing.tga");
+ 
+-	trap_R_RegisterModel( "models/players/james/lower.md3" );
+-	trap_R_RegisterModel( "models/players/james/upper.md3" );
+-	trap_R_RegisterModel( "models/players/heads/james/james.md3" );
+-
+-	trap_R_RegisterModel( "models/players/janet/lower.md3" );
+-	trap_R_RegisterModel( "models/players/janet/upper.md3" );
+-	trap_R_RegisterModel( "models/players/heads/janet/janet.md3" );
+-
++	if ( cgs.gametype >= GT_TEAM || cg_buildScript.integer ) {
++		CG_CachePlayerModels( DEFAULT_TEAM_MODEL_MALE, DEFAULT_TEAM_HEAD_MALE );
++		CG_CachePlayerModels( DEFAULT_TEAM_MODEL_FEMALE, DEFAULT_TEAM_HEAD_FEMALE );
++	}
+ #endif
+ 	CG_ClearParticles ();
+ /*
+Index: code/cgame/cg_players.c
+===================================================================
+--- code/cgame/cg_players.c	(revision 3374)
++++ code/cgame/cg_players.c	(working copy)
+@@ -70,8 +70,59 @@
+ }
+ 
+ 
++/*
++================
++CG_CachePlayerSounds
+ 
++Used to cache missionpack player sounds at start up.
++================
++*/
++void CG_CachePlayerSounds( const char *modelName ) {
++	char filename[MAX_QPATH];
++	const char *s;
++	int i;
++
++	for ( i = 0 ; i < MAX_CUSTOM_SOUNDS; i++ ) {
++		s = cg_customSoundNames[i];
++		if ( !s ) {
++			break;
++		}
++
++		Com_sprintf( filename, sizeof( filename ), "sound/player/%s/%s", modelName, s + 1 );
++		trap_S_RegisterSound( filename, qfalse );
++	}
++}
++
+ /*
++================
++CG_CachePlayerModels
++
++Used to cache missionpack player models at start up.
++================
++*/
++void CG_CachePlayerModels( const char *modelName, const char *headModelName ) {
++	char filename[MAX_QPATH];
++
++	Com_sprintf( filename, sizeof( filename ), "models/players/%s/lower.md3", modelName );
++	trap_R_RegisterModel( filename );
++
++	Com_sprintf( filename, sizeof( filename ), "models/players/%s/upper.md3", modelName );
++	trap_R_RegisterModel( filename );
++
++	if ( headModelName[0] == '*' ) {
++		Com_sprintf( filename, sizeof( filename ), "models/players/heads/%s/%s.md3", &headModelName[1], &headModelName[1] );
++	} else {
++		Com_sprintf( filename, sizeof( filename ), "models/players/%s/head.md3", headModelName );
++	}
++
++	if ( !trap_R_RegisterModel( filename ) && headModelName[0] != '*' ) {
++		Com_sprintf( filename, sizeof( filename ), "models/players/heads/%s/%s.md3", headModelName, headModelName );
++		trap_R_RegisterModel( filename );
++	}
++}
++
++
++/*
+ =============================================================================
+ 
+ CLIENT INFO
+@@ -311,7 +362,7 @@
+ ==========================
+ */
+ static qboolean	CG_FindClientModelFile( char *filename, int length, clientInfo_t *ci, const char *teamName, const char *modelName, const char *skinName, const char *base, const char *ext ) {
+-	char *team, *charactersFolder;
++	char *team;
+ 	int i;
+ 
+ 	if ( cgs.gametype >= GT_TEAM ) {
+@@ -329,52 +380,45 @@
+ 	else {
+ 		team = "default";
+ 	}
+-	charactersFolder = "";
+-	while(1) {
+-		for ( i = 0; i < 2; i++ ) {
++
++	for ( i = 0; i < 2; i++ ) {
++		if ( i == 0 && teamName && *teamName ) {
++			//								"models/players/james/stroggs/lower_lily_red.skin"
++			Com_sprintf( filename, length, "models/players/%s/%s%s_%s_%s.%s", modelName, teamName, base, skinName, team, ext );
++		}
++		else {
++			//								"models/players/james/lower_lily_red.skin"
++			Com_sprintf( filename, length, "models/players/%s/%s_%s_%s.%s", modelName, base, skinName, team, ext );
++		}
++		if ( CG_FileExists( filename ) ) {
++			return qtrue;
++		}
++		if ( cgs.gametype >= GT_TEAM ) {
+ 			if ( i == 0 && teamName && *teamName ) {
+-				//								"models/players/characters/james/stroggs/lower_lily_red.skin"
+-				Com_sprintf( filename, length, "models/players/%s%s/%s%s_%s_%s.%s", charactersFolder, modelName, teamName, base, skinName, team, ext );
++				//								"models/players/james/stroggs/lower_red.skin"
++				Com_sprintf( filename, length, "models/players/%s/%s%s_%s.%s", modelName, teamName, base, team, ext );
+ 			}
+ 			else {
+-				//								"models/players/characters/james/lower_lily_red.skin"
+-				Com_sprintf( filename, length, "models/players/%s%s/%s_%s_%s.%s", charactersFolder, modelName, base, skinName, team, ext );
++				//								"models/players/james/lower_red.skin"
++				Com_sprintf( filename, length, "models/players/%s/%s_%s.%s", modelName, base, team, ext );
+ 			}
+-			if ( CG_FileExists( filename ) ) {
+-				return qtrue;
++		}
++		else {
++			if ( i == 0 && teamName && *teamName ) {
++				//								"models/players/james/stroggs/lower_lily.skin"
++				Com_sprintf( filename, length, "models/players/%s/%s%s_%s.%s", modelName, teamName, base, skinName, ext );
+ 			}
+-			if ( cgs.gametype >= GT_TEAM ) {
+-				if ( i == 0 && teamName && *teamName ) {
+-					//								"models/players/characters/james/stroggs/lower_red.skin"
+-					Com_sprintf( filename, length, "models/players/%s%s/%s%s_%s.%s", charactersFolder, modelName, teamName, base, team, ext );
+-				}
+-				else {
+-					//								"models/players/characters/james/lower_red.skin"
+-					Com_sprintf( filename, length, "models/players/%s%s/%s_%s.%s", charactersFolder, modelName, base, team, ext );
+-				}
+-			}
+ 			else {
+-				if ( i == 0 && teamName && *teamName ) {
+-					//								"models/players/characters/james/stroggs/lower_lily.skin"
+-					Com_sprintf( filename, length, "models/players/%s%s/%s%s_%s.%s", charactersFolder, modelName, teamName, base, skinName, ext );
+-				}
+-				else {
+-					//								"models/players/characters/james/lower_lily.skin"
+-					Com_sprintf( filename, length, "models/players/%s%s/%s_%s.%s", charactersFolder, modelName, base, skinName, ext );
+-				}
++				//								"models/players/james/lower_lily.skin"
++				Com_sprintf( filename, length, "models/players/%s/%s_%s.%s", modelName, base, skinName, ext );
+ 			}
+-			if ( CG_FileExists( filename ) ) {
+-				return qtrue;
+-			}
+-			if ( !teamName || !*teamName ) {
+-				break;
+-			}
+ 		}
+-		// if tried the heads folder first
+-		if ( charactersFolder[0] ) {
++		if ( CG_FileExists( filename ) ) {
++			return qtrue;
++		}
++		if ( !teamName || !*teamName ) {
+ 			break;
+ 		}
+-		charactersFolder = "characters/";
+ 	}
+ 
+ 	return qfalse;
+@@ -420,7 +464,13 @@
+ 			else {
+ 				Com_sprintf( filename, length, "models/players/%s%s/%s/%s_%s.%s", headsFolder, headModelName, headSkinName, base, team, ext );
+ 			}
+-			if ( CG_FileExists( filename ) ) {
++
++			if (Q_stricmpn(ext, "$image", 6) == 0) {
++				COM_StripExtension(filename, filename, length);
++				if (trap_R_RegisterShaderNoMip(filename)) {
++					return qtrue;
++				}
++			} else if ( CG_FileExists( filename ) ) {
+ 				return qtrue;
+ 			}
+ 			if ( cgs.gametype >= GT_TEAM ) {
+@@ -439,7 +489,13 @@
+ 					Com_sprintf( filename, length, "models/players/%s%s/%s_%s.%s", headsFolder, headModelName, base, headSkinName, ext );
+ 				}
+ 			}
+-			if ( CG_FileExists( filename ) ) {
++
++			if (Q_stricmpn(ext, "$image", 6) == 0) {
++				COM_StripExtension(filename, filename, length);
++				if (trap_R_RegisterShaderNoMip(filename)) {
++					return qtrue;
++				}
++			} else if ( CG_FileExists( filename ) ) {
+ 				return qtrue;
+ 			}
+ 			if ( !teamName || !*teamName ) {
+@@ -533,23 +589,15 @@
+ 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/lower.md3", modelName );
+ 	ci->legsModel = trap_R_RegisterModel( filename );
+ 	if ( !ci->legsModel ) {
+-		Com_sprintf( filename, sizeof( filename ), "models/players/characters/%s/lower.md3", modelName );
+-		ci->legsModel = trap_R_RegisterModel( filename );
+-		if ( !ci->legsModel ) {
+-			Com_Printf( "Failed to load model file %s\n", filename );
+-			return qfalse;
+-		}
++		Com_Printf( "Failed to load model file %s\n", filename );
++		return qfalse;
+ 	}
+ 
+ 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/upper.md3", modelName );
+ 	ci->torsoModel = trap_R_RegisterModel( filename );
+ 	if ( !ci->torsoModel ) {
+-		Com_sprintf( filename, sizeof( filename ), "models/players/characters/%s/upper.md3", modelName );
+-		ci->torsoModel = trap_R_RegisterModel( filename );
+-		if ( !ci->torsoModel ) {
+-			Com_Printf( "Failed to load model file %s\n", filename );
+-			return qfalse;
+-		}
++		Com_Printf( "Failed to load model file %s\n", filename );
++		return qfalse;
+ 	}
+ 
+ 	if( headName[0] == '*' ) {
+@@ -592,22 +640,22 @@
+ 	// load the animations
+ 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/animation.cfg", modelName );
+ 	if ( !CG_ParseAnimationFile( filename, ci ) ) {
+-		Com_sprintf( filename, sizeof( filename ), "models/players/characters/%s/animation.cfg", modelName );
+-		if ( !CG_ParseAnimationFile( filename, ci ) ) {
+-			Com_Printf( "Failed to load animation file %s\n", filename );
+-			return qfalse;
+-		}
++		Com_Printf( "Failed to load animation file %s\n", filename );
++		return qfalse;
+ 	}
+ 
+-	if ( CG_FindClientHeadFile( filename, sizeof(filename), ci, teamName, headName, headSkinName, "icon", "skin" ) ) {
++	if ( CG_FindClientHeadFile( filename, sizeof(filename), ci, teamName, headName, headSkinName, "icon", "$image" ) ) {
+ 		ci->modelIcon = trap_R_RegisterShaderNoMip( filename );
++	} else {
++		ci->modelIcon = 0;
+ 	}
+-	else if ( CG_FindClientHeadFile( filename, sizeof(filename), ci, teamName, headName, headSkinName, "icon", "tga" ) ) {
+-		ci->modelIcon = trap_R_RegisterShaderNoMip( filename );
+-	}
+ 
+ 	if ( !ci->modelIcon ) {
+-		return qfalse;
++		Com_Printf( "Failed to load icon for %s/%s\n", headName, headSkinName );
++
++		if ( cg_buildScript.integer ) {
++			return qfalse;
++		}
+ 	}
+ 
+ 	return qtrue;
+@@ -704,7 +752,11 @@
+ 
+ 	// sounds
+ 	dir = ci->modelName;
+-	fallback = (cgs.gametype >= GT_TEAM) ? DEFAULT_TEAM_MODEL : DEFAULT_MODEL;
++	if (cgs.gametype >= GT_TEAM) {
++		fallback = (ci->gender == GENDER_FEMALE) ? DEFAULT_TEAM_MODEL_FEMALE : DEFAULT_TEAM_MODEL_MALE;
++	} else {
++		fallback = (ci->gender == GENDER_FEMALE) ? DEFAULT_MODEL_FEMALE : DEFAULT_MODEL_MALE;
++	}
+ 
+ 	for ( i = 0 ; i < MAX_CUSTOM_SOUNDS ; i++ ) {
+ 		s = cg_customSoundNames[i];
+Index: code/game/bg_public.h
+===================================================================
+--- code/game/bg_public.h	(revision 3374)
++++ code/game/bg_public.h	(working copy)
+@@ -541,11 +541,21 @@
+ #define	ANIM_TOGGLEBIT		128
+ 
+ #define DEFAULT_PLAYER_NAME		"UnnamedPlayer"
+ // Default player model names
+ #define DEFAULT_MODEL			"sarge"
+ #define DEFAULT_HEAD			"sarge"
++// For fallback player and gender-specific fallback sounds
++#define DEFAULT_MODEL_MALE		"sarge"
++#define DEFAULT_MODEL_FEMALE	"major"
+ // Default team player model names
+ #define DEFAULT_TEAM_MODEL		"james"
+ #define DEFAULT_TEAM_HEAD		"*james"
+-
++// For fallback player and gender-specific fallback sounds
++// Also used for UI's character base model and CGame player pre-caching
++#define DEFAULT_TEAM_MODEL_MALE		"james"
++#define DEFAULT_TEAM_HEAD_MALE		"*james"
++#define DEFAULT_TEAM_MODEL_FEMALE	"janet"
++#define DEFAULT_TEAM_HEAD_FEMALE	"*janet"
+ #define DEFAULT_REDTEAM_NAME		"Pagans"
+ #define DEFAULT_BLUETEAM_NAME		"Stroggs"
+ typedef enum {
+Index: code/ui/ui_main.c
+===================================================================
+--- code/ui/ui_main.c	(revision 3374)
++++ code/ui/ui_main.c	(working copy)
+@@ -4670,9 +4670,9 @@
+ 			uiInfo.characterList[uiInfo.characterCount].imageName = String_Alloc(va("models/players/heads/%s/icon_default.tga", uiInfo.characterList[uiInfo.characterCount].name));
+ 
+ 	  if (tempStr && (!Q_stricmp(tempStr, "female"))) {
+-        uiInfo.characterList[uiInfo.characterCount].base = String_Alloc("Janet");
++        uiInfo.characterList[uiInfo.characterCount].base = String_Alloc(DEFAULT_TEAM_MODEL_FEMALE);
+       } else if (tempStr && (!Q_stricmp(tempStr, "male"))) {
+-        uiInfo.characterList[uiInfo.characterCount].base = String_Alloc("James");
++        uiInfo.characterList[uiInfo.characterCount].base = String_Alloc(DEFAULT_TEAM_MODEL_MALE);
+ 	  } else {
+         uiInfo.characterList[uiInfo.characterCount].base = String_Alloc(tempStr);
+ 	  }

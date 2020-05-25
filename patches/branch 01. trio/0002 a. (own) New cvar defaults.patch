@@ -1,0 +1,367 @@
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 3320)
++++ code/cgame/cg_main.c	(working copy)
+@@ -220,13 +220,17 @@
+ 	{ &cg_autoswitch, "cg_autoswitch", "1", CVAR_ARCHIVE },
+ 	{ &cg_drawGun, "cg_drawGun", "1", CVAR_ARCHIVE },
+ 	{ &cg_zoomFov, "cg_zoomfov", "22.5", CVAR_ARCHIVE },
++#ifdef MISSIONPACK
++	{ &cg_fov, "cg_fov", "80", CVAR_ARCHIVE },
++#else
+ 	{ &cg_fov, "cg_fov", "90", CVAR_ARCHIVE },
++#endif
+ 	{ &cg_viewsize, "cg_viewsize", "100", CVAR_ARCHIVE },
+ 	{ &cg_shadows, "cg_shadows", "1", CVAR_ARCHIVE  },
+ 	{ &cg_gibs, "cg_gibs", "1", CVAR_ARCHIVE  },
+ 	{ &cg_draw2D, "cg_draw2D", "1", CVAR_ARCHIVE  },
+ 	{ &cg_drawStatus, "cg_drawStatus", "1", CVAR_ARCHIVE  },
+-	{ &cg_drawTimer, "cg_drawTimer", "0", CVAR_ARCHIVE  },
++	{ &cg_drawTimer, "cg_drawTimer", "1", CVAR_ARCHIVE  },
+ 	{ &cg_drawFPS, "cg_drawFPS", "0", CVAR_ARCHIVE  },
+ 	{ &cg_drawSnapshot, "cg_drawSnapshot", "0", CVAR_ARCHIVE  },
+ 	{ &cg_draw3dIcons, "cg_draw3dIcons", "1", CVAR_ARCHIVE  },
+@@ -234,7 +238,7 @@
+ 	{ &cg_drawAmmoWarning, "cg_drawAmmoWarning", "1", CVAR_ARCHIVE  },
+ 	{ &cg_drawAttacker, "cg_drawAttacker", "1", CVAR_ARCHIVE  },
+ 	{ &cg_drawCrosshair, "cg_drawCrosshair", "4", CVAR_ARCHIVE },
+-	{ &cg_drawCrosshairNames, "cg_drawCrosshairNames", "1", CVAR_ARCHIVE },
++	{ &cg_drawCrosshairNames, "cg_drawCrosshairNames", "0", CVAR_ARCHIVE },
+ 	{ &cg_drawRewards, "cg_drawRewards", "1", CVAR_ARCHIVE },
+ 	{ &cg_drawScores, "cg_drawScores", "1", CVAR_ARCHIVE },
+ 	{ &cg_drawPickups, "cg_drawPickups", "1", CVAR_ARCHIVE },
+@@ -244,14 +248,14 @@
+ 	{ &cg_fovAspectAdjust, "cg_fovAspectAdjust", "0", CVAR_ARCHIVE },
+ 	{ &cg_fovGunAdjust, "cg_fovGunAdjust", "0", CVAR_ARCHIVE },
+ 	{ &cg_stretch, "cg_stretch", "0", CVAR_ARCHIVE },
+-	{ &cg_crosshairSize, "cg_crosshairSize", "24", CVAR_ARCHIVE },
+-	{ &cg_crosshairHealth, "cg_crosshairHealth", "1", CVAR_ARCHIVE },
++	{ &cg_crosshairSize, "cg_crosshairSize", "22", CVAR_ARCHIVE },
++	{ &cg_crosshairHealth, "cg_crosshairHealth", "0", CVAR_ARCHIVE },
+ 	{ &cg_crosshairX, "cg_crosshairX", "0", CVAR_ARCHIVE },
+ 	{ &cg_crosshairY, "cg_crosshairY", "0", CVAR_ARCHIVE },
+ 	{ &cg_brassTime, "cg_brassTime", "2500", CVAR_ARCHIVE },
+ 	{ &cg_simpleItems, "cg_simpleItems", "0", CVAR_ARCHIVE },
+ 	{ &cg_addMarks, "cg_marks", "1", CVAR_ARCHIVE },
+-	{ &cg_lagometer, "cg_lagometer", "1", CVAR_ARCHIVE },
++	{ &cg_lagometer, "cg_lagometer", "0", CVAR_ARCHIVE },
+ 	{ &cg_railTrailTime, "cg_railTrailTime", "400", CVAR_ARCHIVE  },
+ 	{ &cg_gun_x, "cg_gunX", "0", CVAR_CHEAT },
+ 	{ &cg_gun_y, "cg_gunY", "0", CVAR_CHEAT },
+@@ -260,8 +264,13 @@
+ 	{ &cg_runpitch, "cg_runpitch", "0.002", CVAR_ARCHIVE},
+ 	{ &cg_runroll, "cg_runroll", "0.005", CVAR_ARCHIVE },
+ 	{ &cg_bobup , "cg_bobup", "0.005", CVAR_CHEAT },
++#ifdef MISSIONPACK
++	{ &cg_bobpitch, "cg_bobpitch", "0.004", CVAR_ARCHIVE },
++	{ &cg_bobroll, "cg_bobroll", "0.001", CVAR_ARCHIVE },
++#else
+ 	{ &cg_bobpitch, "cg_bobpitch", "0.002", CVAR_ARCHIVE },
+ 	{ &cg_bobroll, "cg_bobroll", "0.002", CVAR_ARCHIVE },
++#endif
+ 	{ &cg_swingSpeed, "cg_swingSpeed", "0.3", CVAR_CHEAT },
+ 	{ &cg_animSpeed, "cg_animspeed", "1", CVAR_CHEAT },
+ 	{ &cg_debugAnim, "cg_debuganim", "0", CVAR_CHEAT },
+@@ -281,12 +290,12 @@
+ 	{ &cg_teamChatTime, "cg_teamChatTime", "3000", CVAR_ARCHIVE  },
+ 	{ &cg_teamChatHeight, "cg_teamChatHeight", "0", CVAR_ARCHIVE  },
+ 	{ &cg_forceModel, "cg_forceModel", "0", CVAR_ARCHIVE  },
+-	{ &cg_predictItems, "cg_predictItems", "1", CVAR_ARCHIVE },
+ #ifdef MISSIONPACK
+-	{ &cg_deferPlayers, "cg_deferPlayers", "0", CVAR_ARCHIVE },
++	{ &cg_predictItems, "cg_predictItems", "0", CVAR_ARCHIVE },
+ #else
+-	{ &cg_deferPlayers, "cg_deferPlayers", "1", CVAR_ARCHIVE },
++	{ &cg_predictItems, "cg_predictItems", "1", CVAR_ARCHIVE },
+ #endif
++	{ &cg_deferPlayers, "cg_deferPlayers", "0", CVAR_ARCHIVE },
+ 	{ &cg_drawTeamOverlay, "cg_drawTeamOverlay", "0", CVAR_ARCHIVE },
+ 	{ &cg_teamOverlayUserinfo, "teamoverlay", "0", CVAR_ROM | CVAR_USERINFO },
+ 	{ &cg_stats, "cg_stats", "0", 0 },
+@@ -321,8 +330,8 @@
+ 	{ &cg_timescaleFadeEnd, "cg_timescaleFadeEnd", "1", 0},
+ 	{ &cg_timescaleFadeSpeed, "cg_timescaleFadeSpeed", "0", 0},
+ 	{ &cg_timescale, "timescale", "1", 0},
+-	{ &cg_scorePlum, "cg_scorePlums", "1", CVAR_USERINFO | CVAR_ARCHIVE},
+-	{ &cg_smoothClients, "cg_smoothClients", "0", CVAR_USERINFO | CVAR_ARCHIVE},
++	{ &cg_scorePlum, "cg_scorePlums", "0", CVAR_USERINFO | CVAR_ARCHIVE},
++	{ &cg_smoothClients, "cg_smoothClients", "1", CVAR_USERINFO | CVAR_ARCHIVE},
+ 	{ &cg_cameraMode, "com_cameraMode", "0", CVAR_CHEAT},
+ 
+ 	{ &pmove_fixed, "pmove_fixed", "0", CVAR_SYSTEMINFO},
+Index: code/client/cl_main.c
+===================================================================
+--- code/client/cl_main.c	(revision 3320)
++++ code/client/cl_main.c	(working copy)
+@@ -3544,7 +3544,7 @@
+ 	cl_packetdup = Cvar_Get ("cl_packetdup", "1", CVAR_ARCHIVE );
+ 
+ 	cl_run = Cvar_Get ("cl_run", "1", CVAR_ARCHIVE);
+-	cl_sensitivity = Cvar_Get ("sensitivity", "5", CVAR_ARCHIVE);
++	cl_sensitivity = Cvar_Get ("sensitivity", "2.5", CVAR_ARCHIVE);
+ 	cl_mouseAccel = Cvar_Get ("cl_mouseAccel", "0", CVAR_ARCHIVE);
+ 	cl_freelook = Cvar_Get( "cl_freelook", "1", CVAR_ARCHIVE );
+ 
+@@ -3581,12 +3581,8 @@
+ 	m_yaw = Cvar_Get ("m_yaw", "0.022", CVAR_ARCHIVE);
+ 	m_forward = Cvar_Get ("m_forward", "0.25", CVAR_ARCHIVE);
+ 	m_side = Cvar_Get ("m_side", "0.25", CVAR_ARCHIVE);
+-#ifdef __APPLE__
+ 	// Input is jittery on OS X w/o this
+ 	m_filter = Cvar_Get ("m_filter", "1", CVAR_ARCHIVE);
+-#else
+-	m_filter = Cvar_Get ("m_filter", "0", CVAR_ARCHIVE);
+-#endif
+ 
+ 	j_pitch =        Cvar_Get ("j_pitch",        "0.022", CVAR_ARCHIVE);
+ 	j_yaw =          Cvar_Get ("j_yaw",          "-0.022", CVAR_ARCHIVE);
+@@ -3620,7 +3616,7 @@
+ 	// userinfo
+ 	Cvar_Get ("name", "UnnamedPlayer", CVAR_USERINFO | CVAR_ARCHIVE );
+ 	cl_rate = Cvar_Get ("rate", "25000", CVAR_USERINFO | CVAR_ARCHIVE );
+-	Cvar_Get ("snaps", "20", CVAR_USERINFO | CVAR_ARCHIVE );
++	Cvar_Get ("snaps", "60", CVAR_USERINFO | CVAR_ARCHIVE );
+ 	Cvar_Get ("model", "sarge", CVAR_USERINFO | CVAR_ARCHIVE );
+ 	Cvar_Get ("headmodel", "sarge", CVAR_USERINFO | CVAR_ARCHIVE );
+ 	Cvar_Get ("team_model", "james", CVAR_USERINFO | CVAR_ARCHIVE );
+Index: code/client/snd_main.c
+===================================================================
+--- code/client/snd_main.c	(revision 3318)
++++ code/client/snd_main.c	(working copy)
+@@ -476,8 +476,8 @@
+ 
+ 	Com_Printf( "------ Initializing Sound ------\n" );
+ 
+-	s_volume = Cvar_Get( "s_volume", "0.8", CVAR_ARCHIVE );
+-	s_musicVolume = Cvar_Get( "s_musicvolume", "0.25", CVAR_ARCHIVE );
++	s_volume = Cvar_Get( "s_volume", "1", CVAR_ARCHIVE );
++	s_musicVolume = Cvar_Get( "s_musicvolume", "0", CVAR_ARCHIVE );
+ 	s_muted = Cvar_Get("s_muted", "0", CVAR_ROM);
+ 	s_doppler = Cvar_Get( "s_doppler", "1", CVAR_ARCHIVE );
+ 	s_backend = Cvar_Get( "s_backend", "", CVAR_ROM );
+Index: code/game/g_main.c
+===================================================================
+--- code/game/g_main.c	(revision 3318)
++++ code/game/g_main.c	(working copy)
+@@ -119,12 +119,12 @@
+ 
+ 	{ &g_synchronousClients, "g_synchronousClients", "0", CVAR_SYSTEMINFO, 0, qfalse  },
+ 
+-	{ &g_friendlyFire, "g_friendlyFire", "0", CVAR_ARCHIVE, 0, qtrue  },
++	{ &g_friendlyFire, "g_friendlyFire", "1", CVAR_ARCHIVE, 0, qtrue  },
+ 
+-	{ &g_teamAutoJoin, "g_teamAutoJoin", "0", CVAR_ARCHIVE  },
+-	{ &g_teamForceBalance, "g_teamForceBalance", "0", CVAR_ARCHIVE  },
++	{ &g_teamAutoJoin, "g_teamAutoJoin", "1", CVAR_ARCHIVE  },
++	{ &g_teamForceBalance, "g_teamForceBalance", "1", CVAR_ARCHIVE  },
+ 
+-	{ &g_warmup, "g_warmup", "20", CVAR_ARCHIVE, 0, qtrue  },
++	{ &g_warmup, "g_warmup", "0", CVAR_ARCHIVE, 0, qtrue  },
+ 	{ &g_doWarmup, "g_doWarmup", "0", CVAR_ARCHIVE, 0, qtrue  },
+ 	{ &g_logfile, "g_log", "games.log", CVAR_ARCHIVE, 0, qfalse  },
+ 	{ &g_logfileSync, "g_logsync", "0", CVAR_ARCHIVE, 0, qfalse  },
+Index: code/q3_ui/ui_main.c
+===================================================================
+--- code/q3_ui/ui_main.c	(revision 3318)
++++ code/q3_ui/ui_main.c	(working copy)
+@@ -170,7 +170,7 @@
+ 
+ 	{ &ui_ctf_capturelimit, "ui_ctf_capturelimit", "8", CVAR_ARCHIVE },
+ 	{ &ui_ctf_timelimit, "ui_ctf_timelimit", "30", CVAR_ARCHIVE },
+-	{ &ui_ctf_friendly, "ui_ctf_friendly",  "0", CVAR_ARCHIVE },
++	{ &ui_ctf_friendly, "ui_ctf_friendly",  "1", CVAR_ARCHIVE },
+ 
+ 	{ &ui_arenasFile, "g_arenasFile", "", CVAR_INIT|CVAR_ROM },
+ 	{ &ui_botsFile, "g_botsFile", "", CVAR_INIT|CVAR_ROM },
+@@ -185,7 +185,7 @@
+ 
+ 	{ &ui_spSelection, "ui_spSelection", "", CVAR_ROM },
+ 
+-	{ &ui_browserMaster, "ui_browserMaster", "1", CVAR_ARCHIVE },
++	{ &ui_browserMaster, "ui_browserMaster", "0", CVAR_ARCHIVE },
+ 	{ &ui_browserGameType, "ui_browserGameType", "0", CVAR_ARCHIVE },
+ 	{ &ui_browserSortKey, "ui_browserSortKey", "4", CVAR_ARCHIVE },
+ 	{ &ui_browserShowFull, "ui_browserShowFull", "1", CVAR_ARCHIVE },
+@@ -193,7 +193,7 @@
+ 
+ 	{ &ui_brassTime, "cg_brassTime", "2500", CVAR_ARCHIVE },
+ 	{ &ui_drawCrosshair, "cg_drawCrosshair", "4", CVAR_ARCHIVE },
+-	{ &ui_drawCrosshairNames, "cg_drawCrosshairNames", "1", CVAR_ARCHIVE },
++	{ &ui_drawCrosshairNames, "cg_drawCrosshairNames", "0", CVAR_ARCHIVE },
+ 	{ &ui_marks, "cg_marks", "1", CVAR_ARCHIVE },
+ 
+ 	{ &ui_server1, "server1", "", CVAR_ARCHIVE },
+@@ -213,7 +213,7 @@
+ 	{ &ui_server15, "server15", "", CVAR_ARCHIVE },
+ 	{ &ui_server16, "server16", "", CVAR_ARCHIVE },
+ 
+-	{ &ui_cdkeychecked, "ui_cdkeychecked", "0", CVAR_ROM },
++	{ &ui_cdkeychecked, "ui_cdkeychecked", "1", CVAR_ROM },
+ 	{ &ui_ioq3, "ui_ioq3", "1", CVAR_ROM },
+ 	{ NULL, "g_localTeamPref", "", 0 }
+ };
+Index: code/renderergl1/tr_init.c
+===================================================================
+--- code/renderergl1/tr_init.c	(revision 3318)
++++ code/renderergl1/tr_init.c	(working copy)
+@@ -1023,23 +1023,23 @@
+ 	r_ext_texture_env_add = ri.Cvar_Get( "r_ext_texture_env_add", "1", CVAR_ARCHIVE | CVAR_LATCH);
+ 
+ 	r_ext_texture_filter_anisotropic = ri.Cvar_Get( "r_ext_texture_filter_anisotropic",
+-			"0", CVAR_ARCHIVE | CVAR_LATCH );
+-	r_ext_max_anisotropy = ri.Cvar_Get( "r_ext_max_anisotropy", "2", CVAR_ARCHIVE | CVAR_LATCH );
++			"1", CVAR_ARCHIVE | CVAR_LATCH );
++	r_ext_max_anisotropy = ri.Cvar_Get( "r_ext_max_anisotropy", "16", CVAR_ARCHIVE | CVAR_LATCH );
+ 
+-	r_picmip = ri.Cvar_Get ("r_picmip", "1", CVAR_ARCHIVE | CVAR_LATCH );
++	r_picmip = ri.Cvar_Get ("r_picmip", "0", CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_roundImagesDown = ri.Cvar_Get ("r_roundImagesDown", "1", CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_colorMipLevels = ri.Cvar_Get ("r_colorMipLevels", "0", CVAR_LATCH );
+ 	ri.Cvar_CheckRange( r_picmip, 0, 16, qtrue );
+ 	r_detailTextures = ri.Cvar_Get( "r_detailtextures", "1", CVAR_ARCHIVE | CVAR_LATCH );
+-	r_texturebits = ri.Cvar_Get( "r_texturebits", "0", CVAR_ARCHIVE | CVAR_LATCH );
+-	r_colorbits = ri.Cvar_Get( "r_colorbits", "0", CVAR_ARCHIVE | CVAR_LATCH );
++	r_texturebits = ri.Cvar_Get( "r_texturebits", "32", CVAR_ARCHIVE | CVAR_LATCH );
++	r_colorbits = ri.Cvar_Get( "r_colorbits", "32", CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_stencilbits = ri.Cvar_Get( "r_stencilbits", "8", CVAR_ARCHIVE | CVAR_LATCH );
+-	r_depthbits = ri.Cvar_Get( "r_depthbits", "0", CVAR_ARCHIVE | CVAR_LATCH );
+-	r_ext_multisample = ri.Cvar_Get( "r_ext_multisample", "0", CVAR_ARCHIVE | CVAR_LATCH );
++	r_depthbits = ri.Cvar_Get( "r_depthbits", "24", CVAR_ARCHIVE | CVAR_LATCH );
++	r_ext_multisample = ri.Cvar_Get( "r_ext_multisample", "4", CVAR_ARCHIVE | CVAR_LATCH );
+ 	ri.Cvar_CheckRange( r_ext_multisample, 0, 4, qtrue );
+ 	r_overBrightBits = ri.Cvar_Get ("r_overBrightBits", "1", CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_ignorehwgamma = ri.Cvar_Get( "r_ignorehwgamma", "0", CVAR_ARCHIVE | CVAR_LATCH);
+-	r_mode = ri.Cvar_Get( "r_mode", "3", CVAR_ARCHIVE | CVAR_LATCH );
++	r_mode = ri.Cvar_Get( "r_mode", "-2", CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_fullscreen = ri.Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE );
+ 	r_noborder = ri.Cvar_Get("r_noborder", "0", CVAR_ARCHIVE | CVAR_LATCH);
+ 	r_customwidth = ri.Cvar_Get( "r_customwidth", "1600", CVAR_ARCHIVE | CVAR_LATCH );
+@@ -1067,7 +1067,7 @@
+ 	//
+ 	// archived variables that can change at any time
+ 	//
+-	r_lodCurveError = ri.Cvar_Get( "r_lodCurveError", "250", CVAR_ARCHIVE|CVAR_CHEAT );
++	r_lodCurveError = ri.Cvar_Get( "r_lodCurveError", "1250", CVAR_ARCHIVE|CVAR_CHEAT );
+ 	r_lodbias = ri.Cvar_Get( "r_lodbias", "0", CVAR_ARCHIVE );
+ 	r_flares = ri.Cvar_Get ("r_flares", "0", CVAR_ARCHIVE );
+ 	r_znear = ri.Cvar_Get( "r_znear", "4", CVAR_CHEAT );
+@@ -1080,9 +1080,9 @@
+ 	r_drawSun = ri.Cvar_Get( "r_drawSun", "0", CVAR_ARCHIVE );
+ 	r_dynamiclight = ri.Cvar_Get( "r_dynamiclight", "1", CVAR_ARCHIVE );
+ 	r_dlightBacks = ri.Cvar_Get( "r_dlightBacks", "1", CVAR_ARCHIVE );
+-	r_finish = ri.Cvar_Get ("r_finish", "0", CVAR_ARCHIVE);
+-	r_textureMode = ri.Cvar_Get( "r_textureMode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE );
+-	r_swapInterval = ri.Cvar_Get( "r_swapInterval", "0",
++	r_finish = ri.Cvar_Get ("r_finish", "1", CVAR_ARCHIVE);
++	r_textureMode = ri.Cvar_Get( "r_textureMode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE );
++	r_swapInterval = ri.Cvar_Get( "r_swapInterval", "1",
+ 					CVAR_ARCHIVE | CVAR_LATCH );
+ 	r_gamma = ri.Cvar_Get( "r_gamma", "1", CVAR_ARCHIVE );
+ 	r_facePlaneCull = ri.Cvar_Get ("r_facePlaneCull", "1", CVAR_ARCHIVE );
+@@ -1143,7 +1143,7 @@
+ 	r_noportals = ri.Cvar_Get ("r_noportals", "0", CVAR_CHEAT);
+ 	r_shadows = ri.Cvar_Get( "cg_shadows", "1", 0 );
+ 
+-	r_marksOnTriangleMeshes = ri.Cvar_Get("r_marksOnTriangleMeshes", "0", CVAR_ARCHIVE);
++	r_marksOnTriangleMeshes = ri.Cvar_Get("r_marksOnTriangleMeshes", "1", CVAR_ARCHIVE);
+ 
+ 	r_aviMotionJpegQuality = ri.Cvar_Get("r_aviMotionJpegQuality", "90", CVAR_ARCHIVE);
+ 	r_screenshotJpegQuality = ri.Cvar_Get("r_screenshotJpegQuality", "90", CVAR_ARCHIVE);
+Index: code/server/sv_init.c
+===================================================================
+--- code/server/sv_init.c	(revision 3318)
++++ code/server/sv_init.c	(working copy)
+@@ -638,7 +638,7 @@
+ 	sv_mapname = Cvar_Get ("mapname", "nomap", CVAR_SERVERINFO | CVAR_ROM);
+ 	sv_privateClients = Cvar_Get ("sv_privateClients", "0", CVAR_SERVERINFO);
+ 	sv_hostname = Cvar_Get ("sv_hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE );
+-	sv_maxclients = Cvar_Get ("sv_maxclients", "8", CVAR_SERVERINFO | CVAR_LATCH);
++	sv_maxclients = Cvar_Get ("sv_maxclients", "64", CVAR_SERVERINFO | CVAR_LATCH);
+ 
+ 	sv_minRate = Cvar_Get ("sv_minRate", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
+ 	sv_maxRate = Cvar_Get ("sv_maxRate", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
+Index: code/ui/ui_main.c
+===================================================================
+--- code/ui/ui_main.c	(revision 3319)
++++ code/ui/ui_main.c	(working copy)
+@@ -2989,7 +2989,7 @@
+ 	trap_Cvar_Set("g_doWarmup", "1");
+ 	trap_Cvar_Set("g_warmup", "15");
+ 	trap_Cvar_Set("sv_pure", "0");
+-	trap_Cvar_Set("g_friendlyFire", "0");
++	trap_Cvar_Set("g_friendlyFire", "1");
+ 	trap_Cvar_Set("g_redTeam", UI_Cvar_VariableString("ui_teamName"));
+ 	trap_Cvar_Set("g_blueTeam", UI_Cvar_VariableString("ui_opponentName"));
+ 
+@@ -5211,8 +5211,8 @@
+ 	uiInfo.previewMovie = -1;
+ 
+ 	if (trap_Cvar_VariableValue("ui_TeamArenaFirstRun") == 0) {
+-		trap_Cvar_Set("s_volume", "0.8");
+-		trap_Cvar_Set("s_musicvolume", "0.5");
++		trap_Cvar_Set("s_volume", "1");
++		trap_Cvar_Set("s_musicvolume", "0");
+ 		trap_Cvar_Set("ui_TeamArenaFirstRun", "1");
+ 	}
+ 
+@@ -5717,7 +5717,7 @@
+ 	{ &ui_blueteam3, "ui_blueteam3", "0", CVAR_ARCHIVE },
+ 	{ &ui_blueteam4, "ui_blueteam4", "0", CVAR_ARCHIVE },
+ 	{ &ui_blueteam5, "ui_blueteam5", "0", CVAR_ARCHIVE },
+-	{ &ui_netSource, "ui_netSource", "1", CVAR_ARCHIVE },
++	{ &ui_netSource, "ui_netSource", "0", CVAR_ARCHIVE },
+ 	{ &ui_menuFiles, "ui_menuFiles", "ui/menus.txt", CVAR_ARCHIVE },
+ 	{ &ui_currentTier, "ui_currentTier", "0", CVAR_ARCHIVE },
+ 	{ &ui_currentMap, "ui_currentMap", "0", CVAR_ARCHIVE },
+@@ -5759,19 +5759,19 @@
+ vmCvar_t	ui_serverStatusTimeOut;
+ 
+ static cvarTable_t		cvarTable[] = {
+-	{ &ui_ffa_fraglimit, "ui_ffa_fraglimit", "20", CVAR_ARCHIVE },
+-	{ &ui_ffa_timelimit, "ui_ffa_timelimit", "0", CVAR_ARCHIVE },
++	{ &ui_ffa_fraglimit, "ui_ffa_fraglimit", "50", CVAR_ARCHIVE },
++	{ &ui_ffa_timelimit, "ui_ffa_timelimit", "15", CVAR_ARCHIVE },
+ 
+ 	{ &ui_tourney_fraglimit, "ui_tourney_fraglimit", "0", CVAR_ARCHIVE },
+ 	{ &ui_tourney_timelimit, "ui_tourney_timelimit", "15", CVAR_ARCHIVE },
+ 
+ 	{ &ui_team_fraglimit, "ui_team_fraglimit", "0", CVAR_ARCHIVE },
+-	{ &ui_team_timelimit, "ui_team_timelimit", "20", CVAR_ARCHIVE },
++	{ &ui_team_timelimit, "ui_team_timelimit", "15", CVAR_ARCHIVE },
+ 	{ &ui_team_friendly, "ui_team_friendly",  "1", CVAR_ARCHIVE },
+ 
+ 	{ &ui_ctf_capturelimit, "ui_ctf_capturelimit", "8", CVAR_ARCHIVE },
+-	{ &ui_ctf_timelimit, "ui_ctf_timelimit", "30", CVAR_ARCHIVE },
+-	{ &ui_ctf_friendly, "ui_ctf_friendly",  "0", CVAR_ARCHIVE },
++	{ &ui_ctf_timelimit, "ui_ctf_timelimit", "15", CVAR_ARCHIVE },
++	{ &ui_ctf_friendly, "ui_ctf_friendly",  "1", CVAR_ARCHIVE },
+ 
+ 	{ &ui_arenasFile, "g_arenasFile", "", CVAR_INIT|CVAR_ROM },
+ 	{ &ui_botsFile, "g_botsFile", "", CVAR_INIT|CVAR_ROM },
+@@ -5793,7 +5793,7 @@
+ 
+ 	{ &ui_brassTime, "cg_brassTime", "2500", CVAR_ARCHIVE },
+ 	{ &ui_drawCrosshair, "cg_drawCrosshair", "4", CVAR_ARCHIVE },
+-	{ &ui_drawCrosshairNames, "cg_drawCrosshairNames", "1", CVAR_ARCHIVE },
++	{ &ui_drawCrosshairNames, "cg_drawCrosshairNames", "0", CVAR_ARCHIVE },
+ 	{ &ui_marks, "cg_marks", "1", CVAR_ARCHIVE },
+ 
+ 	{ &ui_server1, "server1", "", CVAR_ARCHIVE },
+@@ -5812,7 +5812,7 @@
+ 	{ &ui_server14, "server14", "", CVAR_ARCHIVE },
+ 	{ &ui_server15, "server15", "", CVAR_ARCHIVE },
+ 	{ &ui_server16, "server16", "", CVAR_ARCHIVE },
+-	{ &ui_cdkeychecked, "ui_cdkeychecked", "0", CVAR_ROM },
++	{ &ui_cdkeychecked, "ui_cdkeychecked", "1", CVAR_ROM },
+ 	{ &ui_new, "ui_new", "0", CVAR_TEMP },
+ 	{ &ui_debug, "ui_debug", "0", CVAR_TEMP },
+ 	{ &ui_initialized, "ui_initialized", "0", CVAR_TEMP },
+@@ -5876,7 +5876,7 @@
+ 	{ &ui_hudFiles, "cg_hudFiles", "ui/hud.txt", CVAR_ARCHIVE},
+ 	{ &ui_recordSPDemo, "ui_recordSPDemo", "0", CVAR_ARCHIVE},
+ 	{ &ui_teamArenaFirstRun, "ui_teamArenaFirstRun", "0", CVAR_ARCHIVE},
+-	{ &ui_realWarmUp, "g_warmup", "20", CVAR_ARCHIVE},
++	{ &ui_realWarmUp, "g_warmup", "10", CVAR_ARCHIVE},
+ 	{ &ui_realCaptureLimit, "capturelimit", "8", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART},
+ 	{ &ui_serverStatusTimeOut, "ui_serverStatusTimeOut", "7000", CVAR_ARCHIVE},
+ 

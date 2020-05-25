@@ -1,0 +1,28 @@
+Index: code/botlib/be_ai_move.c
+===================================================================
+--- code/botlib/be_ai_move.c	(revision 3359)
++++ code/botlib/be_ai_move.c	(working copy)
+@@ -1314,7 +1314,7 @@
+ //===========================================================================
+ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach)
+ {
+-	float dist, speed;
++	float dist, speed, currentspeed;
+ 	vec3_t hordir;
+ 	bot_moveresult_t_cleared( result );
+ 
+@@ -1334,11 +1334,13 @@
+ 		hordir[2] = 0;
+ 		dist = VectorNormalize(hordir);
+ 	} //end if
++	// get the current speed
++	currentspeed = DotProduct(ms->velocity, hordir);
+ 	//if going towards a crouch area
+ 	if (!(AAS_AreaPresenceType(reach->areanum) & PRESENCE_NORMAL))
+ 	{
+ 		//if pretty close to the reachable area
+-		if (dist < 20) EA_Crouch(ms->client);
++		if (dist < (200 + currentspeed) * 0.1f) EA_Crouch(ms->client);
+ 	} //end if
+ 	//
+ 	dist = BotGapDistance(ms->origin, hordir, ms->entitynum);

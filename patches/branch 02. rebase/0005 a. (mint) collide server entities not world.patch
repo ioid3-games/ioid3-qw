@@ -1,0 +1,39 @@
+Index: code/server/sv_world.c
+===================================================================
+--- code/server/sv_world.c	(revision 3375)
++++ code/server/sv_world.c	(working copy)
+@@ -387,6 +387,10 @@
+ 
+ 		gcheck = SV_GEntityForSvEntity( check );
+ 
++		if ( !gcheck->r.linked ) {
++			continue;
++		}
++
+ 		if ( gcheck->r.absmin[0] > ap->maxs[0]
+ 		|| gcheck->r.absmin[1] > ap->maxs[1]
+ 		|| gcheck->r.absmin[2] > ap->maxs[2]
+@@ -551,6 +555,11 @@
+ 		// might intersect, so do an exact clip
+ 		clipHandle = SV_ClipHandleForEntity (touch);
+ 
++		// non-worldspawn entities must not use world as clip model!
++		if ( clipHandle == 0 ) {
++			continue;
++		}
++
+ 		origin = touch->r.currentOrigin;
+ 		angles = touch->r.currentAngles;
+ 
+@@ -671,6 +680,11 @@
+ 		hit = SV_GentityNum( touch[i] );
+ 		// might intersect, so do an exact clip
+ 		clipHandle = SV_ClipHandleForEntity( hit );
++
++		// non-worldspawn entities must not use world as clip model!
++		if ( clipHandle == 0 ) {
++			continue;
++		}
+ 		angles = hit->r.currentAngles;
+ 		if ( !hit->r.bmodel ) {
+ 			angles = vec3_origin;	// boxes don't rotate

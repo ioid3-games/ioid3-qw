@@ -1,0 +1,91 @@
+Index: code/botlib/be_aas_move.c
+===================================================================
+--- code/botlib/be_aas_move.c	(revision 3357)
++++ code/botlib/be_aas_move.c	(working copy)
+@@ -515,7 +518,7 @@
+ 	float phys_watergravity;
+ 	float phys_walkaccelerate, phys_airaccelerate, phys_swimaccelerate;
+ 	float phys_maxwalkvelocity, phys_maxcrouchvelocity, phys_maxswimvelocity;
+-	float phys_maxstep, phys_maxsteepness, phys_jumpvel, friction;
++	float phys_maxstep, phys_maxsteepness, phys_maxbarrier, phys_jumpvel, friction;
+ 	float gravity, delta, maxvel, wishspeed, accelerate;
+ 	//float velchange, newvel;
+ 	//int ax;
+@@ -543,6 +546,7 @@
+ 	phys_swimaccelerate = aassettings.phys_swimaccelerate;
+ 	phys_maxstep = aassettings.phys_maxstep;
+ 	phys_maxsteepness = aassettings.phys_maxsteepness;
++	phys_maxbarrier = aassettings.phys_maxbarrier;
+ 	phys_jumpvel = aassettings.phys_jumpvel * frametime;
+ 	//
+ 	Com_Memset( move, 0, sizeof( *move ) );
+@@ -948,14 +952,17 @@
+ 			aas_trace_t gaptrace;
+ 
+ 			VectorCopy(org, start);
++
++			start[2] += 24;
++
+ 			VectorCopy(start, end);
+-			end[2] -= 48 + aassettings.phys_maxbarrier;
++			end[2] -= 48 + phys_maxbarrier;
+ 			gaptrace = AAS_TraceClientBBox(start, end, PRESENCE_CROUCH, entnum);
+ 			//if solid is found the bot cannot walk any further and will not fall into a gap
+ 			if (!gaptrace.startsolid)
+ 			{
+ 				//if it is a gap (lower than one step height)
+-				if (gaptrace.endpos[2] < org[2] - aassettings.phys_maxstep - 1)
++				if (gaptrace.endpos[2] < org[2] - phys_maxbarrier)
+ 				{
+ 					if (!(AAS_PointContents(end) & CONTENTS_WATER))
+ 					{
+Index: code/botlib/be_ai_move.c
+===================================================================
+--- code/botlib/be_ai_move.c	(revision 3357)
++++ code/botlib/be_ai_move.c	(working copy)
+@@ -996,26 +996,14 @@
+ float BotGapDistance(vec3_t origin, vec3_t hordir, int entnum)
+ {
+ 	int dist;
+-	float startz;
+ 	vec3_t start, end;
+ 	aas_trace_t trace;
+ 
+ 	//do gap checking
+-	//startz = origin[2];
+-	//this enables walking down stairs more fluidly
+-	{
+-		VectorCopy(origin, start);
+-		VectorCopy(origin, end);
+-		end[2] -= 60;
+-		trace = AAS_TraceClientBBox(start, end, PRESENCE_CROUCH, entnum);
+-		if (trace.fraction >= 1) return 1;
+-		startz = trace.endpos[2] + 1;
+-	}
+-	//
+ 	for (dist = 8; dist <= 100; dist += 8)
+ 	{
+ 		VectorMA(origin, dist, hordir, start);
+-		start[2] = startz + 24;
++		start[2] = origin[2] + 24;
+ 		VectorCopy(start, end);
+ 		end[2] -= 48 + sv_maxbarrier->value;
+ 		trace = AAS_TraceClientBBox(start, end, PRESENCE_CROUCH, entnum);
+@@ -1023,7 +1011,7 @@
+ 		if (!trace.startsolid)
+ 		{
+ 			//if it is a gap
+-			if (trace.endpos[2] < startz - sv_maxstep->value - 8)
++			if (trace.endpos[2] < origin[2] - sv_maxbarrier->value)
+ 			{
+ 				VectorCopy(trace.endpos, end);
+ 				end[2] -= 20;
+@@ -1032,7 +1020,7 @@
+ 				//botimport.Print(PRT_MESSAGE, "gap at %i\n", dist);
+ 				return dist;
+ 			} //end if
+-			startz = trace.endpos[2];
++			origin[2] = trace.endpos[2];
+ 		} //end if
+ 	} //end for
+ 	return 0;

@@ -1,0 +1,238 @@
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 3369)
++++ code/cgame/cg_local.h	(working copy)
+@@ -88,9 +88,6 @@
+ #define	DEFAULT_TEAM_HEAD		"sarge"
+ #endif
+ 
+-#define DEFAULT_REDTEAM_NAME		"Stroggs"
+-#define DEFAULT_BLUETEAM_NAME		"Pagans"
+-
+ typedef enum {
+ 	FOOTSTEP_NORMAL,
+ 	FOOTSTEP_BOOT,
+@@ -348,8 +345,10 @@
+ 	char			skinName[MAX_QPATH];
+ 	char			headModelName[MAX_QPATH];
+ 	char			headSkinName[MAX_QPATH];
++#ifdef MISSIONPACK
+ 	char			redTeam[MAX_TEAMNAME];
+ 	char			blueTeam[MAX_TEAMNAME];
++#endif
+ 	qboolean		deferred;
+ 
+ 	qboolean		newAnims;		// true if using the new mission pack animations
+@@ -1013,8 +1012,6 @@
+ 	int				timelimit;
+ 	int				maxclients;
+ 	char			mapname[MAX_QPATH];
+-	char			redTeam[MAX_QPATH];
+-	char			blueTeam[MAX_QPATH];
+ 
+ 	int				voteTime;
+ 	int				voteYes;
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 3369)
++++ code/cgame/cg_main.c	(working copy)
+@@ -30,6 +30,10 @@
+ #endif
+ 
+ int forceModelModificationCount = -1;
++#ifdef MISSIONPACK
++int redTeamNameModificationCount = -1;
++int blueTeamNameModificationCount = -1;
++#endif
+ 
+ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum );
+ void CG_Shutdown( void );
+@@ -287,8 +291,8 @@
+ 	{ &cg_synchronousClients, "g_synchronousClients", "0", CVAR_SYSTEMINFO },
+ 	{ &cg_singlePlayer, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO | CVAR_ROM },
+ #ifdef MISSIONPACK
+-	{ &cg_redTeamName, "g_redteam", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_USERINFO },
+-	{ &cg_blueTeamName, "g_blueteam", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_USERINFO },
++	{ &cg_redTeamName, "g_redteam", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE | CVAR_SYSTEMINFO },
++	{ &cg_blueTeamName, "g_blueteam", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE | CVAR_SYSTEMINFO },
+ 	{ &cg_currentSelectedPlayer, "cg_currentSelectedPlayer", "0", CVAR_ARCHIVE},
+ 	{ &cg_currentSelectedPlayerName, "cg_currentSelectedPlayerName", "", CVAR_ARCHIVE},
+ 	{ &cg_enableDust, "g_enableDust", "0", CVAR_SERVERINFO},
+@@ -344,7 +348,10 @@
+ 	cgs.localServer = atoi( var );
+ 
+ 	forceModelModificationCount = cg_forceModel.modificationCount;
+-
++#ifdef MISSIONPACK
++	redTeamNameModificationCount = cg_redTeamName.modificationCount;
++	blueTeamNameModificationCount = cg_blueTeamName.modificationCount;
++#endif
+ 	trap_Cvar_Register(NULL, "model", DEFAULT_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
+ 	trap_Cvar_Register(NULL, "headmodel", DEFAULT_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
+ 	trap_Cvar_Register(NULL, "team_model", DEFAULT_TEAM_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
+@@ -397,11 +404,24 @@
+ 		}
+ 	}
+ 
++#ifdef MISSIONPACK
++	// if force model or a team name changed
++	if ( forceModelModificationCount != cg_forceModel.modificationCount
++		|| redTeamNameModificationCount != cg_redTeamName.modificationCount
++		|| blueTeamNameModificationCount != cg_blueTeamName.modificationCount )
++	{
++		forceModelModificationCount = cg_forceModel.modificationCount;
++		redTeamNameModificationCount = cg_redTeamName.modificationCount;
++		blueTeamNameModificationCount = cg_blueTeamName.modificationCount;
++		CG_ForceModelChange();
++	}
++#else
+ 	// if force model changed
+ 	if ( forceModelModificationCount != cg_forceModel.modificationCount ) {
+ 		forceModelModificationCount = cg_forceModel.modificationCount;
+ 		CG_ForceModelChange();
+ 	}
++#endif
+ }
+ 
+ int CG_CrosshairPlayer( void ) {
+Index: code/cgame/cg_players.c
+===================================================================
+--- code/cgame/cg_players.c	(revision 3368)
++++ code/cgame/cg_players.c	(working copy)
+@@ -778,8 +778,10 @@
+ 			&& !Q_stricmp( ci->skinName, match->skinName )
+ 			&& !Q_stricmp( ci->headModelName, match->headModelName )
+ 			&& !Q_stricmp( ci->headSkinName, match->headSkinName ) 
++#ifdef MISSIONPACK
+ 			&& !Q_stricmp( ci->blueTeam, match->blueTeam ) 
+ 			&& !Q_stricmp( ci->redTeam, match->redTeam )
++#endif
+ 			&& (cgs.gametype < GT_TEAM || ci->team == match->team) ) {
+ 			// this clientinfo is identical, so use its handles
+ 
+@@ -941,11 +943,11 @@
+ 	v = Info_ValueForKey( configstring, "tl" );
+ 	newInfo.teamLeader = atoi(v);
+ 
+-	v = Info_ValueForKey( configstring, "g_redteam" );
+-	Q_strncpyz(newInfo.redTeam, v, MAX_TEAMNAME);
++#ifdef MISSIONPACK
++	Q_strncpyz(newInfo.redTeam, cg_redTeamName.string, MAX_TEAMNAME);
+ 
+-	v = Info_ValueForKey( configstring, "g_blueteam" );
+-	Q_strncpyz(newInfo.blueTeam, v, MAX_TEAMNAME);
++	Q_strncpyz(newInfo.blueTeam, cg_blueTeamName.string, MAX_TEAMNAME);
++#endif
+ 
+ 	// model
+ 	v = Info_ValueForKey( configstring, "model" );
+Index: code/cgame/cg_servercmds.c
+===================================================================
+--- code/cgame/cg_servercmds.c	(revision 3369)
++++ code/cgame/cg_servercmds.c	(working copy)
+@@ -167,10 +167,6 @@
+ 	cgs.maxclients = atoi( Info_ValueForKey( info, "sv_maxclients" ) );
+ 	mapname = Info_ValueForKey( info, "mapname" );
+ 	Com_sprintf( cgs.mapname, sizeof( cgs.mapname ), "maps/%s.bsp", mapname );
+-	Q_strncpyz( cgs.redTeam, Info_ValueForKey( info, "g_redTeam" ), sizeof(cgs.redTeam) );
+-	trap_Cvar_Set("g_redTeam", cgs.redTeam);
+-	Q_strncpyz( cgs.blueTeam, Info_ValueForKey( info, "g_blueTeam" ), sizeof(cgs.blueTeam) );
+-	trap_Cvar_Set("g_blueTeam", cgs.blueTeam);
+ }
+ 
+ /*
+Index: code/client/cl_main.c
+===================================================================
+--- code/client/cl_main.c	(revision 3369)
++++ code/client/cl_main.c	(working copy)
+@@ -3625,8 +3625,6 @@
+ 	Cvar_Get ("headmodel", "sarge", CVAR_USERINFO | CVAR_ARCHIVE );
+ 	Cvar_Get ("team_model", "james", CVAR_USERINFO | CVAR_ARCHIVE );
+ 	Cvar_Get ("team_headmodel", "*james", CVAR_USERINFO | CVAR_ARCHIVE );
+-	Cvar_Get ("g_redTeam", "Stroggs", CVAR_SERVERINFO | CVAR_ARCHIVE);
+-	Cvar_Get ("g_blueTeam", "Pagans", CVAR_SERVERINFO | CVAR_ARCHIVE);
+ 	Cvar_Get ("color1",  "4", CVAR_USERINFO | CVAR_ARCHIVE );
+ 	Cvar_Get ("color2", "5", CVAR_USERINFO | CVAR_ARCHIVE );
+ 	Cvar_Get ("handicap", "100", CVAR_USERINFO | CVAR_ARCHIVE );
+Index: code/game/bg_public.h
+===================================================================
+--- code/game/bg_public.h	(revision 3368)
++++ code/game/bg_public.h	(working copy)
+@@ -550,6 +550,8 @@
+ 	TEAM_NUM_TEAMS
+ } team_t;
+ 
++#define DEFAULT_REDTEAM_NAME "Pagans"
++#define DEFAULT_BLUETEAM_NAME "Stroggs"
+ // Time between location updates
+ #define TEAM_LOCATION_UPDATE_TIME		1000
+ 
+Index: code/game/g_client.c
+===================================================================
+--- code/game/g_client.c	(revision 3368)
++++ code/game/g_client.c	(working copy)
+@@ -710,8 +710,6 @@
+ 	gclient_t	*client;
+ 	char	c1[MAX_INFO_STRING];
+ 	char	c2[MAX_INFO_STRING];
+-	char	redTeam[MAX_INFO_STRING];
+-	char	blueTeam[MAX_INFO_STRING];
+ 	char	userinfo[MAX_INFO_STRING];
+ 
+ 	ent = g_entities + clientNum;
+@@ -840,10 +838,6 @@
+ 	// colors
+ 	Q_strncpyz(c1, Info_ValueForKey( userinfo, "color1" ), sizeof( c1 ));
+ 	Q_strncpyz(c2, Info_ValueForKey( userinfo, "color2" ), sizeof( c2 ));
+-
+-	Q_strncpyz(redTeam, Info_ValueForKey( userinfo, "g_redteam" ), sizeof( redTeam ));
+-	Q_strncpyz(blueTeam, Info_ValueForKey( userinfo, "g_blueteam" ), sizeof( blueTeam ));
+-	
+ 	// send over a subset of the userinfo keys so other clients can
+ 	// print scoreboards, display models, and play custom sounds
+ 	if (ent->r.svFlags & SVF_BOT)
+@@ -855,8 +849,8 @@
+ 	}
+ 	else
+ 	{
+-		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\g_redteam\\%s\\g_blueteam\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\tt\\%d\\tl\\%d",
+-			client->pers.netname, client->sess.sessionTeam, model, headModel, redTeam, blueTeam, c1, c2, 
++		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\tt\\%d\\tl\\%d",
++			client->pers.netname, client->sess.sessionTeam, model, headModel, c1, c2, 
+ 			client->pers.maxHealth, client->sess.wins, client->sess.losses, teamTask, teamLeader);
+ 	}
+ 
+Index: code/game/g_main.c
+===================================================================
+--- code/game/g_main.c	(revision 3369)
++++ code/game/g_main.c	(working copy)
+@@ -165,8 +165,8 @@
+ 	{ &g_obeliskRespawnDelay, "g_obeliskRespawnDelay", "10", CVAR_SERVERINFO, 0, qfalse },
+ 
+ 	{ &g_cubeTimeout, "g_cubeTimeout", "30", 0, 0, qfalse },
+-	{ &g_redteam, "g_redteam", "Stroggs", CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_USERINFO , 0, qtrue, qtrue },
+-	{ &g_blueteam, "g_blueteam", "Pagans", CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_USERINFO , 0, qtrue, qtrue  },
++	{ &g_redteam, "g_redteam", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE | CVAR_SYSTEMINFO , 0, qtrue, qtrue },
++	{ &g_blueteam, "g_blueteam", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE | CVAR_SYSTEMINFO , 0, qtrue, qtrue  },
+ 	{ &g_singlePlayer, "ui_singlePlayerActive", "0", CVAR_SYSTEMINFO | CVAR_ROM, 0, qfalse, qfalse  },
+ 
+ 	{ &g_enableDust, "g_enableDust", "0", CVAR_SERVERINFO, 0, qtrue, qfalse },
+Index: code/ui/ui_main.c
+===================================================================
+--- code/ui/ui_main.c	(revision 3370)
++++ code/ui/ui_main.c	(working copy)
+@@ -5811,10 +5811,10 @@
+ 	{ &ui_new, "ui_new", "0", CVAR_TEMP },
+ 	{ &ui_debug, "ui_debug", "0", CVAR_TEMP },
+ 	{ &ui_initialized, "ui_initialized", "0", CVAR_TEMP },
+-	{ &ui_teamName, "ui_teamName", "Pagans", CVAR_ARCHIVE },
+-	{ &ui_opponentName, "ui_opponentName", "Stroggs", CVAR_ARCHIVE },
+-	{ &ui_redteam, "ui_redteam", "Pagans", CVAR_ARCHIVE },
+-	{ &ui_blueteam, "ui_blueteam", "Stroggs", CVAR_ARCHIVE },
++	{ &ui_teamName, "ui_teamName", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE },
++	{ &ui_opponentName, "ui_opponentName", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE },
++	{ &ui_redteam, "ui_redteam", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE },
++	{ &ui_blueteam, "ui_blueteam", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE },
+ 	{ &ui_dedicated, "ui_dedicated", "0", CVAR_ARCHIVE },
+ 	{ &ui_gameType, "ui_gametype", "3", CVAR_ARCHIVE },
+ 	{ &ui_joinGameType, "ui_joinGametype", "0", CVAR_ARCHIVE },

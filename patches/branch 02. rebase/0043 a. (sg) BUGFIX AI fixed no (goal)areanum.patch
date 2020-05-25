@@ -1,0 +1,58 @@
+Index: code/botlib/be_ai_goal.c
+===================================================================
+--- code/botlib/be_ai_goal.c	(revision 3356)
++++ code/botlib/be_ai_goal.c	(working copy)
+@@ -1290,7 +1290,10 @@
+ 	if (!areanum || !AAS_AreaReachability(areanum))
+ 	{
+ 		//use the last valid area the bot was in
++		if (gs->lastreachabilityarea > 0) {
+ 		areanum = gs->lastreachabilityarea;
++		//botimport.Print(PRT_MESSAGE, S_COLOR_BLUE "(SG 1 of 3) gs->lastreachabilityarea > 0 CASE LTG: areanum: %d\n", areanum);
++		}
+ 	} //end if
+ 	//remember the last area with reachabilities the bot was in
+ 	gs->lastreachabilityarea = areanum;
+@@ -1457,8 +1460,14 @@
+ 	//if the bot is in solid or if the area the bot is in has no reachability links
+ 	if (!areanum || !AAS_AreaReachability(areanum))
+ 	{
++#ifdef DEBUG
++		botimport.Print(PRT_MESSAGE, "Bot is in solid or area has no reachability links: %d %d\n",areanum, gs->lastreachabilityarea);
++#endif
+ 		//use the last valid area the bot was in
++		if (gs->lastreachabilityarea > 0) {
+ 		areanum = gs->lastreachabilityarea;
++		//botimport.Print(PRT_MESSAGE, S_COLOR_CYAN "(SG 2 of 3) gs->lastreachabilityarea > 0 CASE NBG: areanum: %d\n", areanum);
++		}
+ 	} //end if
+ 	//remember the last area with reachabilities the bot was in
+ 	gs->lastreachabilityarea = areanum;
+@@ -1548,6 +1557,11 @@
+ 					} //end if
+ 				} //end if
+ 			} //end if
++#ifdef DEBUG
++			else {
++				botimport.Print(PRT_MESSAGE, "Can't reach %d\n", li->entitynum);
++			}			
++#endif
+ 		} //end if
+ 	} //end for
+ 	//if no goal item found
+Index: code/botlib/be_ai_move.c
+===================================================================
+--- code/botlib/be_ai_move.c	(revision 3350)
++++ code/botlib/be_ai_move.c	(working copy)
+@@ -746,7 +746,10 @@
+ 	aas_reachability_t reach;
+ 
+ 	//if not in a valid area
+-	if (!areanum) return 0;
++	if (!areanum || !goal->areanum ||(!AAS_AreaReachability(areanum)) || (!AAS_AreaReachability(goal->areanum))) {
++		//botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "(SG 3 of 3) !areanum || !goal->areanum || !AAS_AreaReachability: %d %d\n", areanum, goal->areanum);
++		return 0;
++	}
+ 	//
+ 	if (AAS_AreaDoNotEnter(areanum) || AAS_AreaDoNotEnter(goal->areanum))
+ 	{

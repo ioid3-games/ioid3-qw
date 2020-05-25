@@ -1,0 +1,102 @@
+Index: code/ui/ui_main.c
+===================================================================
+--- code/ui/ui_main.c	(revision 3369)
++++ code/ui/ui_main.c	(working copy)
+@@ -75,19 +75,6 @@
+ };
+ static const int numNetSources = ARRAY_LEN( netSources );
+ 
+-static const serverFilter_t serverFilters[] = {
+-	{"All", "" },
+-	{"Quake 3 Arena", "" },
+-	{"Team Arena", BASETA },
+-	{"Rocket Arena", "arena" },
+-	{"Alliance", "alliance20" },
+-	{"Weapons Factory Arena", "wfa" },
+-	{"OSP", "osp" },
+-};
+-
+-static const int numServerFilters = ARRAY_LEN( serverFilters );
+-
+-
+ static const char *teamArenaGameTypes[] = {
+ 	"FFA",
+ 	"TOURNAMENT",
+@@ -1013,7 +1000,23 @@
+ 	}
+ }
+ 
++const char *UI_FilterDescription( int value ) {
++	if ( value <= 0 || value > uiInfo.modCount ) {
++		return "All";
++	}
+ 
++	return uiInfo.modList[value - 1].modDescr;
++}
++
++const char *UI_FilterDir( int value ) {
++	if ( value <= 0 || value > uiInfo.modCount ) {
++		return "";
++	}
++
++	return uiInfo.modList[value - 1].modName;
++}
++
++
+ static const char *handicapValues[] = {"None","95","90","85","80","75","70","65","60","55","50","45","40","35","30","25","20","15","10","5",NULL};
+ #ifndef MISSIONPACK
+ static int numHandicaps = ARRAY_LEN(handicapValues);
+@@ -1347,10 +1350,7 @@
+ 
+ 
+ static void UI_DrawNetFilter(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
+-	if (ui_serverFilterType.integer < 0 || ui_serverFilterType.integer >= numServerFilters) {
+-		ui_serverFilterType.integer = 0;
+-	}
+-  Text_Paint(rect->x, rect->y, scale, color, va("Filter: %s", serverFilters[ui_serverFilterType.integer].description), 0, 0, textStyle);
++  Text_Paint(rect->x, rect->y, scale, color, va("Filter: %s", UI_FilterDescription( ui_serverFilterType.integer ) ), 0, 0, textStyle);
+ }
+ 
+ 
+@@ -1713,10 +1713,7 @@
+ 			s = va("Source: %s", netSources[ui_netSource.integer]);
+ 			break;
+ 		case UI_NETFILTER:
+-			if (ui_serverFilterType.integer < 0 || ui_serverFilterType.integer >= numServerFilters) {
+-				ui_serverFilterType.integer = 0;
+-			}
+-			s = va("Filter: %s", serverFilters[ui_serverFilterType.integer].description );
++			s = va("Filter: %s", UI_FilterDescription( ui_serverFilterType.integer ) );
+ 			break;
+ 		case UI_TIER:
+ 			break;
+@@ -2509,10 +2506,10 @@
+ 	if (select != 0) {
+ 		ui_serverFilterType.integer += select;
+ 
+-		if (ui_serverFilterType.integer >= numServerFilters) {
++		if (ui_serverFilterType.integer > uiInfo.modCount) {
+ 			ui_serverFilterType.integer = 0;
+ 		} else if (ui_serverFilterType.integer < 0) {
+-			ui_serverFilterType.integer = numServerFilters - 1;
++			ui_serverFilterType.integer = uiInfo.modCount;
+ 		}
+ 		UI_BuildServerDisplayList(qtrue);
+ 		return qtrue;
+@@ -3334,6 +3331,7 @@
+ 			UI_StartServerRefresh(qtrue, qfalse);
+ 			UI_BuildServerDisplayList(qtrue);
+ 			UI_FeederSelection(FEEDER_SERVERS, 0);
++			UI_LoadMods();
+ 		} else if (Q_stricmp(name, "ServerStatus") == 0) {
+ 			trap_LAN_GetServerAddressString(UI_SourceForLAN(), uiInfo.serverStatus.displayServers[uiInfo.serverStatus.currentServer], uiInfo.serverStatusAddress, sizeof(uiInfo.serverStatusAddress));
+ 			UI_BuildServerStatus(qtrue);
+@@ -3837,7 +3835,7 @@
+ 			}
+ 				
+ 			if (ui_serverFilterType.integer > 0) {
+-				if (Q_stricmp(Info_ValueForKey(info, "game"), serverFilters[ui_serverFilterType.integer].basedir) != 0) {
++				if (Q_stricmp(Info_ValueForKey(info, "game"), UI_FilterDir( ui_serverFilterType.integer ) ) != 0) {
+ 					if (ping > 0) {
+ 						trap_LAN_MarkServerVisible(lanSource, i, qfalse);
+ 					}

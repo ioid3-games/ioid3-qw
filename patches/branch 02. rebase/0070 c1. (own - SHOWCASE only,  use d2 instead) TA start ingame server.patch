@@ -1,0 +1,67 @@
+Index: code/ui/ui_main.c
+===================================================================
+--- code/ui/ui_main.c	(revision 3339)
++++ code/ui/ui_main.c	(working copy)
+@@ -3086,8 +3086,9 @@
+ 	char buff[1024];
+ 
+ 	if (String_Parse(args, &name)) {
++		// Tobias FIXME: this script will start a new server, add bots but doesn't check if there are already enough bots, so we must kick already connected bots, otherwise bots are added to the existing ones continuously with each new map (FIXME?).
+ 		if (Q_stricmp(name, "StartServer") == 0) {
+-			int i, clients, oldclients;
++			int i, delay, clients, oldclients;
+ 			float skill;
+ 			trap_Cvar_SetValue("cg_thirdPerson", 0);
+ 			trap_Cvar_SetValue("cg_cameraOrbit", 0);
+@@ -3096,8 +3097,10 @@
+ 			trap_Cvar_SetValue( "g_gametype", Com_Clamp( 0, GT_MAX_GAME_TYPE-1, uiInfo.gameTypes[ui_netGameType.integer].gtEnum ) );
+ 			trap_Cvar_Set("g_redTeam", UI_Cvar_VariableString("ui_teamName"));
+ 			trap_Cvar_Set("g_blueTeam", UI_Cvar_VariableString("ui_opponentName"));
+-			trap_Cmd_ExecuteText( EXEC_APPEND, va( "wait ; wait ; map %s\n", uiInfo.mapList[ui_currentNetMap.integer].mapLoadName ) );
+-			skill = trap_Cvar_VariableValue( "g_spSkill" );
++			trap_Cmd_ExecuteText( EXEC_APPEND, va( "map %s\n", uiInfo.mapList[ui_currentNetMap.integer].mapLoadName ) );
++			// Tobias FIXME: unfortunately kicking bots AFTER map loading spawns some extra skulls again, https://github.com/ioquake/ioq3/commit/f7c3276fe803388bd613ab6bf6ad8e0a6647b740#diff-08c7587b3da3e294c50c64c1024339d7
++			trap_Cmd_ExecuteText( EXEC_APPEND, "kickbots\n" );
+ 			// set max clients based on spots
+ 			oldclients = trap_Cvar_VariableValue( "sv_maxClients" );
+ 			clients = 0;
+@@ -3121,6 +3124,9 @@
+ 
+ 			trap_Cvar_SetValue("sv_maxClients", clients);
+ 
++			skill = trap_Cvar_VariableValue( "g_spSkill" );
++			delay = 500;
++
+ 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+ 				// 0 - None
+ 				// 1 - Human
+@@ -3137,11 +3143,12 @@
+ 					}
+ 
+ 					if (ui_actualNetGameType.integer >= GT_TEAM) {
+-						Com_sprintf( buff, sizeof(buff), "addbot %s %f %s\n", name, skill, "Blue");
++						Com_sprintf( buff, sizeof(buff), "addbot %s %f %s %i\n", name, skill, "Blue", delay);
+ 					} else {
+-						Com_sprintf( buff, sizeof(buff), "addbot %s %f\n", name, skill);
++						Com_sprintf( buff, sizeof(buff), "addbot %s %f %i\n", name, skill, delay);
+ 					}
+ 					trap_Cmd_ExecuteText( EXEC_APPEND, buff );
++					delay += 500;
+ 				}
+ 				bot = trap_Cvar_VariableValue( va("ui_redteam%i", i+1));
+ 				if (bot > 1) {
+@@ -3154,11 +3161,12 @@
+ 					}
+ 
+ 					if (ui_actualNetGameType.integer >= GT_TEAM) {
+-						Com_sprintf( buff, sizeof(buff), "addbot %s %f %s\n", name, skill, "Red");
++						Com_sprintf( buff, sizeof(buff), "addbot %s %f %s %i\n", name, skill, "Red", delay);
+ 					} else {
+-						Com_sprintf( buff, sizeof(buff), "addbot %s %f\n", name, skill);
++						Com_sprintf( buff, sizeof(buff), "addbot %s %f %i\n", name, skill, delay);
+ 					}
+ 					trap_Cmd_ExecuteText( EXEC_APPEND, buff );
++					delay += 500;
+ 				}
+ 			}
+ 		} else if (Q_stricmp(name, "updateSPMenu") == 0) {

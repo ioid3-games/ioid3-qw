@@ -1,0 +1,29 @@
+Index: code/cgame/cg_predict.c
+===================================================================
+--- code/cgame/cg_predict.c	(revision 3361)
++++ code/cgame/cg_predict.c	(working copy)
+@@ -130,6 +130,7 @@
+ 			*tr = trace;
+ 		} else if (trace.startsolid) {
+ 			tr->startsolid = qtrue;
++			tr->entityNum = ent->number;
+ 		}
+ 		if ( tr->allsolid ) {
+ 			return;
+Index: code/server/sv_world.c
+===================================================================
+--- code/server/sv_world.c	(revision 3359)
++++ code/server/sv_world.c	(working copy)
+@@ -565,10 +565,10 @@
+ 
+ 		if ( trace.allsolid ) {
+ 			clip->trace.allsolid = qtrue;
+-			trace.entityNum = touch->s.number;
++			clip->trace.entityNum = touch->s.number;
+ 		} else if ( trace.startsolid ) {
+ 			clip->trace.startsolid = qtrue;
+-			trace.entityNum = touch->s.number;
++			clip->trace.entityNum = touch->s.number;
+ 		}
+ 
+ 		if ( trace.fraction < clip->trace.fraction ) {

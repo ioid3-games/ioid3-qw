@@ -1,0 +1,338 @@
+Index: code/cgame/cg_event.c
+===================================================================
+--- code/cgame/cg_event.c	(revision 3350)
++++ code/cgame/cg_event.c	(working copy)
+@@ -584,37 +584,71 @@
+ 				cgs.media.footsteps[ FOOTSTEP_SPLASH ][rand()&3] );
+ 		}
+ 		break;
+-
+-
+-	case EV_FALL_SHORT:
+-		DEBUGNAME("EV_FALL_SHORT");
+-		trap_S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.landSound );
++	case EV_FALL_DIE:
++		DEBUGNAME("EV_FALL_DIE");
++		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*death3.wav" ) );
++		cent->pe.painTime = cg.time; // don't play a pain sound right after this
++		break;
++	case EV_FALL_DMG_50:
++		DEBUGNAME("EV_FALL_DMG_50");
++		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*fall1.wav" ) );
++		cent->pe.painTime = cg.time;	// don't play a pain sound right after this
+ 		if ( clientNum == cg.predictedPlayerState.clientNum ) {
+ 			// smooth landing z changes
+-			cg.landChange = -8;
++			cg.landChange = -24;
+ 			cg.landTime = cg.time;
+ 		}
+ 		break;
+-	case EV_FALL_MEDIUM:
+-		DEBUGNAME("EV_FALL_MEDIUM");
++	case EV_FALL_DMG_25:
++		DEBUGNAME("EV_FALL_DMG_25");
+ 		// use normal pain sound
+-		trap_S_StartSound( NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*pain100_1.wav" ) );
++		trap_S_StartSound( NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*pain25_1.wav" ) );
++		cent->pe.painTime = cg.time;	// don't play a pain sound right after this
+ 		if ( clientNum == cg.predictedPlayerState.clientNum ) {
+ 			// smooth landing z changes
++			cg.landChange = -24;
++			cg.landTime = cg.time;
++		}
++		break;
++	case EV_FALL_DMG_15:
++		DEBUGNAME("EV_FALL_DMG_15");
++		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*pain50_1.wav" ) );
++		cent->pe.painTime = cg.time;	// don't play a pain sound right after this
++		if ( clientNum == cg.predictedPlayerState.clientNum ) {
++			// smooth landing z changes
+ 			cg.landChange = -16;
+ 			cg.landTime = cg.time;
+ 		}
+ 		break;
+-	case EV_FALL_FAR:
+-		DEBUGNAME("EV_FALL_FAR");
+-		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*fall1.wav" ) );
++	case EV_FALL_DMG_10:
++		DEBUGNAME("EV_FALL_DMG_10");
++		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*pain75_1.wav" ) );
+ 		cent->pe.painTime = cg.time;	// don't play a pain sound right after this
+ 		if ( clientNum == cg.predictedPlayerState.clientNum ) {
+ 			// smooth landing z changes
+-			cg.landChange = -24;
++			cg.landChange = -16;
+ 			cg.landTime = cg.time;
+ 		}
+ 		break;
++	case EV_FALL_DMG_5:
++		DEBUGNAME("EV_FALL_DMG_5");
++		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*pain100_1.wav" ) );
++		cent->pe.painTime = cg.time;	// don't play a pain sound right after this
++		if ( clientNum == cg.predictedPlayerState.clientNum ) {
++			// smooth landing z changes
++			cg.landChange = -16;
++			cg.landTime = cg.time;
++		}
++		break;
++	case EV_FALL_SHORT:
++		DEBUGNAME("EV_FALL_SHORT");
++		trap_S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.landSound );
++		if ( clientNum == cg.predictedPlayerState.clientNum ) {
++			// smooth landing z changes
++			cg.landChange = -8;
++			cg.landTime = cg.time;
++		}
++		break;
+ 
+ 	case EV_STEP_4:
+ 	case EV_STEP_8:
+Index: code/game/ai_dmq3.c
+===================================================================
+--- code/game/ai_dmq3.c	(revision 3350)
++++ code/game/ai_dmq3.c	(working copy)
+@@ -5003,9 +5003,13 @@
+ 		case EV_FOOTSPLASH:
+ 		case EV_FOOTWADE:
+ 		case EV_SWIM:
++		case EV_FALL_DIE:
++		case EV_FALL_DMG_50:
++		case EV_FALL_DMG_25:
++		case EV_FALL_DMG_15:
++		case EV_FALL_DMG_10:
++		case EV_FALL_DMG_5:
+ 		case EV_FALL_SHORT:
+-		case EV_FALL_MEDIUM:
+-		case EV_FALL_FAR:
+ 		case EV_STEP_4:
+ 		case EV_STEP_8:
+ 		case EV_STEP_12:
+Index: code/game/bg_misc.c
+===================================================================
+--- code/game/bg_misc.c	(revision 3350)
++++ code/game/bg_misc.c	(working copy)
+@@ -1307,9 +1307,13 @@
+ 	"EV_STEP_12",
+ 	"EV_STEP_16",
+ 
++	"EV_FALL_DIE",
++	"EV_FALL_DMG_50",
++	"EV_FALL_DMG_25",
++	"EV_FALL_DMG_15",
++	"EV_FALL_DMG_10",
++	"EV_FALL_DMG_5",
+ 	"EV_FALL_SHORT",
+-	"EV_FALL_MEDIUM",
+-	"EV_FALL_FAR",
+ 
+ 	"EV_JUMP_PAD",			// boing sound at origin", jump sound on player
+ 
+Index: code/game/bg_pmove.c
+===================================================================
+--- code/game/bg_pmove.c	(revision 3350)
++++ code/game/bg_pmove.c	(working copy)
+@@ -931,6 +931,7 @@
+ 	float		vel, acc;
+ 	float		t;
+ 	float		a, b, c, den;
++	int			stunTime;
+ 
+ 	// decide which landing animation to use
+ 	if ( pm->ps->pm_flags & PMF_BACKWARDS_JUMP ) {
+@@ -958,7 +959,7 @@
+ 
+ 	delta = vel + t * acc;
+ 	delta = delta*delta * 0.0001;
+ 
++	stunTime = 0;
+ 	// ducking while falling doubles damage
+ 	if ( pm->ps->pm_flags & PMF_DUCKED ) {
+ 		delta *= 2;
+@@ -971,11 +972,8 @@
+ 
+ 	// reduce falling damage if there is standing water
+ 	if ( pm->waterlevel == 2 ) {
+-		delta *= 0.25;
++		delta *= 0.85;
+ 	}
+-	if ( pm->waterlevel == 1 ) {
+-		delta *= 0.5;
+-	}
+ 
+ 	if ( delta < 1 ) {
+ 		return;
+@@ -983,23 +981,86 @@
+ 
+ 	// create a local entity event to play the sound
+ 
+-	// SURF_NODAMAGE is used for bounce pads where you don't ever
+-	// want to take damage or play a crunch sound
++	// SURF_NODAMAGE is used for bounce pads where you don't
++	// want to take full damage or play a crunch sound
+ 	if ( !(pml.groundTrace.surfaceFlags & SURF_NODAMAGE) )  {
++		// create a local entity event to play the sound
++		if (delta > 84) { // Tobias NOTE: a delta of 84 = max_fallheight of 516 units for bots, and 529 units for humans (why can humans fall higher than bots?)
++			PM_AddEvent( EV_FALL_DIE );
++			stunTime = 1000;
++		} else if (delta > 70) {
++			PM_AddEvent( EV_FALL_DMG_50 );
++			stunTime = 1000;
++		} else if (delta > 58) {
++			// this is a pain grunt, so don't play it if dead
++			if (pm->ps->stats[STAT_HEALTH] > 0) {
++				PM_AddEvent( EV_FALL_DMG_25 );
++			}
++
++			stunTime = 250;
++		} else if (delta > 48 ) {
++			// this is a pain grunt, so don't play it if dead
++			if (pm->ps->stats[STAT_HEALTH] > 0) {
++				PM_AddEvent( EV_FALL_DMG_15 );
++			}
++
++			stunTime = 1000;
++		} else if (delta > 38.75) {
++			// this is a pain grunt, so don't play it if dead
++			if (pm->ps->stats[STAT_HEALTH] > 0) {
++				PM_AddEvent (EV_FALL_DMG_10 );
++			}
++
++			stunTime = 1000;
++		} else if (delta > 28) {
++			// this is a pain grunt, so don't play it if dead
++			if (pm->ps->stats[STAT_HEALTH] > 0) {
++				PM_AddEvent( EV_FALL_DMG_5 );
++			}
++
++			stunTime = 1000;
++		} else if (delta > 7) {
++			PM_AddEvent( EV_FALL_SHORT );
++		} else {
++			PM_AddEvent(PM_FootstepForSurface());
++		}
++	// Tobias NOTE: this simulates the old behavior, assuming old maps use SURF_NODAMAGE if needed
++	} else {
+ 		if ( delta > 60 ) {
+-			PM_AddEvent( EV_FALL_FAR );
++			// this is a pain grunt, so don't play it if dead
++			if (pm->ps->stats[STAT_HEALTH] > 0) {
++				PM_AddEvent( EV_FALL_DMG_10 );
++			}
++
++			stunTime = 1000;
+ 		} else if ( delta > 40 ) {
+ 			// this is a pain grunt, so don't play it if dead
+ 			if ( pm->ps->stats[STAT_HEALTH] > 0 ) {
+-				PM_AddEvent( EV_FALL_MEDIUM );
++				PM_AddEvent( EV_FALL_DMG_5 );
+ 			}
++			stunTime = 1000;
+ 		} else if ( delta > 7 ) {
+ 			PM_AddEvent( EV_FALL_SHORT );
+ 		} else {
+ 			PM_AddEvent( PM_FootstepForSurface() );
+ 		}
++	// Tobias END
+ 	}
++	// when landing from launch ramps don't stop so abruptly
++	if ( VectorLength( pm->ps->velocity ) > 400 ) {
++		stunTime = 0;
++	}
+ 
++	if ( bg_itemlist[pm->ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_SCOUT ) {
++		stunTime = 0;
++	}
++	// when falling damage happens, velocity is cleared, but this needs to happen in pmove, not g_active (prediction will be wrong, otherwise)!
++	if ( stunTime ) {
++		pm->ps->pm_time = stunTime;
++		pm->ps->pm_flags |= PMF_TIME_KNOCKBACK;
++		VectorClear( pm->ps->velocity );
++	}
+ 	// start footstep cycle over
+ 	pm->ps->bobCycle = 0;
+ }
+Index: code/game/bg_public.h
+===================================================================
+--- code/game/bg_public.h	(revision 3350)
++++ code/game/bg_public.h	(working copy)
+@@ -356,9 +356,13 @@
+ 	EV_STEP_12,
+ 	EV_STEP_16,
+ 
++	EV_FALL_DIE,
++	EV_FALL_DMG_50,
++	EV_FALL_DMG_25,
++	EV_FALL_DMG_15,
++	EV_FALL_DMG_10,
++	EV_FALL_DMG_5,
+ 	EV_FALL_SHORT,
+-	EV_FALL_MEDIUM,
+-	EV_FALL_FAR,
+ 
+ 	EV_JUMP_PAD,			// boing sound at origin, jump sound on player
+ 
+Index: code/game/g_active.c
+===================================================================
+--- code/game/g_active.c	(revision 3350)
++++ code/game/g_active.c	(working copy)
+@@ -553,8 +553,12 @@
+ 		event = client->ps.events[ i & (MAX_PS_EVENTS-1) ];
+ 
+ 		switch ( event ) {
+-		case EV_FALL_MEDIUM:
+-		case EV_FALL_FAR:
++		case EV_FALL_DIE:
++		case EV_FALL_DMG_50:
++		case EV_FALL_DMG_25:
++		case EV_FALL_DMG_15:
++		case EV_FALL_DMG_10:
++		case EV_FALL_DMG_5:
+ 			if ( ent->s.eType != ET_PLAYER ) {
+ 				break;		// not in the player model
+ 			}
+@@ -561,10 +565,28 @@
+ 			if ( g_dmflags.integer & DF_NO_FALLING ) {
+ 				break;
+ 			}
+-			if ( event == EV_FALL_FAR ) {
+-				damage = 10;
+-			} else {
+-				damage = 5;
++			switch (event) {
++				case EV_FALL_DIE:
++					damage = 200;
++					break;
++				case EV_FALL_DMG_50:
++					damage = 50;
++					break;
++				case EV_FALL_DMG_25:
++					damage = 25;
++					break;
++				case EV_FALL_DMG_15:
++					damage = 15;
++					break;
++				case EV_FALL_DMG_10:
++					damage = 10;
++					break;
++				case EV_FALL_DMG_5:
++					damage = 5;
++					break;
++				default:
++					damage = 1; // never used
++					break;
+ 			}
+ 			ent->pain_debounce_time = level.time + 200;	// no normal pain sound
+ 			G_Damage (ent, NULL, NULL, NULL, NULL, damage, 0, MOD_FALLING);
+Index: code/game/g_combat.c
+===================================================================
+--- code/game/g_combat.c	(revision 3350)
++++ code/game/g_combat.c	(working copy)
+@@ -619,7 +619,7 @@
+ 	// never gib in a nodrop
+ 	contents = trap_PointContents( self->r.currentOrigin, -1 );
+ 
+-	if ( (self->health <= GIB_HEALTH && !(contents & CONTENTS_NODROP) && g_blood.integer) || meansOfDeath == MOD_SUICIDE) {
++	if ( (self->health <= GIB_HEALTH && !(contents & CONTENTS_NODROP) && g_blood.integer && meansOfDeath != MOD_FALLING) || meansOfDeath == MOD_SUICIDE) {
+ 		// gib death
+ 		GibEntity( self, killer );
+ 	} else {

@@ -1,0 +1,119 @@
+Index: code/cgame/cg_event.c
+===================================================================
+--- code/cgame/cg_event.c	(revision 3373)
++++ code/cgame/cg_event.c	(working copy)
+@@ -759,7 +759,7 @@
+ 				}
+ #endif
+ 			} else {
+-				trap_S_StartSound (NULL, es->number, CHAN_AUTO,	trap_S_RegisterSound( item->pickup_sound, qfalse ) );
++				trap_S_StartSound (NULL, es->number, CHAN_AUTO,	cgs.media.itemPickupSounds[ index ] );
+ 			}
+ 
+ 			// show icon and name on status bar
+@@ -772,7 +772,6 @@
+ 	case EV_GLOBAL_ITEM_PICKUP:
+ 		DEBUGNAME("EV_GLOBAL_ITEM_PICKUP");
+ 		{
+-			gitem_t	*item;
+ 			int		index;
+ 
+ 			index = es->eventParm;		// player predicted
+@@ -780,11 +779,8 @@
+ 			if ( index < 1 || index >= bg_numItems ) {
+ 				break;
+ 			}
+-			item = &bg_itemlist[ index ];
+ 			// powerup pickups are global
+-			if( item->pickup_sound ) {
+-				trap_S_StartSound (NULL, cg.snap->ps.clientNum, CHAN_AUTO, trap_S_RegisterSound( item->pickup_sound, qfalse ) );
+-			}
++			trap_S_StartLocalSound( cgs.media.itemPickupSounds[ index ], CHAN_AUTO );
+ 
+ 			// show icon and name on status bar
+ 			if ( es->number == cg.snap->ps.clientNum ) {
+@@ -997,7 +993,7 @@
+ 		// if the end was on a nomark surface, don't make an explosion
+ 		if ( es->eventParm != 255 ) {
+ 			ByteToDir( es->eventParm, dir );
+-			CG_MissileHitWall( es->weapon, es->clientNum, position, dir, IMPACTSOUND_DEFAULT );
++			CG_MissileHitWall( es->weapon, clientNum, position, dir, IMPACTSOUND_DEFAULT );
+ 		}
+ 		break;
+ 
+@@ -1027,17 +1023,17 @@
+ 		}
+ 		break;
+ 
+-	case EV_GLOBAL_SOUND:	// play from the player's head so it never diminishes
++	case EV_GLOBAL_SOUND:	// play as a local sound so it never diminishes
+ 		DEBUGNAME("EV_GLOBAL_SOUND");
+ 		if ( cgs.gameSounds[ es->eventParm ] ) {
+-			trap_S_StartSound (NULL, cg.snap->ps.clientNum, CHAN_AUTO, cgs.gameSounds[ es->eventParm ] );
++			trap_S_StartLocalSound( cgs.gameSounds[ es->eventParm ], CHAN_AUTO );
+ 		} else {
+ 			s = CG_ConfigString( CS_SOUNDS + es->eventParm );
+-			trap_S_StartSound (NULL, cg.snap->ps.clientNum, CHAN_AUTO, CG_CustomSound( es->number, s ) );
++			trap_S_StartLocalSound( CG_CustomSound( es->number, s ), CHAN_AUTO );
+ 		}
+ 		break;
+ 
+-	case EV_GLOBAL_TEAM_SOUND:	// play from the player's head so it never diminishes
++	case EV_GLOBAL_TEAM_SOUND:	// play as a local sound so it never diminishes
+ 		{
+ 			DEBUGNAME("EV_GLOBAL_TEAM_SOUND");
+ 			switch( es->eventParm ) {
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 3373)
++++ code/cgame/cg_local.h	(working copy)
+@@ -813,6 +813,7 @@
+ 	qhandle_t	medalCapture;
+ 
+ 	// sounds
++	sfxHandle_t	itemPickupSounds[MAX_ITEMS];
+ 	sfxHandle_t	quadSound;
+ 	sfxHandle_t	tracerSound;
+ 	sfxHandle_t	selectSound;
+@@ -836,6 +837,7 @@
+ 	sfxHandle_t	sfx_chghit;
+ 	sfxHandle_t	sfx_chghitflesh;
+ 	sfxHandle_t	sfx_chghitmetal;
++	sfxHandle_t	sfx_chgstop;
+ 	sfxHandle_t kamikazeExplodeSound;
+ 	sfxHandle_t kamikazeImplodeSound;
+ 	sfxHandle_t kamikazeFarSound;
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 3373)
++++ code/cgame/cg_main.c	(working copy)
+@@ -514,7 +514,7 @@
+ 	item = &bg_itemlist[ itemNum ];
+ 
+ 	if( item->pickup_sound ) {
+-		trap_S_RegisterSound( item->pickup_sound, qfalse );
++		cgs.media.itemPickupSounds[ itemNum ] = trap_S_RegisterSound( item->pickup_sound, qfalse );
+ 	}
+ 
+ 	// parse the space separated precache string for other media
+@@ -759,6 +759,7 @@
+ 	cgs.media.sfx_chghit = trap_S_RegisterSound( "sound/weapons/vulcan/wvulimpd.wav", qfalse );
+ 	cgs.media.sfx_chghitflesh = trap_S_RegisterSound( "sound/weapons/vulcan/wvulimpl.wav", qfalse );
+ 	cgs.media.sfx_chghitmetal = trap_S_RegisterSound( "sound/weapons/vulcan/wvulimpm.wav", qfalse );
++	cgs.media.sfx_chgstop = trap_S_RegisterSound( "sound/weapons/vulcan/wvulwind.wav", qfalse );
+ 	cgs.media.weaponHoverSound = trap_S_RegisterSound( "sound/weapons/weapon_hover.wav", qfalse );
+ 	cgs.media.kamikazeExplodeSound = trap_S_RegisterSound( "sound/items/kam_explode.wav", qfalse );
+ 	cgs.media.kamikazeImplodeSound = trap_S_RegisterSound( "sound/items/kam_implode.wav", qfalse );
+Index: code/cgame/cg_weapons.c
+===================================================================
+--- code/cgame/cg_weapons.c	(revision 3373)
++++ code/cgame/cg_weapons.c	(working copy)
+@@ -1152,7 +1152,7 @@
+ 		cent->pe.barrelSpinning = !!(cent->currentState.eFlags & EF_FIRING);
+ #ifdef MISSIONPACK
+ 		if ( cent->currentState.weapon == WP_CHAINGUN && !cent->pe.barrelSpinning ) {
+-			trap_S_StartSound( NULL, cent->currentState.number, CHAN_WEAPON, trap_S_RegisterSound( "sound/weapons/vulcan/wvulwind.wav", qfalse ) );
++			trap_S_StartSound( NULL, cent->currentState.number, CHAN_WEAPON, cgs.media.sfx_chgstop );
+ 		}
+ #endif
+ 	}

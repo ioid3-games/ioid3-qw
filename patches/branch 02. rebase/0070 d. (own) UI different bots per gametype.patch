@@ -1,0 +1,718 @@
+Index: code/ui/ui_local.h
+===================================================================
+--- code/ui/ui_local.h	(revision 3340)
++++ code/ui/ui_local.h	(working copy)
+@@ -231,6 +231,7 @@
+ #define MAX_MAPS 128
+ #define MAX_SPMAPS 16
+ #define PLAYERS_PER_TEAM 7
++#define PLAYERS_NOT_TEAM 14
+ #define MAX_PINGREQUESTS		32
+ #define MAX_ADDRESSLENGTH		64
+ #define MAX_HOSTNAMELENGTH		22
+Index: code/ui/ui_main.c
+===================================================================
+--- code/ui/ui_main.c	(revision 3340)
++++ code/ui/ui_main.c	(working copy)
+@@ -1156,8 +1156,15 @@
+ 	// 1 - Human
+ 	// 2 - Random Bot
+ 	// 3..NumCharacters - Bot
+-	int value = trap_Cvar_VariableValue(va(blue ? "ui_blueteam%i" : "ui_redteam%i", num));
++	int value;
+ 	const char *text;
++
++	if (ui_actualNetGameType.integer > GT_TEAM) {
++		value = trap_Cvar_VariableValue(va(blue ? "ui_blueteamctf%i" : "ui_redteamctf%i", num));
++	} else {
++		value = trap_Cvar_VariableValue(va(blue ? "ui_blueteamtdm%i" : "ui_redteamtdm%i", num));
++	}
++
+ 	if (value <= 0) {
+ 		text = "Closed";
+ 	} else if (value == 1) {
+@@ -1167,17 +1174,34 @@
+ 	} else {
+ 		value -= 3;
+ 
+-		if (ui_actualNetGameType.integer >= GT_TEAM) {
+ 			if (value >= uiInfo.characterCount) {
+ 				value = 0;
+ 			}
+ 			text = uiInfo.characterList[value].name;
+-		} else {
+-			if (value >= UI_GetNumBots()) {
+-				value = 0;
+-			}
+-			text = UI_GetBotNameByNumber(value);
++	}
++  Text_Paint(rect->x, rect->y, scale, color, text, 0, 0, textStyle);
++}
++
++static void UI_DrawNotTeamMember(rectDef_t *rect, float scale, vec4_t color, int num, int textStyle) {
++	// 0 - None
++	// 1 - Human
++	// 2 - Random Bot
++	// 3..NumCharacters - Bot
++	int value = trap_Cvar_VariableValue(va("ui_notteam%i", num));
++	const char *text;
++	if (value <= 0) {
++		text = "Closed";
++	} else if (value == 1) {
++		text = "Human";
++	} else if (value == 2) {
++		text = "Random Bot";
++	} else {
++		value -= 3;
++
++		if (value >= UI_GetNumBots()) {
++			value = 0;
+ 		}
++		text = UI_GetBotNameByNumber(value);
+ 	}
+   Text_Paint(rect->x, rect->y, scale, color, text, 0, 0, textStyle);
+ }
+@@ -1618,7 +1642,13 @@
+ 		case UI_BLUETEAM5:
+ 		case UI_BLUETEAM6:
+ 		case UI_BLUETEAM7:
+-			value = trap_Cvar_VariableValue(va("ui_blueteam%i", ownerDraw-UI_BLUETEAM1 + 1));
++
++			if (ui_actualNetGameType.integer > GT_TEAM) {
++				value = trap_Cvar_VariableValue(va("ui_blueteamctf%i", ownerDraw-UI_BLUETEAM1 + 1));
++			} else {
++				value = trap_Cvar_VariableValue(va("ui_blueteamtdm%i", ownerDraw-UI_BLUETEAM1 + 1));
++			}
++
+ 			if (value <= 0) {
+ 				text = "Closed";
+ 			} else if (value == 1) {
+@@ -1639,7 +1669,13 @@
+ 		case UI_REDTEAM5:
+ 		case UI_REDTEAM6:
+ 		case UI_REDTEAM7:
+-			value = trap_Cvar_VariableValue(va("ui_redteam%i", ownerDraw-UI_REDTEAM1 + 1));
++
++			if (ui_actualNetGameType.integer > GT_TEAM) {
++				value = trap_Cvar_VariableValue(va("ui_redteamctf%i", ownerDraw-UI_REDTEAM1 + 1));
++			} else {
++				value = trap_Cvar_VariableValue(va("ui_redteamtdm%i", ownerDraw-UI_REDTEAM1 + 1));
++			}
++
+ 			if (value <= 0) {
+ 				text = "Closed";
+ 			} else if (value == 1) {
+@@ -1653,6 +1689,34 @@
+ 			}
+ 			s = va("%i. %s", ownerDraw-UI_REDTEAM1 + 1, text);
+       break;
++		case UI_NOTTEAM1:
++		case UI_NOTTEAM2:
++		case UI_NOTTEAM3:
++		case UI_NOTTEAM4:
++		case UI_NOTTEAM5:
++		case UI_NOTTEAM6:
++		case UI_NOTTEAM7:
++		case UI_NOTTEAM8:
++		case UI_NOTTEAM9:
++		case UI_NOTTEAM10:
++		case UI_NOTTEAM11:
++		case UI_NOTTEAM12:
++		case UI_NOTTEAM13:
++		case UI_NOTTEAM14:
++			value = trap_Cvar_VariableValue(va("ui_notteam%i", ownerDraw-UI_NOTTEAM1 + 1));
++			if (value <= 0) {
++				text = "Closed";
++			} else if (value == 1) {
++				text = "Human";
++			} else {
++				value -= 2;
++				if (value >= uiInfo.aliasCount) {
++					value = 0;
++				}
++				text = uiInfo.aliasList[value].name;
++			}
++			s = va("%i. %s", ownerDraw-UI_NOTTEAM1 + 1, text);
++      break;
+ 		case UI_NETSOURCE:
+ 			if (ui_netSource.integer < 0 || ui_netSource.integer >= numNetSources) {
+ 				ui_netSource.integer = 0;
+@@ -1964,6 +2028,22 @@
+ 		case UI_REDTEAM7:
+       UI_DrawTeamMember(&rect, scale, color, qfalse, ownerDraw - UI_REDTEAM1 + 1, textStyle);
+       break;
++		case UI_NOTTEAM1:
++		case UI_NOTTEAM2:
++		case UI_NOTTEAM3:
++		case UI_NOTTEAM4:
++		case UI_NOTTEAM5:
++		case UI_NOTTEAM6:
++		case UI_NOTTEAM7:
++		case UI_NOTTEAM8:
++		case UI_NOTTEAM9:
++		case UI_NOTTEAM10:
++		case UI_NOTTEAM11:
++		case UI_NOTTEAM12:
++		case UI_NOTTEAM13:
++		case UI_NOTTEAM14:
++      UI_DrawNotTeamMember(&rect, scale, color, ownerDraw - UI_NOTTEAM1 + 1, textStyle);
++      break;
+ 		case UI_NETSOURCE:
+       UI_DrawNetSource(&rect, scale, color, textStyle);
+ 			break;
+@@ -2362,23 +2442,46 @@
+ 		// 1 - Human
+ 		// 2 - Random Bot
+ 		// 3..NumCharacters - Bot
+-		char *cvar = va(blue ? "ui_blueteam%i" : "ui_redteam%i", num);
+-		int value = trap_Cvar_VariableValue(cvar);
++		char *cvar;
++		int value;
+ 
++		if (ui_actualNetGameType.integer > GT_TEAM) {
++			cvar = va(blue ? "ui_blueteamctf%i" : "ui_redteamctf%i", num);
++		} else {
++			cvar = va(blue ? "ui_blueteamtdm%i" : "ui_redteamtdm%i", num);
++		}
++
++		value = trap_Cvar_VariableValue(cvar);
+ 		value += select;
+ 
+-		if (ui_actualNetGameType.integer >= GT_TEAM) {
+ 			if (value >= uiInfo.characterCount + 3) {
+ 				value = 0;
+ 			} else if (value < 0) {
+ 				value = uiInfo.characterCount + 3 - 1;
+ 			}
+-		} else {
+-			if (value >= UI_GetNumBots() + 3) {
+-				value = 0;
+-			} else if (value < 0) {
+-				value = UI_GetNumBots() + 3 - 1;
+-			}
++
++		trap_Cvar_SetValue(cvar, value);
++		return qtrue;
++	}
++	return qfalse;
++}
++
++static qboolean UI_NotTeamMember_HandleKey(int flags, float *special, int key, int num) {
++	int select = UI_SelectForKey(key);
++	if (select != 0) {
++		// 0 - None
++		// 1 - Human
++		// 2 - Random Bot
++		// 3..NumCharacters - Bot
++		char *cvar = va("ui_notteam%i", num);
++		int value = trap_Cvar_VariableValue(cvar);
++
++		value += select;
++
++		if (value >= UI_GetNumBots() + 3) {
++			value = 0;
++		} else if (value < 0) {
++			value = UI_GetNumBots() + 3 - 1;
+ 		}
+ 
+ 		trap_Cvar_SetValue(cvar, value);
+@@ -2598,6 +2701,22 @@
+ 		case UI_REDTEAM7:
+       UI_TeamMember_HandleKey(flags, special, key, qfalse, ownerDraw - UI_REDTEAM1 + 1);
+       break;
++    case UI_NOTTEAM1:
++		case UI_NOTTEAM2:
++		case UI_NOTTEAM3:
++		case UI_NOTTEAM4:
++		case UI_NOTTEAM5:
++		case UI_NOTTEAM6:
++		case UI_NOTTEAM7:
++		case UI_NOTTEAM8:
++		case UI_NOTTEAM9:
++		case UI_NOTTEAM10:
++		case UI_NOTTEAM11:
++		case UI_NOTTEAM12:
++		case UI_NOTTEAM13:
++		case UI_NOTTEAM14:
++      UI_NotTeamMember_HandleKey(flags, special, key, ownerDraw - UI_NOTTEAM1 + 1);
++      break;
+ 		case UI_NETSOURCE:
+       UI_NetSource_HandleKey(flags, special, key);
+ 			break;
+@@ -3101,16 +3220,39 @@
+ 			// set max clients based on spots
+ 			oldclients = trap_Cvar_VariableValue( "sv_maxClients" );
+ 			clients = 0;
+-			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+-				int bot = trap_Cvar_VariableValue( va("ui_blueteam%i", i+1));
++
++			if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
++				for (i = 0; i < PLAYERS_PER_TEAM; i++) {
++				int bot;
++
++				if (ui_actualNetGameType.integer > GT_TEAM) {
++					bot = trap_Cvar_VariableValue(va("ui_blueteamctf%i", i + 1));
++				} else {
++					bot = trap_Cvar_VariableValue(va("ui_blueteamtdm%i", i + 1));
++				}
+ 				if (bot >= 0) {
+ 					clients++;
+ 				}
+-				bot = trap_Cvar_VariableValue( va("ui_redteam%i", i+1));
++				if (ui_actualNetGameType.integer > GT_TEAM) {
++					bot = trap_Cvar_VariableValue(va("ui_redteamctf%i", i + 1));
++				} else {
++					bot = trap_Cvar_VariableValue(va("ui_redteamtdm%i", i + 1));
++				}
++
+ 				if (bot >= 0) {
+ 					clients++;
+ 				}
++				}
++			} else {
++				for (i = 0; i < PLAYERS_NOT_TEAM; i++) {
++				int bot = trap_Cvar_VariableValue( va("ui_notteam%i", i+1));
++
++				if (bot >= 0) {
++					clients++;
++				}
++				}
+ 			}
++
+ 			if (clients == 0) {
+ 				clients = 8;
+ 			}
+@@ -3121,46 +3263,67 @@
+ 
+ 			trap_Cvar_SetValue("sv_maxClients", clients);
+ 
++			if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
+ 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+ 				// 0 - None
+ 				// 1 - Human
+ 				// 2 - Random Bot
+ 				// 3..NumCharacters - Bot
+-				int bot = trap_Cvar_VariableValue( va("ui_blueteam%i", i+1));
++				int bot;
++
++				if (ui_actualNetGameType.integer > GT_TEAM) {
++					bot = trap_Cvar_VariableValue(va("ui_blueteamctf%i", i + 1));
++				} else {
++					bot = trap_Cvar_VariableValue(va("ui_blueteamtdm%i", i + 1));
++				}
++
+ 				if (bot > 1) {
+ 					if (bot == 2) {
+ 						name = "random";
+-					} else if (ui_actualNetGameType.integer >= GT_TEAM) {
++					} else {
+ 						name = uiInfo.characterList[bot-3].name;
+-					} else {
+-						name = UI_GetBotNameByNumber(bot-3);
+ 					}
+ 
+-					if (ui_actualNetGameType.integer >= GT_TEAM) {
+ 						Com_sprintf( buff, sizeof(buff), "addbot %s %f %s\n", name, skill, "Blue");
++					trap_Cmd_ExecuteText( EXEC_APPEND, buff );
++				}
++
++				if (ui_actualNetGameType.integer > GT_TEAM) {
++					bot = trap_Cvar_VariableValue(va("ui_redteamctf%i", i + 1));
++				} else {
++					bot = trap_Cvar_VariableValue(va("ui_redteamtdm%i", i + 1));
++				}
++
++				if (bot > 1) {
++					if (bot == 2) {
++						name = "random";
+ 					} else {
+-						Com_sprintf( buff, sizeof(buff), "addbot %s %f\n", name, skill);
++						name = uiInfo.characterList[bot-3].name;
+ 					}
++
++						Com_sprintf( buff, sizeof(buff), "addbot %s %f %s\n", name, skill, "Red");
+ 					trap_Cmd_ExecuteText( EXEC_APPEND, buff );
+ 				}
+-				bot = trap_Cvar_VariableValue( va("ui_redteam%i", i+1));
++			}
++			} else {
++			for (i = 0; i < PLAYERS_NOT_TEAM; i++) {
++				// 0 - None
++				// 1 - Human
++				// 2 - Random Bot
++				// 3..NumCharacters - Bot
++				int bot = trap_Cvar_VariableValue( va("ui_notteam%i", i+1));
+ 				if (bot > 1) {
+ 					if (bot == 2) {
+ 						name = "random";
+-					} else if (ui_actualNetGameType.integer >= GT_TEAM) {
+-						name = uiInfo.characterList[bot-3].name;
+ 					} else {
+ 						name = UI_GetBotNameByNumber(bot-3);
+ 					}
+ 
+-					if (ui_actualNetGameType.integer >= GT_TEAM) {
+-						Com_sprintf( buff, sizeof(buff), "addbot %s %f %s\n", name, skill, "Red");
+-					} else {
+ 						Com_sprintf( buff, sizeof(buff), "addbot %s %f\n", name, skill);
+-					}
+ 					trap_Cmd_ExecuteText( EXEC_APPEND, buff );
+ 				}
+ 			}
++			}
+ 			// Tobias FIXME: this script will start a new server, add bots but doesn't check if there are already enough bots, so we must kick already connected bots, otherwise bots are added to the existing ones continuously with each new map (FIXME?).
+ 		} else if (Q_stricmp(name, "StartServerIngame") == 0) {
+ 			int i, delay, clients, oldclients;
+@@ -3178,16 +3341,40 @@
+ 			// set max clients based on spots
+ 			oldclients = trap_Cvar_VariableValue( "sv_maxClients" );
+ 			clients = 0;
++
++			if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
+ 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+-				int bot = trap_Cvar_VariableValue( va("ui_blueteam%i", i+1));
++				int bot;
++
++				if (ui_actualNetGameType.integer > GT_TEAM) {
++					bot = trap_Cvar_VariableValue(va("ui_blueteamctf%i", i + 1));
++				} else {
++					bot = trap_Cvar_VariableValue(va("ui_blueteamtdm%i", i + 1));
++				}
++
+ 				if (bot >= 0) {
+ 					clients++;
+ 				}
+-				bot = trap_Cvar_VariableValue( va("ui_redteam%i", i+1));
++
++				if (ui_actualNetGameType.integer > GT_TEAM) {
++					bot = trap_Cvar_VariableValue(va("ui_redteamctf%i", i + 1));
++				} else {
++					bot = trap_Cvar_VariableValue(va("ui_redteamtdm%i", i + 1));
++				}
++
+ 				if (bot >= 0) {
+ 					clients++;
+ 				}
+ 			}
++			} else {
++			for (i = 0; i < PLAYERS_NOT_TEAM; i++) {
++				int bot = trap_Cvar_VariableValue( va("ui_notteam%i", i+1));
++				if (bot >= 0) {
++					clients++;
++				}
++				}
++			}
++
+ 			if (clients == 0) {
+ 				clients = 8;
+ 			}
+@@ -3201,48 +3388,70 @@
+ 			skill = trap_Cvar_VariableValue( "g_spSkill" );
+ 			delay = 500;
+ 
++			if (ui_actualNetGameType.integer > GT_TOURNAMENT) {
+ 			for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+ 				// 0 - None
+ 				// 1 - Human
+ 				// 2 - Random Bot
+ 				// 3..NumCharacters - Bot
+-				int bot = trap_Cvar_VariableValue( va("ui_blueteam%i", i+1));
++				int bot;
++
++				if (ui_actualNetGameType.integer > GT_TEAM) {
++					bot = trap_Cvar_VariableValue(va("ui_blueteamctf%i", i + 1));
++				} else {
++					bot = trap_Cvar_VariableValue(va("ui_blueteamtdm%i", i + 1));
++				}
++
+ 				if (bot > 1) {
+ 					if (bot == 2) {
+ 						name = "random";
+-					} else if (ui_actualNetGameType.integer >= GT_TEAM) {
++					} else {
+ 						name = uiInfo.characterList[bot-3].name;
+-					} else {
+-						name = UI_GetBotNameByNumber(bot-3);
+ 					}
+ 
+-					if (ui_actualNetGameType.integer >= GT_TEAM) {
+ 						Com_sprintf( buff, sizeof(buff), "addbot %s %f %s %i\n", name, skill, "Blue", delay);
++					trap_Cmd_ExecuteText( EXEC_APPEND, buff );
++					delay += 500;
++				}
++
++				if (ui_actualNetGameType.integer > GT_TEAM) {
++					bot = trap_Cvar_VariableValue(va("ui_redteamctf%i", i + 1));
++				} else {
++					bot = trap_Cvar_VariableValue(va("ui_redteamtdm%i", i + 1));
++				}
++
++				if (bot > 1) {
++					if (bot == 2) {
++						name = "random";
+ 					} else {
+-						Com_sprintf( buff, sizeof(buff), "addbot %s %f %i\n", name, skill, delay);
++						name = uiInfo.characterList[bot-3].name;
+ 					}
++
++						Com_sprintf( buff, sizeof(buff), "addbot %s %f %s %i\n", name, skill, "Red", delay);
+ 					trap_Cmd_ExecuteText( EXEC_APPEND, buff );
+ 					delay += 500;
+ 				}
+-				bot = trap_Cvar_VariableValue( va("ui_redteam%i", i+1));
++			}
++			} else {
++			for (i = 0; i < PLAYERS_NOT_TEAM; i++) {
++				// 0 - None
++				// 1 - Human
++				// 2 - Random Bot
++				// 3..NumCharacters - Bot
++				int bot = trap_Cvar_VariableValue( va("ui_notteam%i", i+1));
+ 				if (bot > 1) {
+ 					if (bot == 2) {
+ 						name = "random";
+-					} else if (ui_actualNetGameType.integer >= GT_TEAM) {
+-						name = uiInfo.characterList[bot-3].name;
+ 					} else {
+ 						name = UI_GetBotNameByNumber(bot-3);
+ 					}
+ 
+-					if (ui_actualNetGameType.integer >= GT_TEAM) {
+-						Com_sprintf( buff, sizeof(buff), "addbot %s %f %s %i\n", name, skill, "Red", delay);
+-					} else {
+ 						Com_sprintf( buff, sizeof(buff), "addbot %s %f %i\n", name, skill, delay);
+-					}
+ 					trap_Cmd_ExecuteText( EXEC_APPEND, buff );
+ 					delay += 500;
+ 				}
+ 			}
++			}
+ 		} else if (Q_stricmp(name, "updateSPMenu") == 0) {
+ 			UI_SetCapFragLimits(qtrue);
+ 			UI_MapCountByGameType(qtrue);
+@@ -5630,21 +5839,49 @@
+ vmCvar_t	ui_marks;
+ 
+ vmCvar_t	ui_redteam;
+-vmCvar_t	ui_redteam1;
+-vmCvar_t	ui_redteam2;
+-vmCvar_t	ui_redteam3;
+-vmCvar_t	ui_redteam4;
+-vmCvar_t	ui_redteam5;
+-vmCvar_t	ui_redteam6;
+-vmCvar_t	ui_redteam7;
+ vmCvar_t	ui_blueteam;
+-vmCvar_t	ui_blueteam1;
+-vmCvar_t	ui_blueteam2;
+-vmCvar_t	ui_blueteam3;
+-vmCvar_t	ui_blueteam4;
+-vmCvar_t	ui_blueteam5;
+-vmCvar_t	ui_blueteam6;
+-vmCvar_t	ui_blueteam7;
++vmCvar_t	ui_redteamctf1;
++vmCvar_t	ui_redteamctf2;
++vmCvar_t	ui_redteamctf3;
++vmCvar_t	ui_redteamctf4;
++vmCvar_t	ui_redteamctf5;
++vmCvar_t	ui_redteamctf6;
++vmCvar_t	ui_redteamctf7;
++vmCvar_t	ui_blueteamctf1;
++vmCvar_t	ui_blueteamctf2;
++vmCvar_t	ui_blueteamctf3;
++vmCvar_t	ui_blueteamctf4;
++vmCvar_t	ui_blueteamctf5;
++vmCvar_t	ui_blueteamctf6;
++vmCvar_t	ui_blueteamctf7;
++vmCvar_t	ui_redteamtdm1;
++vmCvar_t	ui_redteamtdm2;
++vmCvar_t	ui_redteamtdm3;
++vmCvar_t	ui_redteamtdm4;
++vmCvar_t	ui_redteamtdm5;
++vmCvar_t	ui_redteamtdm6;
++vmCvar_t	ui_redteamtdm7;
++vmCvar_t	ui_blueteamtdm1;
++vmCvar_t	ui_blueteamtdm2;
++vmCvar_t	ui_blueteamtdm3;
++vmCvar_t	ui_blueteamtdm4;
++vmCvar_t	ui_blueteamtdm5;
++vmCvar_t	ui_blueteamtdm6;
++vmCvar_t	ui_blueteamtdm7;
++vmCvar_t	ui_notteam1;
++vmCvar_t	ui_notteam2;
++vmCvar_t	ui_notteam3;
++vmCvar_t	ui_notteam4;
++vmCvar_t	ui_notteam5;
++vmCvar_t	ui_notteam6;
++vmCvar_t	ui_notteam7;
++vmCvar_t	ui_notteam8;
++vmCvar_t	ui_notteam9;
++vmCvar_t	ui_notteam10;
++vmCvar_t	ui_notteam11;
++vmCvar_t	ui_notteam12;
++vmCvar_t	ui_notteam13;
++vmCvar_t	ui_notteam14;
+ vmCvar_t	ui_teamName;
+ vmCvar_t	ui_dedicated;
+ vmCvar_t	ui_gameType;
+@@ -5720,20 +5957,48 @@
+ 	{ &ui_joinGameType, "ui_joinGametype", "0", CVAR_ARCHIVE },
+ 	{ &ui_netGameType, "ui_netGametype", "3", CVAR_ARCHIVE },
+ 	{ &ui_actualNetGameType, "ui_actualNetGametype", "3", CVAR_ARCHIVE },
+-	{ &ui_redteam1, "ui_redteam1", "0", CVAR_ARCHIVE },
+-	{ &ui_redteam2, "ui_redteam2", "0", CVAR_ARCHIVE },
+-	{ &ui_redteam3, "ui_redteam3", "0", CVAR_ARCHIVE },
+-	{ &ui_redteam4, "ui_redteam4", "0", CVAR_ARCHIVE },
+-	{ &ui_redteam5, "ui_redteam5", "0", CVAR_ARCHIVE },
+-	{ &ui_redteam6, "ui_redteam6", "0", CVAR_ARCHIVE },
+-	{ &ui_redteam7, "ui_redteam7", "0", CVAR_ARCHIVE },
+-	{ &ui_blueteam1, "ui_blueteam1", "0", CVAR_ARCHIVE },
+-	{ &ui_blueteam2, "ui_blueteam2", "0", CVAR_ARCHIVE },
+-	{ &ui_blueteam3, "ui_blueteam3", "0", CVAR_ARCHIVE },
+-	{ &ui_blueteam4, "ui_blueteam4", "0", CVAR_ARCHIVE },
+-	{ &ui_blueteam5, "ui_blueteam5", "0", CVAR_ARCHIVE },
+-	{ &ui_blueteam6, "ui_blueteam6", "0", CVAR_ARCHIVE },
+-	{ &ui_blueteam7, "ui_blueteam7", "0", CVAR_ARCHIVE },
++	{ &ui_redteamctf1, "ui_redteamctf1", "0", CVAR_ARCHIVE },
++	{ &ui_redteamctf2, "ui_redteamctf2", "0", CVAR_ARCHIVE },
++	{ &ui_redteamctf3, "ui_redteamctf3", "0", CVAR_ARCHIVE },
++	{ &ui_redteamctf4, "ui_redteamctf4", "0", CVAR_ARCHIVE },
++	{ &ui_redteamctf5, "ui_redteamctf5", "0", CVAR_ARCHIVE },
++	{ &ui_redteamctf6, "ui_redteamctf6", "0", CVAR_ARCHIVE },
++	{ &ui_redteamctf7, "ui_redteamctf7", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamctf1, "ui_blueteamctf1", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamctf2, "ui_blueteamctf2", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamctf3, "ui_blueteamctf3", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamctf4, "ui_blueteamctf4", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamctf5, "ui_blueteamctf5", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamctf6, "ui_blueteamctf6", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamctf7, "ui_blueteamctf7", "0", CVAR_ARCHIVE },
++	{ &ui_redteamtdm1, "ui_redteamtdm1", "0", CVAR_ARCHIVE },
++	{ &ui_redteamtdm2, "ui_redteamtdm2", "0", CVAR_ARCHIVE },
++	{ &ui_redteamtdm3, "ui_redteamtdm3", "0", CVAR_ARCHIVE },
++	{ &ui_redteamtdm4, "ui_redteamtdm4", "0", CVAR_ARCHIVE },
++	{ &ui_redteamtdm5, "ui_redteamtdm5", "0", CVAR_ARCHIVE },
++	{ &ui_redteamtdm6, "ui_redteamtdm6", "0", CVAR_ARCHIVE },
++	{ &ui_redteamtdm7, "ui_redteamtdm7", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamtdm1, "ui_blueteamtdm1", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamtdm2, "ui_blueteamtdm2", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamtdm3, "ui_blueteamtdm3", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamtdm4, "ui_blueteamtdm4", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamtdm5, "ui_blueteamtdm5", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamtdm6, "ui_blueteamtdm6", "0", CVAR_ARCHIVE },
++	{ &ui_blueteamtdm7, "ui_blueteamtdm7", "0", CVAR_ARCHIVE },
++	{ &ui_notteam1, "ui_notteam1", "0", CVAR_ARCHIVE },
++	{ &ui_notteam2, "ui_notteam2", "0", CVAR_ARCHIVE },
++	{ &ui_notteam3, "ui_notteam3", "0", CVAR_ARCHIVE },
++	{ &ui_notteam4, "ui_notteam4", "0", CVAR_ARCHIVE },
++	{ &ui_notteam5, "ui_notteam5", "0", CVAR_ARCHIVE },
++	{ &ui_notteam6, "ui_notteam6", "0", CVAR_ARCHIVE },
++	{ &ui_notteam7, "ui_notteam7", "0", CVAR_ARCHIVE },
++	{ &ui_notteam8, "ui_notteam8", "0", CVAR_ARCHIVE },
++	{ &ui_notteam9, "ui_notteam9", "0", CVAR_ARCHIVE },
++	{ &ui_notteam10, "ui_notteam10", "0", CVAR_ARCHIVE },
++	{ &ui_notteam11, "ui_notteam11", "0", CVAR_ARCHIVE },
++	{ &ui_notteam12, "ui_notteam12", "0", CVAR_ARCHIVE },
++	{ &ui_notteam13, "ui_notteam13", "0", CVAR_ARCHIVE },
++	{ &ui_notteam14, "ui_notteam14", "0", CVAR_ARCHIVE },
+ 	{ &ui_netSource, "ui_netSource", "1", CVAR_ARCHIVE },
+ 	{ &ui_menuFiles, "ui_menuFiles", "ui/menus.txt", CVAR_ARCHIVE },
+ 	{ &ui_currentTier, "ui_currentTier", "0", CVAR_ARCHIVE },
+Index: ui/menudef.h
+===================================================================
+--- ui/menudef.h	(revision 3340)
++++ ui/menudef.h	(working copy)
+@@ -238,43 +238,57 @@
+ #define UI_REDTEAM5 221
+ #define UI_REDTEAM6 222
+ #define UI_REDTEAM7 223
+-#define UI_NETSOURCE 224
+-#define UI_NETMAPPREVIEW 225
+-#define UI_NETFILTER 226
+-#define UI_TIER 227
+-#define UI_OPPONENTMODEL 228
+-#define UI_TIERMAP1 229
+-#define UI_TIERMAP2 230
+-#define UI_TIERMAP3 231
+-#define UI_PLAYERLOGO 232
+-#define UI_OPPONENTLOGO 233
+-#define UI_PLAYERLOGO_METAL 234
+-#define UI_OPPONENTLOGO_METAL 235
+-#define UI_PLAYERLOGO_NAME 236
+-#define UI_OPPONENTLOGO_NAME 237
+-#define UI_TIER_MAPNAME 238
+-#define UI_TIER_GAMETYPE 239
+-#define UI_ALLMAPS_SELECTION 240
+-#define UI_OPPONENT_NAME 241
+-#define UI_VOTE_KICK 242
+-#define UI_BOTNAME 243
+-#define UI_BOTSKILL 244
+-#define UI_REDBLUE 245
+-#define UI_CROSSHAIR 246
+-#define UI_SELECTEDPLAYER 247
+-#define UI_MAPCINEMATIC 248
+-#define UI_NETGAMETYPE 249
+-#define UI_NETMAPCINEMATIC 250
+-#define UI_SERVERREFRESHDATE 251
+-#define UI_SERVERMOTD 252
+-#define UI_GLINFO  253
+-#define UI_KEYBINDSTATUS 254
+-#define UI_CLANCINEMATIC 255
+-#define UI_MAP_TIMETOBEAT 256
+-#define UI_JOINGAMETYPE 257
+-#define UI_PREVIEWCINEMATIC 258
+-#define UI_STARTMAPCINEMATIC 259
+-#define UI_MAPS_SELECTION 260
++#define UI_NOTTEAM1 224
++#define UI_NOTTEAM2 225
++#define UI_NOTTEAM3 226
++#define UI_NOTTEAM4 227
++#define UI_NOTTEAM5 228
++#define UI_NOTTEAM6 229
++#define UI_NOTTEAM7 230
++#define UI_NOTTEAM8 231
++#define UI_NOTTEAM9 232
++#define UI_NOTTEAM10 233
++#define UI_NOTTEAM11 234
++#define UI_NOTTEAM12 235
++#define UI_NOTTEAM13 236
++#define UI_NOTTEAM14 237
++#define UI_NETSOURCE 238
++#define UI_NETMAPPREVIEW 239
++#define UI_NETFILTER 240
++#define UI_TIER 241
++#define UI_OPPONENTMODEL 242
++#define UI_TIERMAP1 243
++#define UI_TIERMAP2 244
++#define UI_TIERMAP3 245
++#define UI_PLAYERLOGO 246
++#define UI_OPPONENTLOGO 247
++#define UI_PLAYERLOGO_METAL 248
++#define UI_OPPONENTLOGO_METAL 249
++#define UI_PLAYERLOGO_NAME 250
++#define UI_OPPONENTLOGO_NAME 251
++#define UI_TIER_MAPNAME 252
++#define UI_TIER_GAMETYPE 253
++#define UI_ALLMAPS_SELECTION 254
++#define UI_OPPONENT_NAME 255
++#define UI_VOTE_KICK 256
++#define UI_BOTNAME 257
++#define UI_BOTSKILL 258
++#define UI_REDBLUE 259
++#define UI_CROSSHAIR 260
++#define UI_SELECTEDPLAYER 261
++#define UI_MAPCINEMATIC 262
++#define UI_NETGAMETYPE 263
++#define UI_NETMAPCINEMATIC 264
++#define UI_SERVERREFRESHDATE 265
++#define UI_SERVERMOTD 266
++#define UI_GLINFO  267
++#define UI_KEYBINDSTATUS 268
++#define UI_CLANCINEMATIC 269
++#define UI_MAP_TIMETOBEAT 270
++#define UI_JOINGAMETYPE 271
++#define UI_PREVIEWCINEMATIC 272
++#define UI_STARTMAPCINEMATIC 273
++#define UI_MAPS_SELECTION 274
+ 
+ #define VOICECHAT_GETFLAG			"getflag"				// command someone to get the flag
+ #define VOICECHAT_OFFENSE			"offense"				// command someone to go on offense

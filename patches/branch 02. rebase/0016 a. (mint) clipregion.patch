@@ -1,0 +1,775 @@
+Index: code/cgame/cg_drawtools.c
+===================================================================
+--- code/cgame/cg_drawtools.c	(revision 3375)
++++ code/cgame/cg_drawtools.c	(working copy)
+@@ -113,6 +113,33 @@
+ 
+ 
+ /*
++================
++CG_SetClipRegion
++=================
++*/
++void CG_SetClipRegion( float x, float y, float w, float h ) {
++	vec4_t clip;
++
++	CG_AdjustFrom640( &x, &y, &w, &h );
++
++	clip[ 0 ] = x;
++	clip[ 1 ] = y;
++	clip[ 2 ] = x + w;
++	clip[ 3 ] = y + h;
++
++	trap_R_SetClipRegion( clip );
++}
++
++/*
++================
++CG_ClearClipRegion
++=================
++*/
++void CG_ClearClipRegion( void ) {
++	trap_R_SetClipRegion( NULL );
++}
++
++/*
+ ===============
+ CG_DrawChar
+ 
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 3375)
++++ code/cgame/cg_local.h	(working copy)
+@@ -531,13 +531,8 @@
+ 	int			scoreFadeTime;
+ 	char		killerName[MAX_NAME_LENGTH];
+ 	char			spectatorList[MAX_STRING_CHARS];		// list of names
+-	int				spectatorLen;												// length of list
+-	float			spectatorWidth;											// width in device units
+-	int				spectatorTime;											// next time to offset
+-	int				spectatorPaintX;										// current paint x
+-	int				spectatorPaintX2;										// current paint x
+-	int				spectatorOffset;										// current offset from start
+-	int				spectatorPaintLen; 									// current offset from start
++	int				spectatorTime;							// last time offset
++	float			spectatorOffset;						// current offset from start
+ 
+ #ifdef MISSIONPACK
+ 	// skull trails
+@@ -1230,6 +1225,8 @@
+ void CG_AdjustFrom640( float *x, float *y, float *w, float *h );
+ void CG_FillRect( float x, float y, float width, float height, const float *color );
+ void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
++void CG_SetClipRegion( float x, float y, float w, float h );
++void CG_ClearClipRegion( void );
+ void CG_DrawString( float x, float y, const char *string, 
+ 				   float charWidth, float charHeight, const float *modulate );
+ 
+@@ -1579,6 +1576,7 @@
+ int			trap_R_LightForPoint( vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir );
+ void		trap_R_RenderScene( const refdef_t *fd );
+ void		trap_R_SetColor( const float *rgba );	// NULL = 1,1,1,1
++void		trap_R_SetClipRegion( const float *region );
+ void		trap_R_DrawStretchPic( float x, float y, float w, float h, 
+ 			float s1, float t1, float s2, float t2, qhandle_t hShader );
+ void		trap_R_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 3375)
++++ code/cgame/cg_main.c	(working copy)
+@@ -1107,11 +1107,6 @@
+ 			Q_strcat(cg.spectatorList, sizeof(cg.spectatorList), va("%s     ", cgs.clientinfo[i].name));
+ 		}
+ 	}
+-	i = strlen(cg.spectatorList);
+-	if (i != cg.spectatorLen) {
+-		cg.spectatorLen = i;
+-		cg.spectatorWidth = -1;
+-	}
+ }
+ 
+ 
+Index: code/cgame/cg_newdraw.c
+===================================================================
+--- code/cgame/cg_newdraw.c	(revision 3375)
++++ code/cgame/cg_newdraw.c	(working copy)
+@@ -1366,65 +1366,31 @@
+ }
+ 
+ 
+-void CG_DrawTeamSpectators(rectDef_t *rect, float scale, vec4_t color, qhandle_t shader) {
+-	if (cg.spectatorLen) {
+-		float maxX;
++#define SPECTATORS_PIXELS_PER_SECOND 30.0f
+ 
+-		if (cg.spectatorWidth == -1) {
+-			cg.spectatorWidth = 0;
+-			cg.spectatorPaintX = rect->x + 1;
+-			cg.spectatorPaintX2 = -1;
+-		}
++static void CG_DrawTeamSpectators( rectDef_t *rect, float scale, vec4_t color, qhandle_t shader ) {
++	char  *text = cg.spectatorList;
++	float textWidth = MAX(rect->w, CG_Text_Width( text, scale, 0 ));
++	int now = trap_Milliseconds();
++	int delta = now - cg.spectatorTime;
+ 
+-		if (cg.spectatorOffset > cg.spectatorLen) {
+-			cg.spectatorOffset = 0;
+-			cg.spectatorPaintX = rect->x + 1;
+-			cg.spectatorPaintX2 = -1;
+-		}
++	CG_SetClipRegion( rect->x, rect->y, rect->w, rect->h );
++	CG_Text_Paint(rect->x - cg.spectatorOffset, rect->y + rect->h - 3, scale, color, text, 0, 0, 0);
++	CG_Text_Paint(rect->x + textWidth - cg.spectatorOffset, rect->y + rect->h - 3, scale, color, text, 0, 0, 0);
++//	CG_Text_PaintInMotion( rect->x - cg.spectatorOffset, rect->y + rect->h - 3, scale, color, text, 0, 0, 0 );
++//	CG_Text_PaintInMotion( rect->x + textWidth - cg.spectatorOffset, rect->y + rect->h - 3, scale, color, text, 0, 0, 0 );
+ 
+-		if (cg.time > cg.spectatorTime) {
+-			cg.spectatorTime = cg.time + 10;
+-			if (cg.spectatorPaintX <= rect->x + 2) {
+-				if (cg.spectatorOffset < cg.spectatorLen) {
+-					cg.spectatorPaintX += CG_Text_Width(&cg.spectatorList[cg.spectatorOffset], scale, 1) - 1;
+-					cg.spectatorOffset++;
+-				} else {
+-					cg.spectatorOffset = 0;
+-					if (cg.spectatorPaintX2 >= 0) {
+-						cg.spectatorPaintX = cg.spectatorPaintX2;
+-					} else {
+-						cg.spectatorPaintX = rect->x + rect->w - 2;
+-					}
+-					cg.spectatorPaintX2 = -1;
+-				}
+-			} else {
+-				cg.spectatorPaintX--;
+-				if (cg.spectatorPaintX2 >= 0) {
+-					cg.spectatorPaintX2--;
+-				}
+-			}
+-		}
++	CG_ClearClipRegion( );
+ 
+-		maxX = rect->x + rect->w - 2;
+-		CG_Text_Paint_Limit(&maxX, cg.spectatorPaintX, rect->y + rect->h - 3, scale, color, &cg.spectatorList[cg.spectatorOffset], 0, 0); 
+-		if (cg.spectatorPaintX2 >= 0) {
+-			float maxX2 = rect->x + rect->w - 2;
+-			CG_Text_Paint_Limit(&maxX2, cg.spectatorPaintX2, rect->y + rect->h - 3, scale, color, cg.spectatorList, 0, cg.spectatorOffset); 
+-		}
+-		if (cg.spectatorOffset && maxX > 0) {
+-			// if we have an offset ( we are skipping the first part of the string ) and we fit the string
+-			if (cg.spectatorPaintX2 == -1) {
+-						cg.spectatorPaintX2 = rect->x + rect->w - 2;
+-			}
+-		} else {
+-			cg.spectatorPaintX2 = -1;
+-		}
++	cg.spectatorOffset += ( delta / 1000.0f ) * SPECTATORS_PIXELS_PER_SECOND;
+ 
+-	}
++	while( cg.spectatorOffset > textWidth )
++		cg.spectatorOffset -= textWidth;
++
++	cg.spectatorTime = now;
+ }
+ 
+ 
+-
+ void CG_DrawMedal(int ownerDraw, rectDef_t *rect, float scale, vec4_t color, qhandle_t shader) {
+ 	score_t *score = &cg.scores[cg.selectedScore];
+ 	float value = 0;
+Index: code/cgame/cg_public.h
+===================================================================
+--- code/cgame/cg_public.h	(revision 3375)
++++ code/cgame/cg_public.h	(working copy)
+@@ -153,6 +153,7 @@
+ 	CG_CIN_DRAWCINEMATIC,
+ 	CG_CIN_SETEXTENTS,
+ 	CG_R_REMAP_SHADER,
++	CG_R_SETCLIPREGION,
+ 	CG_S_ADDREALLOOPINGSOUND,
+ 	CG_S_STOPLOOPINGSOUND,
+ 
+Index: code/cgame/cg_syscalls.asm
+===================================================================
+--- code/cgame/cg_syscalls.asm	(revision 3375)
++++ code/cgame/cg_syscalls.asm	(working copy)
+@@ -81,16 +81,17 @@
+ equ trap_CIN_DrawCinematic				-79
+ equ trap_CIN_SetExtents					-80
+ equ trap_R_RemapShader					-81
+-equ	trap_S_AddRealLoopingSound			-82
+-equ trap_S_StopLoopingSound				-83
+-equ trap_CM_TempCapsuleModel			-84
+-equ trap_CM_CapsuleTrace				-85
+-equ trap_CM_TransformedCapsuleTrace		-86
+-equ trap_R_AddAdditiveLightToScene		-87
+-equ trap_GetEntityToken					-88
+-equ	trap_R_AddPolysToScene				-89
+-equ trap_R_inPVS						-90
+-equ trap_FS_Seek			-91
++equ trap_R_SetClipRegion				-82
++equ	trap_S_AddRealLoopingSound			-83
++equ trap_S_StopLoopingSound				-84
++equ trap_CM_TempCapsuleModel			-85
++equ trap_CM_CapsuleTrace				-86
++equ trap_CM_TransformedCapsuleTrace		-87
++equ trap_R_AddAdditiveLightToScene		-88
++equ trap_GetEntityToken					-89
++equ	trap_R_AddPolysToScene				-90
++equ trap_R_inPVS						-91
++equ trap_FS_Seek			-92
+ 
+ equ	memset						-101
+ equ	memcpy						-102
+Index: code/cgame/cg_syscalls.c
+===================================================================
+--- code/cgame/cg_syscalls.c	(revision 3375)
++++ code/cgame/cg_syscalls.c	(working copy)
+@@ -308,6 +308,10 @@
+ 	syscall( CG_R_REMAP_SHADER, oldShader, newShader, timeOffset );
+ }
+ 
++void	trap_R_SetClipRegion( const float *region ) {
++	syscall( CG_R_SETCLIPREGION, region );
++}
++
+ void		trap_GetGlconfig( glconfig_t *glconfig ) {
+ 	syscall( CG_GETGLCONFIG, glconfig );
+ }
+Index: code/client/cl_cgame.c
+===================================================================
+--- code/client/cl_cgame.c	(revision 3375)
++++ code/client/cl_cgame.c	(working copy)
+@@ -680,6 +680,9 @@
+ 		re.RemapShader( VMA(1), VMA(2), VMA(3) );
+ 		return 0;
+ 
++	case CG_R_SETCLIPREGION:
++		re.SetClipRegion( VMA(1) );
++		return 0;
+ /*
+ 	case CG_LOADCAMERA:
+ 		return loadCamera(VMA(1));
+Index: code/client/cl_ui.c
+===================================================================
+--- code/client/cl_ui.c	(revision 3375)
++++ code/client/cl_ui.c	(working copy)
+@@ -1080,7 +1080,11 @@
+ 
+ 	case UI_VERIFY_CDKEY:
+ 		return CL_CDKeyValidate(VMA(1), VMA(2));
+-		
++
++	case UI_R_SETCLIPREGION:
++		re.SetClipRegion( VMA(1) );
++		return 0;
++
+ 	default:
+ 		Com_Error( ERR_DROP, "Bad UI system trap: %ld", (long int) args[0] );
+ 
+Index: code/renderercommon/tr_public.h
+===================================================================
+--- code/renderercommon/tr_public.h	(revision 3375)
++++ code/renderercommon/tr_public.h	(working copy)
+@@ -70,6 +70,7 @@
+ 	void	(*RenderScene)( const refdef_t *fd );
+ 
+ 	void	(*SetColor)( const float *rgba );	// NULL = 1,1,1,1
++	void	(*SetClipRegion)( const float *region );
+ 	void	(*DrawStretchPic) ( float x, float y, float w, float h, 
+ 		float s1, float t1, float s2, float t2, qhandle_t hShader );	// 0 = white
+ 
+Index: code/renderergl1/tr_cmds.c
+===================================================================
+--- code/renderergl1/tr_cmds.c	(revision 3375)
++++ code/renderergl1/tr_cmds.c	(working copy)
+@@ -207,6 +207,90 @@
+ 
+ /*
+ =============
++R_ClipRegion
++=============
++*/
++static qboolean R_ClipRegion ( float *x, float *y, float *w, float *h,
++		float *s1, float *t1, float *s2, float *t2 ) {
++	float left, top, right, bottom;
++	float _s1, _t1, _s2, _t2;
++	float clipLeft, clipTop, clipRight, clipBottom;
++
++	if (tr.clipRegion[2] <= tr.clipRegion[0] ||
++		tr.clipRegion[3] <= tr.clipRegion[1] ) {
++		return qfalse;
++	}
++
++	left = *x;
++	top = *y;
++	right = *x + *w;
++	bottom = *y + *h;
++
++	_s1 = *s1;
++	_t1 = *t1;
++	_s2 = *s2;
++	_t2 = *t2;
++
++	clipLeft = tr.clipRegion[0];
++	clipTop = tr.clipRegion[1];
++	clipRight = tr.clipRegion[2];
++	clipBottom = tr.clipRegion[3];
++
++	// Completely clipped away
++	if ( right <= clipLeft || left >= clipRight ||
++		bottom <= clipTop || top >= clipBottom ) {
++		return qtrue;
++	}
++
++	// Clip left edge
++	if ( left < clipLeft ) {
++		float f = ( clipLeft - left ) / ( right - left );
++		*s1 = ( f * ( _s2 - _s1 ) ) + _s1;
++		*x = clipLeft;
++		*w -= ( clipLeft - left );
++	}
++
++	// Clip right edge
++	if ( right > clipRight ) {
++		float f = ( clipRight - right ) / ( left - right );
++		*s2 = ( f * ( _s1 - _s2 ) ) + _s2;
++		*w = clipRight - *x;
++	}
++
++	// Clip top edge
++	if ( top < clipTop ) {
++		float f = ( clipTop - top ) / ( bottom - top );
++		*t1 = ( f * ( _t2 - _t1 ) ) + _t1;
++		*y = clipTop;
++		*h -= ( clipTop - top );
++	}
++
++	// Clip bottom edge
++	if ( bottom > clipBottom ) {
++		float f = ( clipBottom - bottom ) / ( top - bottom );
++		*t2 = ( f * ( _t1 - _t2 ) ) + _t2;
++		*h = clipBottom - *y;
++	}
++
++	return qfalse;
++}
++
++/*
++=============
++RE_SetClipRegion
++=============
++*/
++void RE_SetClipRegion( const float *region ) {
++	if ( region == NULL ) {
++		Com_Memset( tr.clipRegion, 0, sizeof( vec4_t ) );
++	} else {
++		Vector4Copy( region, tr.clipRegion );
++	}
++}
++
++
++/*
++=============
+ RE_StretchPic
+ =============
+ */
+@@ -217,6 +301,9 @@
+   if (!tr.registered) {
+     return;
+   }
++	if (R_ClipRegion(&x, &y, &w, &h, &s1, &t1, &s2, &t2)) {
++		return;
++	}
+ 	cmd = R_GetCommandBuffer( sizeof( *cmd ) );
+ 	if ( !cmd ) {
+ 		return;
+Index: code/renderergl1/tr_init.c
+===================================================================
+--- code/renderergl1/tr_init.c	(revision 3375)
++++ code/renderergl1/tr_init.c	(working copy)
+@@ -1372,6 +1372,7 @@
+ 	re.RenderScene = RE_RenderScene;
+ 
+ 	re.SetColor = RE_SetColor;
++	re.SetClipRegion = RE_SetClipRegion;
+ 	re.DrawStretchPic = RE_StretchPic;
+ 	re.DrawStretchRaw = RE_StretchRaw;
+ 	re.UploadCinematic = RE_UploadCinematic;
+Index: code/renderergl1/tr_local.h
+===================================================================
+--- code/renderergl1/tr_local.h	(revision 3375)
++++ code/renderergl1/tr_local.h	(working copy)
+@@ -944,6 +944,7 @@
+ 	frontEndCounters_t		pc;
+ 	int						frontEndMsec;		// not in pc due to clearing issue
+ 
++	vec4_t					clipRegion;			// 2D clipping region
+ 	//
+ 	// put large tables at the end, so most elements will be
+ 	// within the +/32K indexed range on risc processors
+@@ -1593,6 +1594,7 @@
+ void R_AddDrawSurfCmd( drawSurf_t *drawSurfs, int numDrawSurfs );
+ 
+ void RE_SetColor( const float *rgba );
++void RE_SetClipRegion( const float *region );
+ void RE_StretchPic ( float x, float y, float w, float h, 
+ 					  float s1, float t1, float s2, float t2, qhandle_t hShader );
+ void RE_BeginFrame( stereoFrame_t stereoFrame );
+Index: code/renderergl2/tr_cmds.c
+===================================================================
+--- code/renderergl2/tr_cmds.c	(revision 3375)
++++ code/renderergl2/tr_cmds.c	(working copy)
+@@ -253,6 +253,90 @@
+ 
+ /*
+ =============
++R_ClipRegion
++=============
++*/
++static qboolean R_ClipRegion ( float *x, float *y, float *w, float *h,
++		float *s1, float *t1, float *s2, float *t2 ) {
++	float left, top, right, bottom;
++	float _s1, _t1, _s2, _t2;
++	float clipLeft, clipTop, clipRight, clipBottom;
++
++	if (tr.clipRegion[2] <= tr.clipRegion[0] ||
++		tr.clipRegion[3] <= tr.clipRegion[1] ) {
++		return qfalse;
++	}
++
++	left = *x;
++	top = *y;
++	right = *x + *w;
++	bottom = *y + *h;
++
++	_s1 = *s1;
++	_t1 = *t1;
++	_s2 = *s2;
++	_t2 = *t2;
++
++	clipLeft = tr.clipRegion[0];
++	clipTop = tr.clipRegion[1];
++	clipRight = tr.clipRegion[2];
++	clipBottom = tr.clipRegion[3];
++
++	// Completely clipped away
++	if ( right <= clipLeft || left >= clipRight ||
++		bottom <= clipTop || top >= clipBottom ) {
++		return qtrue;
++	}
++
++	// Clip left edge
++	if ( left < clipLeft ) {
++		float f = ( clipLeft - left ) / ( right - left );
++		*s1 = ( f * ( _s2 - _s1 ) ) + _s1;
++		*x = clipLeft;
++		*w -= ( clipLeft - left );
++	}
++
++	// Clip right edge
++	if ( right > clipRight ) {
++		float f = ( clipRight - right ) / ( left - right );
++		*s2 = ( f * ( _s1 - _s2 ) ) + _s2;
++		*w = clipRight - *x;
++	}
++
++	// Clip top edge
++	if ( top < clipTop ) {
++		float f = ( clipTop - top ) / ( bottom - top );
++		*t1 = ( f * ( _t2 - _t1 ) ) + _t1;
++		*y = clipTop;
++		*h -= ( clipTop - top );
++	}
++
++	// Clip bottom edge
++	if ( bottom > clipBottom ) {
++		float f = ( clipBottom - bottom ) / ( top - bottom );
++		*t2 = ( f * ( _t1 - _t2 ) ) + _t2;
++		*h = clipBottom - *y;
++	}
++
++	return qfalse;
++}
++
++/*
++=============
++RE_SetClipRegion
++=============
++*/
++void RE_SetClipRegion( const float *region ) {
++	if ( region == NULL ) {
++		Com_Memset( tr.clipRegion, 0, sizeof( vec4_t ) );
++	} else {
++		Vector4Copy( region, tr.clipRegion );
++	}
++}
++
++
++/*
++=============
+ RE_StretchPic
+ =============
+ */
+@@ -263,6 +347,9 @@
+   if (!tr.registered) {
+     return;
+   }
++	if (R_ClipRegion(&x, &y, &w, &h, &s1, &t1, &s2, &t2)) {
++		return;
++	}
+ 	cmd = R_GetCommandBuffer( sizeof( *cmd ) );
+ 	if ( !cmd ) {
+ 		return;
+Index: code/renderergl2/tr_init.c
+===================================================================
+--- code/renderergl2/tr_init.c	(revision 3375)
++++ code/renderergl2/tr_init.c	(working copy)
+@@ -1630,6 +1630,7 @@
+ 	re.RenderScene = RE_RenderScene;
+ 
+ 	re.SetColor = RE_SetColor;
++	re.SetClipRegion = RE_SetClipRegion;
+ 	re.DrawStretchPic = RE_StretchPic;
+ 	re.DrawStretchRaw = RE_StretchRaw;
+ 	re.UploadCinematic = RE_UploadCinematic;
+Index: code/renderergl2/tr_local.h
+===================================================================
+--- code/renderergl2/tr_local.h	(revision 3375)
++++ code/renderergl2/tr_local.h	(working copy)
+@@ -1621,6 +1621,7 @@
+ 	frontEndCounters_t		pc;
+ 	int						frontEndMsec;		// not in pc due to clearing issue
+ 
++	vec4_t					clipRegion;			// 2D clipping region
+ 	//
+ 	// put large tables at the end, so most elements will be
+ 	// within the +/32K indexed range on risc processors
+@@ -2484,6 +2485,7 @@
+ void R_AddPostProcessCmd (void);
+ 
+ void RE_SetColor( const float *rgba );
++void RE_SetClipRegion( const float *region );
+ void RE_StretchPic ( float x, float y, float w, float h, 
+ 					  float s1, float t1, float s2, float t2, qhandle_t hShader );
+ void RE_BeginFrame( stereoFrame_t stereoFrame );
+Index: code/ui/ui_atoms.c
+===================================================================
+--- code/ui/ui_atoms.c	(revision 3375)
++++ code/ui/ui_atoms.c	(working copy)
+@@ -480,6 +480,33 @@
+ 	trap_R_SetColor( NULL );
+ }
+ 
++/*
++================
++UI_SetClipRegion
++=================
++*/
++void UI_SetClipRegion( float x, float y, float w, float h ) {
++	vec4_t clip;
++
++	UI_AdjustFrom640( &x, &y, &w, &h );
++
++	clip[ 0 ] = x;
++	clip[ 1 ] = y;
++	clip[ 2 ] = x + w;
++	clip[ 3 ] = y + h;
++
++	trap_R_SetClipRegion( clip );
++}
++
++/*
++================
++UI_ClearClipRegion
++=================
++*/
++void UI_ClearClipRegion( void ) {
++	trap_R_SetClipRegion( NULL );
++}
++
+ void UI_DrawSides(float x, float y, float w, float h) {
+ 	UI_AdjustFrom640( &x, &y, &w, &h );
+ 	trap_R_DrawStretchPic( x, y, 1, h, 0, 0, 0, 0, uiInfo.uiDC.whiteShader );
+Index: code/ui/ui_local.h
+===================================================================
+--- code/ui/ui_local.h	(revision 3375)
++++ code/ui/ui_local.h	(working copy)
+@@ -720,11 +720,7 @@
+ 	int		nextSortTime;
+ 	qhandle_t currentServerPreview;
+ 	int		currentServerCinematic;
+-	int		motdLen;
+-	int		motdWidth;
+-	int		motdPaintX;
+-	int		motdPaintX2;
+-	int		motdOffset;
++	float	motdOffset;
+ 	int		motdTime;
+ 	char	motd[MAX_STRING_CHARS];
+ } serverStatus_t;
+@@ -882,6 +878,8 @@
+ extern void			UI_ForceMenuOff (void);
+ extern char			*UI_Argv( int arg );
+ extern char			*UI_Cvar_VariableString( const char *var_name );
++extern void			UI_SetClipRegion( float x, float y, float w, float h );
++extern void			UI_ClearClipRegion( void );
+ extern void			UI_Refresh( int time );
+ extern void			UI_KeyEvent( int key );
+ extern void			UI_StartDemoLoop( void );
+@@ -948,6 +946,7 @@
+ void			trap_R_DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader );
+ void			trap_R_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
+ void			trap_UpdateScreen( void );
++void			trap_R_SetClipRegion( const float *region );
+ int				trap_CM_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, float frac, const char *tagName );
+ void			trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum );
+ sfxHandle_t		trap_S_RegisterSound( const char *sample, qboolean compressed );
+Index: code/ui/ui_main.c
+===================================================================
+--- code/ui/ui_main.c	(revision 3375)
++++ code/ui/ui_main.c	(working copy)
+@@ -1861,63 +1861,27 @@
+ 	}
+ }
+ 
++#define MOTD_PIXELS_PER_SECOND 30.0f
++
+ static void UI_DrawServerMOTD(rectDef_t *rect, float scale, vec4_t color) {
+-	if (uiInfo.serverStatus.motdLen) {
+-		float maxX;
+-	 
+-		if (uiInfo.serverStatus.motdWidth == -1) {
+-			uiInfo.serverStatus.motdWidth = 0;
+-			uiInfo.serverStatus.motdPaintX = rect->x + 1;
+-			uiInfo.serverStatus.motdPaintX2 = -1;
+-		}
++	char  *text = uiInfo.serverStatus.motd;
++	float textWidth = MAX(rect->w, Text_Width( text, scale, 0 ));
++	int now = uiInfo.uiDC.realTime;
++	int delta = now - uiInfo.serverStatus.motdTime;
+ 
+-		if (uiInfo.serverStatus.motdOffset > uiInfo.serverStatus.motdLen) {
+-			uiInfo.serverStatus.motdOffset = 0;
+-			uiInfo.serverStatus.motdPaintX = rect->x + 1;
+-			uiInfo.serverStatus.motdPaintX2 = -1;
+-		}
++	UI_SetClipRegion( rect->x, rect->y, rect->w, rect->h );
++	Text_Paint(rect->x - uiInfo.serverStatus.motdOffset, rect->y + rect->h - 3, scale, color, text, 0, 0, 0);
++	Text_Paint(rect->x + textWidth - uiInfo.serverStatus.motdOffset, rect->y + rect->h - 3, scale, color, text, 0, 0, 0);
++//	Text_PaintInMotion( rect->x - uiInfo.serverStatus.motdOffset, rect->y + rect->h - 3, scale, color, text, 0, 0, 0 );
++//	Text_PaintInMotion( rect->x + textWidth - uiInfo.serverStatus.motdOffset, rect->y + rect->h - 3, scale, color, text, 0, 0, 0 );
++	UI_ClearClipRegion( );
+ 
+-		if (uiInfo.uiDC.realTime > uiInfo.serverStatus.motdTime) {
+-			uiInfo.serverStatus.motdTime = uiInfo.uiDC.realTime + 10;
+-			if (uiInfo.serverStatus.motdPaintX <= rect->x + 2) {
+-				if (uiInfo.serverStatus.motdOffset < uiInfo.serverStatus.motdLen) {
+-					uiInfo.serverStatus.motdPaintX += Text_Width(&uiInfo.serverStatus.motd[uiInfo.serverStatus.motdOffset], scale, 1) - 1;
+-					uiInfo.serverStatus.motdOffset++;
+-				} else {
+-					uiInfo.serverStatus.motdOffset = 0;
+-					if (uiInfo.serverStatus.motdPaintX2 >= 0) {
+-						uiInfo.serverStatus.motdPaintX = uiInfo.serverStatus.motdPaintX2;
+-					} else {
+-						uiInfo.serverStatus.motdPaintX = rect->x + rect->w - 2;
+-					}
+-					uiInfo.serverStatus.motdPaintX2 = -1;
+-				}
+-			} else {
+-				//serverStatus.motdPaintX--;
+-				uiInfo.serverStatus.motdPaintX -= 2;
+-				if (uiInfo.serverStatus.motdPaintX2 >= 0) {
+-					//serverStatus.motdPaintX2--;
+-					uiInfo.serverStatus.motdPaintX2 -= 2;
+-				}
+-			}
+-		}
++	uiInfo.serverStatus.motdOffset += ( delta / 1000.0f ) * MOTD_PIXELS_PER_SECOND;
+ 
+-		maxX = rect->x + rect->w - 2;
+-		Text_Paint_Limit(&maxX, uiInfo.serverStatus.motdPaintX, rect->y + rect->h - 3, scale, color, &uiInfo.serverStatus.motd[uiInfo.serverStatus.motdOffset], 0, 0); 
+-		if (uiInfo.serverStatus.motdPaintX2 >= 0) {
+-			float maxX2 = rect->x + rect->w - 2;
+-			Text_Paint_Limit(&maxX2, uiInfo.serverStatus.motdPaintX2, rect->y + rect->h - 3, scale, color, uiInfo.serverStatus.motd, 0, uiInfo.serverStatus.motdOffset); 
+-		}
+-		if (uiInfo.serverStatus.motdOffset && maxX > 0) {
+-			// if we have an offset ( we are skipping the first part of the string ) and we fit the string
+-			if (uiInfo.serverStatus.motdPaintX2 == -1) {
+-						uiInfo.serverStatus.motdPaintX2 = rect->x + rect->w - 2;
+-			}
+-		} else {
+-			uiInfo.serverStatus.motdPaintX2 = -1;
+-		}
++	while( uiInfo.serverStatus.motdOffset > textWidth )
++		uiInfo.serverStatus.motdOffset -= textWidth;
+ 
+-	}
++	uiInfo.serverStatus.motdTime = now;
+ }
+ 
+ static void UI_DrawKeyBindStatus(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
+@@ -3790,12 +3754,7 @@
+ 	len = strlen(uiInfo.serverStatus.motd);
+ 	if (len == 0) {
+ 		strcpy(uiInfo.serverStatus.motd, "Welcome to Team Arena!");
+-		len = strlen(uiInfo.serverStatus.motd);
+ 	} 
+-	if (len != uiInfo.serverStatus.motdLen) {
+-		uiInfo.serverStatus.motdLen = len;
+-		uiInfo.serverStatus.motdWidth = -1;
+-	} 
+ 
+ 	lanSource = UI_SourceForLAN();
+ 
+Index: code/ui/ui_public.h
+===================================================================
+--- code/ui/ui_public.h	(revision 3375)
++++ code/ui/ui_public.h	(working copy)
+@@ -118,6 +118,7 @@
+ 	UI_CIN_DRAWCINEMATIC,
+ 	UI_CIN_SETEXTENTS,
+ 	UI_R_REMAP_SHADER,
++	UI_R_SETCLIPREGION,
+ 	UI_VERIFY_CDKEY,
+ 	UI_LAN_SERVERSTATUS,
+ 	UI_LAN_GETSERVERPING,
+Index: code/ui/ui_syscalls.asm
+===================================================================
+--- code/ui/ui_syscalls.asm	(revision 3375)
++++ code/ui/ui_syscalls.asm	(working copy)
+@@ -83,13 +83,14 @@
+ equ trap_CIN_DrawCinematic					-81
+ equ trap_CIN_SetExtents						-82
+ equ trap_R_RemapShader						-83
+-equ trap_VerifyCDKey						-84
+-equ trap_LAN_ServerStatus					-85
+-equ trap_LAN_GetServerPing					-86
+-equ trap_LAN_ServerIsVisible				-87
+-equ trap_LAN_CompareServers					-88
+-equ trap_FS_Seek		-89
+-equ trap_SetPbClStatus -90
++equ trap_R_SetClipRegion					-84
++equ trap_VerifyCDKey						-85
++equ trap_LAN_ServerStatus					-86
++equ trap_LAN_GetServerPing					-87
++equ trap_LAN_ServerIsVisible				-88
++equ trap_LAN_CompareServers					-89
++equ trap_FS_Seek		-90
++equ trap_SetPbClStatus -91
+ 
+ equ	memset						-101
+ equ	memcpy						-102
+Index: code/ui/ui_syscalls.c
+===================================================================
+--- code/ui/ui_syscalls.c	(revision 3375)
++++ code/ui/ui_syscalls.c	(working copy)
+@@ -403,6 +403,9 @@
+ 	syscall( UI_R_REMAP_SHADER, oldShader, newShader, timeOffset );
+ }
+ 
++void trap_R_SetClipRegion( const float *region ) {
++	syscall( UI_R_SETCLIPREGION, region );
++}
+ qboolean trap_VerifyCDKey( const char *key, const char *chksum) {
+ 	return syscall( UI_VERIFY_CDKEY, key, chksum);
+ }

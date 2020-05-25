@@ -1,0 +1,78 @@
+Index: code/game/ai_dmq3.c
+===================================================================
+--- code/game/ai_dmq3.c	(revision 3456)
++++ code/game/ai_dmq3.c	(working copy)
+@@ -5433,7 +5433,7 @@
+ 	trap_Cvar_Register(&bot_testrchat, "bot_testrchat", "0", 0);
+ 	trap_Cvar_Register(&bot_challenge, "bot_challenge", "0", 0);
+ 	trap_Cvar_Register(&bot_predictobstacles, "bot_predictobstacles", "1", 0);
+-	trap_Cvar_Register(&g_spSkill, "g_spSkill", "2", 0);
++	trap_Cvar_Register(&g_spSkill, "g_spSkill", "4", 0);
+ 	//
+ 	if (gametype == GT_CTF) {
+ 		if (trap_BotGetLevelItemGoal(-1, "Red Flag", &ctf_redflag) < 0)
+Index: code/q3_ui/ui_main.c
+===================================================================
+--- code/q3_ui/ui_main.c	(revision 3456)
++++ code/q3_ui/ui_main.c	(working copy)
+@@ -181,7 +181,7 @@
+ 	{ &ui_spScores5, "g_spScores5", "", CVAR_ARCHIVE },
+ 	{ &ui_spAwards, "g_spAwards", "", CVAR_ARCHIVE },
+ 	{ &ui_spVideos, "g_spVideos", "", CVAR_ARCHIVE },
+-	{ &ui_spSkill, "g_spSkill", "2", CVAR_ARCHIVE | CVAR_LATCH },
++	{ &ui_spSkill, "g_spSkill", "4", CVAR_ARCHIVE | CVAR_LATCH },
+ 
+ 	{ &ui_spSelection, "ui_spSelection", "", CVAR_ROM },
+ 
+Index: code/q3_ui/ui_splevel.c
+===================================================================
+--- code/q3_ui/ui_splevel.c	(revision 3456)
++++ code/q3_ui/ui_splevel.c	(working copy)
+@@ -728,7 +728,7 @@
+ 
+ 	skill = (int)trap_Cvar_VariableValue( "g_spSkill" );
+ 	if( skill < 1 || skill > 5 ) {
+-		trap_Cvar_Set( "g_spSkill", "2" );
++		trap_Cvar_Set( "g_spSkill", "4" );
+ 	}
+ 
+ 	memset( &levelMenuInfo, 0, sizeof(levelMenuInfo) );
+Index: code/q3_ui/ui_spskill.c
+===================================================================
+--- code/q3_ui/ui_spskill.c	(revision 3456)
++++ code/q3_ui/ui_spskill.c	(working copy)
+@@ -114,7 +114,7 @@
+ 	SetSkillColor( (int)trap_Cvar_VariableValue( "g_spSkill" ), color_red );
+ 
+ 	id = ((menucommon_s*)ptr)->id;
+-	skill = id - ID_BABY + 1;
++	skill = id - ID_BABY + 3;
+ 	trap_Cvar_SetValue( "g_spSkill", skill );
+ 
+ 	SetSkillColor( skill, color_white );
+Index: code/q3_ui/ui_startserver.c
+===================================================================
+--- code/q3_ui/ui_startserver.c	(revision 3456)
++++ code/q3_ui/ui_startserver.c	(working copy)
+@@ -1366,7 +1366,7 @@
+ 	s_serveroptions.botSkill.generic.x				= 32 + (strlen(s_serveroptions.botSkill.generic.name) + 2 ) * SMALLCHAR_WIDTH;
+ 	s_serveroptions.botSkill.generic.y				= y;
+ 	s_serveroptions.botSkill.itemnames				= botSkill_list;
+-	s_serveroptions.botSkill.curvalue				= 1;
++	s_serveroptions.botSkill.curvalue				= 3;
+ 
+ 	y += ( 2 * SMALLCHAR_HEIGHT );
+ 	s_serveroptions.player0.generic.type			= MTYPE_TEXT;
+Index: code/ui/ui_main.c
+===================================================================
+--- code/ui/ui_main.c	(revision 3456)
++++ code/ui/ui_main.c	(working copy)
+@@ -5684,7 +5684,7 @@
+ static cvarTable_t		cvarTable[] = {
+ 	{ &ui_arenasFile, "g_arenasFile", "", CVAR_INIT|CVAR_ROM },
+ 	{ &ui_botsFile, "g_botsFile", "", CVAR_INIT|CVAR_ROM },
+-	{ &ui_spSkill, "g_spSkill", "2", CVAR_ARCHIVE },
++	{ &ui_spSkill, "g_spSkill", "4", CVAR_ARCHIVE },
+ 
+ 	{ &ui_browserShowFull, "ui_browserShowFull", "1", CVAR_ARCHIVE },
+ 	{ &ui_browserShowEmpty, "ui_browserShowEmpty", "1", CVAR_ARCHIVE },

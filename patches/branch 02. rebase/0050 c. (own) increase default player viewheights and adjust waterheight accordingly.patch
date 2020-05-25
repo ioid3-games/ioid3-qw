@@ -1,0 +1,35 @@
+Index: code/game/bg_pmove.c
+===================================================================
+--- code/game/bg_pmove.c	(revision 3345)
++++ code/game/bg_pmove.c	(working copy)
+@@ -416,13 +416,13 @@
+ 	VectorNormalize (flatforward);
+ 
+ 	VectorMA (pm->ps->origin, 30, flatforward, spot);
+-	spot[2] += 4;
++	spot[2] += 6; // Tobias CHECK: compensate for the new viewheight to get out of water with ease again (but why do other games not need this?), AND I think this fixes the issue with bots hanging around in water (in q3dm12 BFG room).
+ 	cont = pm->pointcontents (spot, pm->ps->clientNum );
+ 	if ( !(cont & CONTENTS_SOLID) ) {
+ 		return qfalse;
+ 	}
+ 
+-	spot[2] += 16;
++	spot[2] += 24; // Tobias CHECK: compensate for the new viewheight to get out of water with ease again (but why do other games not need this?), AND I think this fixes the issue with bots hanging around in water (in q3dm12 BFG room).
+ 	cont = pm->pointcontents (spot, pm->ps->clientNum );
+ 	if ( cont & (CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BODY) ) {
+ 		return qfalse;
+Index: code/game/bg_public.h
+===================================================================
+--- code/game/bg_public.h	(revision 3345)
++++ code/game/bg_public.h	(working copy)
+@@ -47,8 +47,8 @@
+ #define	VOTE_TIME			30000	// 30 seconds before vote times out
+ 
+ #define	MINS_Z				-24
+-#define	DEFAULT_VIEWHEIGHT	26
+-#define CROUCH_VIEWHEIGHT	12
++#define	DEFAULT_VIEWHEIGHT	40	// increased from 26 to 40 factor: ~1.54
++#define CROUCH_VIEWHEIGHT	20	// increased from 12 to 20 factor: ~1.66
+ #define	DEAD_VIEWHEIGHT		-16
+ 
+ #define STEPSIZE			18

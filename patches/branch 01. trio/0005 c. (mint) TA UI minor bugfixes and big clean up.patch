@@ -1,0 +1,1196 @@
+Index: code/cgame/cg_draw.c
+===================================================================
+--- code/cgame/cg_draw.c	(revision 3325)
++++ code/cgame/cg_draw.c	(working copy)
+@@ -836,7 +836,7 @@
+ 		if ( !total ) {
+ 			total = 1;
+ 		}
+-		fps = 1000 * FPS_FRAMES / total;
++		fps = 1000 * FPS_FRAMES / (float)total;
+ 
+ 		s = va( "%ifps", fps );
+ 		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
+Index: code/server/sv_init.c
+===================================================================
+--- code/server/sv_init.c	(revision 3325)
++++ code/server/sv_init.c	(working copy)
+@@ -631,8 +631,8 @@
+ 
+ 	// serverinfo vars
+ 	Cvar_Get ("dmflags", "0", CVAR_SERVERINFO);
+-	Cvar_Get ("fraglimit", "20", CVAR_SERVERINFO);
+-	Cvar_Get ("timelimit", "0", CVAR_SERVERINFO);
++	Cvar_Get ("fraglimit", "0", CVAR_SERVERINFO);
++	Cvar_Get ("timelimit", "15", CVAR_SERVERINFO);
+ 	sv_gametype = Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_LATCH );
+ 	Cvar_Get ("sv_keywords", "", CVAR_SERVERINFO);
+ 	sv_mapname = Cvar_Get ("mapname", "nomap", CVAR_SERVERINFO | CVAR_ROM);
+Index: code/ui/ui_atoms.c
+===================================================================
+--- code/ui/ui_atoms.c	(revision 3325)
++++ code/ui/ui_atoms.c	(working copy)
+@@ -27,8 +27,6 @@
+ **********************************************************************/
+ #include "ui_local.h"
+ 
+-qboolean		m_entersound;		// after a frame, so caching won't disrupt the sound
+-
+ void QDECL Com_Error( int level, const char *error, ... ) {
+ 	va_list		argptr;
+ 	char		text[1024];
+@@ -51,9 +49,7 @@
+ 	trap_Print( text );
+ }
+ 
+-qboolean newUI = qfalse;
+ 
+-
+ /*
+ =================
+ UI_ClampCvar
+@@ -346,9 +342,6 @@
+ 
+ 	cmd = UI_Argv( 0 );
+ 
+-	// ensure minimum menu data is available
+-	//Menu_Cache();
+-
+ 	if ( Q_stricmp (cmd, "ui_test") == 0 ) {
+ 		UI_ShowPostGame(qtrue);
+ 		return qtrue;
+Index: code/ui/ui_gameinfo.c
+===================================================================
+--- code/ui/ui_gameinfo.c	(revision 3325)
++++ code/ui/ui_gameinfo.c	(working copy)
+@@ -38,11 +38,6 @@
+ static int		ui_numArenas;
+ static char		*ui_arenaInfos[MAX_ARENAS];
+ 
+-#ifndef MISSIONPACK
+-static int		ui_numSinglePlayerArenas;
+-static int		ui_numSpecialSinglePlayerArenas;
+-#endif
+-
+ /*
+ ===============
+ UI_ParseInfos
+Index: code/ui/ui_local.h
+===================================================================
+--- code/ui/ui_local.h	(revision 3325)
++++ code/ui/ui_local.h	(working copy)
+@@ -32,35 +32,10 @@
+ 
+ // global display context
+ 
+-extern vmCvar_t	ui_ffa_fraglimit;
+-extern vmCvar_t	ui_ffa_timelimit;
+-
+-extern vmCvar_t	ui_tourney_fraglimit;
+-extern vmCvar_t	ui_tourney_timelimit;
+-
+-extern vmCvar_t	ui_team_fraglimit;
+-extern vmCvar_t	ui_team_timelimit;
+-extern vmCvar_t	ui_team_friendly;
+-
+-extern vmCvar_t	ui_ctf_capturelimit;
+-extern vmCvar_t	ui_ctf_timelimit;
+-extern vmCvar_t	ui_ctf_friendly;
+-
+ extern vmCvar_t	ui_arenasFile;
+ extern vmCvar_t	ui_botsFile;
+-extern vmCvar_t	ui_spScores1;
+-extern vmCvar_t	ui_spScores2;
+-extern vmCvar_t	ui_spScores3;
+-extern vmCvar_t	ui_spScores4;
+-extern vmCvar_t	ui_spScores5;
+-extern vmCvar_t	ui_spAwards;
+-extern vmCvar_t	ui_spVideos;
+ extern vmCvar_t	ui_spSkill;
+ 
+-extern vmCvar_t	ui_spSelection;
+-
+-extern vmCvar_t	ui_browserMaster;
+-extern vmCvar_t	ui_browserGameType;
+ extern vmCvar_t	ui_browserShowFull;
+ extern vmCvar_t	ui_browserShowEmpty;
+ 
+@@ -69,23 +44,6 @@
+ extern vmCvar_t	ui_drawCrosshairNames;
+ extern vmCvar_t	ui_marks;
+ 
+-extern vmCvar_t	ui_server1;
+-extern vmCvar_t	ui_server2;
+-extern vmCvar_t	ui_server3;
+-extern vmCvar_t	ui_server4;
+-extern vmCvar_t	ui_server5;
+-extern vmCvar_t	ui_server6;
+-extern vmCvar_t	ui_server7;
+-extern vmCvar_t	ui_server8;
+-extern vmCvar_t	ui_server9;
+-extern vmCvar_t	ui_server10;
+-extern vmCvar_t	ui_server11;
+-extern vmCvar_t	ui_server12;
+-extern vmCvar_t	ui_server13;
+-extern vmCvar_t	ui_server14;
+-extern vmCvar_t	ui_server15;
+-extern vmCvar_t	ui_server16;
+-
+ extern vmCvar_t	ui_cdkey;
+ extern vmCvar_t	ui_cdkeychecked;
+ 
+@@ -132,180 +90,6 @@
+ 
+ 
+ 
+-//
+-// ui_qmenu.c
+-//
+-
+-#define RCOLUMN_OFFSET			( BIGCHAR_WIDTH )
+-#define LCOLUMN_OFFSET			(-BIGCHAR_WIDTH )
+-
+-#define SLIDER_RANGE			10
+-#define	MAX_EDIT_LINE			256
+-
+-#define MAX_MENUDEPTH			8
+-#define MAX_MENUITEMS			96
+-
+-#define MTYPE_NULL				0
+-#define MTYPE_SLIDER			1	
+-#define MTYPE_ACTION			2
+-#define MTYPE_SPINCONTROL		3
+-#define MTYPE_FIELD				4
+-#define MTYPE_RADIOBUTTON		5
+-#define MTYPE_BITMAP			6	
+-#define MTYPE_TEXT				7
+-#define MTYPE_SCROLLLIST		8
+-#define MTYPE_PTEXT				9
+-#define MTYPE_BTEXT				10
+-
+-#define QMF_BLINK				0x00000001
+-#define QMF_SMALLFONT			0x00000002
+-#define QMF_LEFT_JUSTIFY		0x00000004
+-#define QMF_CENTER_JUSTIFY		0x00000008
+-#define QMF_RIGHT_JUSTIFY		0x00000010
+-#define QMF_NUMBERSONLY			0x00000020	// edit field is only numbers
+-#define QMF_HIGHLIGHT			0x00000040
+-#define QMF_HIGHLIGHT_IF_FOCUS	0x00000080	// steady focus
+-#define QMF_PULSEIFFOCUS		0x00000100	// pulse if focus
+-#define QMF_HASMOUSEFOCUS		0x00000200
+-#define QMF_NOONOFFTEXT			0x00000400
+-#define QMF_MOUSEONLY			0x00000800	// only mouse input allowed
+-#define QMF_HIDDEN				0x00001000	// skips drawing
+-#define QMF_GRAYED				0x00002000	// grays and disables
+-#define QMF_INACTIVE			0x00004000	// disables any input
+-#define QMF_NODEFAULTINIT		0x00008000	// skip default initialization
+-#define QMF_OWNERDRAW			0x00010000
+-#define QMF_PULSE				0x00020000
+-#define QMF_LOWERCASE			0x00040000	// edit field is all lower case
+-#define QMF_UPPERCASE			0x00080000	// edit field is all upper case
+-#define QMF_SILENT				0x00100000
+-
+-// callback notifications
+-#define QM_GOTFOCUS				1
+-#define QM_LOSTFOCUS			2
+-#define QM_ACTIVATED			3
+-
+-typedef struct _tag_menuframework
+-{
+-	int	cursor;
+-	int cursor_prev;
+-
+-	int	nitems;
+-	void *items[MAX_MENUITEMS];
+-
+-	void (*draw) (void);
+-	sfxHandle_t (*key) (int key);
+-
+-	qboolean	wrapAround;
+-	qboolean	fullscreen;
+-	qboolean	showlogo;
+-} menuframework_s;
+-
+-typedef struct
+-{
+-	int type;
+-	const char *name;
+-	int	id;
+-	int x, y;
+-	int left;
+-	int	top;
+-	int	right;
+-	int	bottom;
+-	menuframework_s *parent;
+-	int menuPosition;
+-	unsigned flags;
+-
+-	void (*callback)( void *self, int event );
+-	void (*statusbar)( void *self );
+-	void (*ownerdraw)( void *self );
+-} menucommon_s;
+-
+-typedef struct {
+-	int		cursor;
+-	int		scroll;
+-	int		widthInChars;
+-	char	buffer[MAX_EDIT_LINE];
+-	int		maxchars;
+-} mfield_t;
+-
+-typedef struct
+-{
+-	menucommon_s	generic;
+-	mfield_t		field;
+-} menufield_s;
+-
+-typedef struct 
+-{
+-	menucommon_s generic;
+-
+-	float minvalue;
+-	float maxvalue;
+-	float curvalue;
+-
+-	float range;
+-} menuslider_s;
+-
+-typedef struct
+-{
+-	menucommon_s generic;
+-
+-	int	oldvalue;
+-	int curvalue;
+-	int	numitems;
+-	int	top;
+-		
+-	const char **itemnames;
+-
+-	int width;
+-	int height;
+-	int	columns;
+-	int	separation;
+-} menulist_s;
+-
+-typedef struct
+-{
+-	menucommon_s generic;
+-} menuaction_s;
+-
+-typedef struct
+-{
+-	menucommon_s generic;
+-	int curvalue;
+-} menuradiobutton_s;
+-
+-typedef struct
+-{
+-	menucommon_s	generic;
+-	char*			focuspic;	
+-	char*			errorpic;
+-	qhandle_t		shader;
+-	qhandle_t		focusshader;
+-	int				width;
+-	int				height;
+-	float*			focuscolor;
+-} menubitmap_s;
+-
+-typedef struct
+-{
+-	menucommon_s	generic;
+-	char*			string;
+-	int				style;
+-	float*			color;
+-} menutext_s;
+-
+-extern void			Menu_Cache( void );
+-extern void			Menu_Focus( menucommon_s *m );
+-extern void			Menu_AddItem( menuframework_s *menu, void *item );
+-extern void			Menu_AdjustCursor( menuframework_s *menu, int dir );
+-extern void			Menu_Draw( menuframework_s *menu );
+-extern void			*Menu_ItemAtCursor( menuframework_s *m );
+-extern sfxHandle_t	Menu_ActivateItem( menuframework_s *s, menucommon_s* item );
+-extern void			Menu_SetCursor( menuframework_s *s, int cursor );
+-extern void			Menu_SetCursorToItem( menuframework_s *m, void* ptr );
+-extern sfxHandle_t	Menu_DefaultKey( menuframework_s *s, int key );
+-extern void			Bitmap_Init( menubitmap_s *b );
+-extern void			Bitmap_Draw( menubitmap_s *b );
+-extern void			ScrollList_Draw( menulist_s *l );
+-extern sfxHandle_t	ScrollList_Key( menulist_s *l, int key );
+ extern sfxHandle_t	menu_in_sound;
+ extern sfxHandle_t	menu_move_sound;
+ extern sfxHandle_t	menu_out_sound;
+@@ -338,17 +122,6 @@
+ extern char	*ui_medalSounds[];
+ 
+ //
+-// ui_mfield.c
+-//
+-extern void			MField_Clear( mfield_t *edit );
+-extern void			MField_KeyDownEvent( mfield_t *edit, int key );
+-extern void			MField_CharEvent( mfield_t *edit, int ch );
+-extern void			MField_Draw( mfield_t *edit, int x, int y, int style, vec4_t color );
+-extern void			MenuField_Init( menufield_s* m );
+-extern void			MenuField_Draw( menufield_s *f );
+-extern sfxHandle_t	MenuField_Key( menufield_s* m, int* key );
+-
+-//
+ // ui_main.c
+ //
+ void UI_Report( void );
+@@ -360,142 +133,11 @@
+ void UI_ClearScores( void );
+ void UI_LoadArenas(void);
+ void UI_LoadArenasIntoMapList(void);
+-
+-//
+-// ui_menu.c
+-//
+-extern void MainMenu_Cache( void );
+-extern void UI_MainMenu(void);
+-extern void UI_RegisterCvars( void );
+-extern void UI_UpdateCvars( void );
+-
+-//
+-// ui_credits.c
+-//
+-extern void UI_CreditMenu( void );
+-
+-//
+-// ui_ingame.c
+-//
+-extern void InGame_Cache( void );
+-extern void UI_InGameMenu(void);
+-
+-//
+-// ui_confirm.c
+-//
+-extern void ConfirmMenu_Cache( void );
+-extern void UI_ConfirmMenu( const char *question, void (*draw)( void ), void (*action)( qboolean result ) );
+-
+-//
+-// ui_setup.c
+-//
+-extern void UI_SetupMenu_Cache( void );
+-extern void UI_SetupMenu(void);
+-
+-//
+-// ui_team.c
+-//
+-extern void UI_TeamMainMenu( void );
+-extern void TeamMain_Cache( void );
+-
+-//
+-// ui_connect.c
+-//
++void UI_RegisterCvars( void );
++void UI_UpdateCvars( void );
+ extern void UI_DrawConnectScreen( qboolean overlay );
+ 
+ //
+-// ui_controls2.c
+-//
+-extern void UI_ControlsMenu( void );
+-extern void Controls_Cache( void );
+-
+-//
+-// ui_demo2.c
+-//
+-extern void UI_DemosMenu( void );
+-extern void Demos_Cache( void );
+-
+-//
+-// ui_cinematics.c
+-//
+-extern void UI_CinematicsMenu( void );
+-extern void UI_CinematicsMenu_f( void );
+-extern void UI_CinematicsMenu_Cache( void );
+-
+-//
+-// ui_mods.c
+-//
+-extern void UI_ModsMenu( void );
+-extern void UI_ModsMenu_Cache( void );
+-
+-//
+-// ui_cdkey.c
+-//
+-extern void UI_CDKeyMenu( void );
+-extern void UI_CDKeyMenu_Cache( void );
+-extern void UI_CDKeyMenu_f( void );
+-
+-//
+-// ui_playermodel.c
+-//
+-extern void UI_PlayerModelMenu( void );
+-extern void PlayerModel_Cache( void );
+-
+-//
+-// ui_playersettings.c
+-//
+-extern void UI_PlayerSettingsMenu( void );
+-extern void PlayerSettings_Cache( void );
+-
+-//
+-// ui_preferences.c
+-//
+-extern void UI_PreferencesMenu( void );
+-extern void Preferences_Cache( void );
+-
+-//
+-// ui_specifyleague.c
+-//
+-extern void UI_SpecifyLeagueMenu( void );
+-extern void SpecifyLeague_Cache( void );
+-
+-//
+-// ui_specifyserver.c
+-//
+-extern void UI_SpecifyServerMenu( void );
+-extern void SpecifyServer_Cache( void );
+-
+-//
+-// ui_servers2.c
+-//
+-#define MAX_FAVORITESERVERS 16
+-
+-extern void UI_ArenaServersMenu( void );
+-extern void ArenaServers_Cache( void );
+-
+-//
+-// ui_startserver.c
+-//
+-extern void UI_StartServerMenu( qboolean multiplayer );
+-extern void StartServer_Cache( void );
+-extern void ServerOptions_Cache( void );
+-extern void UI_BotSelectMenu( char *bot );
+-extern void UI_BotSelectMenu_Cache( void );
+-
+-//
+-// ui_serverinfo.c
+-//
+-extern void UI_ServerInfoMenu( void );
+-extern void ServerInfo_Cache( void );
+-
+-//
+-// ui_video.c
+-//
+-extern void UI_GraphicsOptionsMenu( void );
+-extern void GraphicsOptions_Cache( void );
+-extern void DriverInfo_Cache( void );
+-
+-//
+ // ui_players.c
+ //
+ 
+@@ -576,34 +218,6 @@
+ void UI_PlayerInfo_SetInfo( playerInfo_t *pi, int legsAnim, int torsoAnim, vec3_t viewAngles, vec3_t moveAngles, weapon_t weaponNum, qboolean chat );
+ qboolean UI_RegisterClientModelname( playerInfo_t *pi, const char *modelSkinName , const char *headName, const char *teamName);
+ 
+-//
+-// ui_atoms.c
+-//
+-// this is only used in the old ui, the new ui has its own version
+-typedef struct {
+-	int					frametime;
+-	int					realtime;
+-	int					cursorx;
+-	int					cursory;
+-	glconfig_t 	glconfig;
+-	qboolean		debug;
+-	qhandle_t		whiteShader;
+-	qhandle_t		menuBackShader;
+-	qhandle_t		menuBackNoLogoShader;
+-	qhandle_t		charset;
+-	qhandle_t		charsetProp;
+-	qhandle_t		charsetPropGlow;
+-	qhandle_t		charsetPropB;
+-	qhandle_t		cursor;
+-	qhandle_t		rb_on;
+-	qhandle_t		rb_off;
+-	float				scale;
+-	float				bias;
+-	qboolean		demoversion;
+-	qboolean		firstdraw;
+-} uiStatic_t;
+-
+-
+ // new ui stuff
+ #define UI_NUMFX 7
+ #define MAX_HEADS 64
+@@ -877,8 +491,6 @@
+ extern void			UI_DrawTextBox (int x, int y, int width, int lines);
+ extern qboolean		UI_IsFullscreen( void );
+ extern void			UI_SetActiveMenu( uiMenuCommand_t menu );
+-extern void			UI_PushMenu ( menuframework_s *menu );
+-extern void			UI_PopMenu (void);
+ extern void			UI_ForceMenuOff (void);
+ extern char			*UI_Argv( int arg );
+ extern char			*UI_Cvar_VariableString( const char *var_name );
+@@ -885,36 +497,10 @@
+ extern void			UI_Refresh( int time );
+ extern void			UI_KeyEvent( int key );
+ extern void			UI_StartDemoLoop( void );
+-extern qboolean		m_entersound;
++
+ void UI_LoadBestScores(const char *map, int game);
+-extern uiStatic_t	uis;
+ 
+ //
+-// ui_spLevel.c
+-//
+-void UI_SPLevelMenu_Cache( void );
+-void UI_SPLevelMenu( void );
+-void UI_SPLevelMenu_f( void );
+-void UI_SPLevelMenu_ReInit( void );
+-
+-//
+-// ui_spArena.c
+-//
+-void UI_SPArena_Start( const char *arenaInfo );
+-
+-//
+-// ui_spPostgame.c
+-//
+-void UI_SPPostgameMenu_Cache( void );
+-void UI_SPPostgameMenu_f( void );
+-
+-//
+-// ui_spSkill.c
+-//
+-void UI_SPSkillMenu( const char *arenaInfo );
+-void UI_SPSkillMenu_Cache( void );
+-
+-//
+ // ui_syscalls.c
+ //
+ void			trap_Print( const char *string );
+@@ -1002,73 +588,9 @@
+ void			trap_SetPbClStatus( int status );
+ 
+ //
+-// ui_addbots.c
+-//
+-void UI_AddBots_Cache( void );
+-void UI_AddBotsMenu( void );
+-
+-//
+-// ui_removebots.c
+-//
+-void UI_RemoveBots_Cache( void );
+-void UI_RemoveBotsMenu( void );
+-
+-//
+-// ui_teamorders.c
+-//
+-extern void UI_TeamOrdersMenu( void );
+-extern void UI_TeamOrdersMenu_f( void );
+-extern void UI_TeamOrdersMenu_Cache( void );
+-
+-//
+-// ui_loadconfig.c
+-//
+-void UI_LoadConfig_Cache( void );
+-void UI_LoadConfigMenu( void );
+-
+-//
+-// ui_saveconfig.c
+-//
+-void UI_SaveConfigMenu_Cache( void );
+-void UI_SaveConfigMenu( void );
+-
+-//
+-// ui_display.c
+-//
+-void UI_DisplayOptionsMenu_Cache( void );
+-void UI_DisplayOptionsMenu( void );
+-
+-//
+-// ui_sound.c
+-//
+-void UI_SoundOptionsMenu_Cache( void );
+-void UI_SoundOptionsMenu( void );
+-
+-//
+-// ui_network.c
+-//
+-void UI_NetworkOptionsMenu_Cache( void );
+-void UI_NetworkOptionsMenu( void );
+-
+-//
+ // ui_gameinfo.c
+ //
+-typedef enum {
+-	AWARD_ACCURACY,
+-	AWARD_IMPRESSIVE,
+-	AWARD_EXCELLENT,
+-	AWARD_GAUNTLET,
+-	AWARD_FRAGS,
+-	AWARD_PERFECT
+-} awardType_t;
+ 
+-const char *UI_GetArenaInfoByNumber( int num );
+-const char *UI_GetArenaInfoByMap( const char *map );
+-const char *UI_GetSpecialArenaInfo( const char *tag );
+-int UI_GetNumArenas( void );
+-int UI_GetNumSPArenas( void );
+-int UI_GetNumSPTiers( void );
+-
+ char *UI_GetBotInfoByNumber( int num );
+ char *UI_GetBotInfoByName( const char *name );
+ int UI_GetNumBots( void );
+@@ -1075,40 +597,6 @@
+ void UI_LoadBots( void );
+ char *UI_GetBotNameByNumber( int num );
+ 
+-void UI_GetBestScore( int level, int *score, int *skill );
+-void UI_SetBestScore( int level, int score );
+-int UI_TierCompleted( int levelWon );
+-qboolean UI_ShowTierVideo( int tier );
+-qboolean UI_CanShowTierVideo( int tier );
+-int  UI_GetCurrentGame( void );
+-void UI_NewGame( void );
+-void UI_LogAwardData( int award, int data );
+-int UI_GetAwardLevel( int award );
+-
+-void UI_SPUnlock_f( void );
+-void UI_SPUnlockMedals_f( void );
+-
+-void UI_InitGameinfo( void );
+-
+-//
+-// ui_login.c
+-//
+-void Login_Cache( void );
+-void UI_LoginMenu( void );
+-
+-//
+-// ui_signup.c
+-//
+-void Signup_Cache( void );
+-void UI_SignupMenu( void );
+-
+-//
+-// ui_rankstatus.c
+-//
+-void RankStatus_Cache( void );
+-void UI_RankStatusMenu( void );
+-
+-
+ // new ui 
+ 
+ #define ASSET_BACKGROUND "uiBackground"
+Index: code/ui/ui_main.c
+===================================================================
+--- code/ui/ui_main.c	(revision 3325)
++++ code/ui/ui_main.c	(working copy)
+@@ -75,19 +75,6 @@
+ };
+ static const int numNetSources = ARRAY_LEN( netSources );
+ 
+-static const serverFilter_t serverFilters[] = {
+-	{"All", "" },
+-	{"Quake 3 Arena", "" },
+-	{"Team Arena", BASETA },
+-	{"Rocket Arena", "arena" },
+-	{"Alliance", "alliance20" },
+-	{"Weapons Factory Arena", "wfa" },
+-	{"OSP", "osp" },
+-};
+-
+-static const int numServerFilters = ARRAY_LEN( serverFilters );
+-
+-
+ static const char *teamArenaGameTypes[] = {
+ 	"FFA",
+ 	"TOURNAMENT",
+@@ -108,10 +95,6 @@
+ 	"UDP6"
+ };
+ 
+-#ifndef MISSIONPACK
+-static char quake3worldMessage[] = "Visit www.quake3world.com - News, Community, Events, Files";
+-#endif
+-
+ static int gamecodetoui[] = {4,2,3,0,5,1,6};
+ static int uitogamecode[] = {4,6,2,3,1,5,7};
+ 
+@@ -612,7 +595,7 @@
+ 		if ( !total ) {
+ 			total = 1;
+ 		}
+-		uiInfo.uiDC.FPS = 1000 * UI_FPS_FRAMES / total;
++		uiInfo.uiDC.FPS = 1000 * UI_FPS_FRAMES / (float)total;
+ 	}
+ 
+ 
+@@ -1013,11 +996,25 @@
+ 	}
+ }
+ 
++const char *UI_FilterDescription( int value ) {
++	if ( value <= 0 || value > uiInfo.modCount ) {
++		return "All";
++	}
+ 
++	return uiInfo.modList[value - 1].modDescr;
++}
++
++const char *UI_FilterDir( int value ) {
++	if ( value <= 0 || value > uiInfo.modCount ) {
++		return "";
++	}
++
++	return uiInfo.modList[value - 1].modName;
++}
++
++
++
+ static const char *handicapValues[] = {"None","95","90","85","80","75","70","65","60","55","50","45","40","35","30","25","20","15","10","5",NULL};
+-#ifndef MISSIONPACK
+-static int numHandicaps = ARRAY_LEN(handicapValues);
+-#endif
+ 
+ static void UI_DrawHandicap(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
+   int i, h;
+@@ -1347,10 +1344,7 @@
+ 
+ 
+ static void UI_DrawNetFilter(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
+-	if (ui_serverFilterType.integer < 0 || ui_serverFilterType.integer >= numServerFilters) {
+-		ui_serverFilterType.integer = 0;
+-	}
+-  Text_Paint(rect->x, rect->y, scale, color, va("Filter: %s", serverFilters[ui_serverFilterType.integer].description), 0, 0, textStyle);
++  Text_Paint(rect->x, rect->y, scale, color, va("Filter: %s", UI_FilterDescription( ui_serverFilterType.integer ) ), 0, 0, textStyle);
+ }
+ 
+ 
+@@ -1416,13 +1410,6 @@
+ }
+ 
+ 
+-#ifndef MISSIONPACK
+-static const char *UI_OpponentLeaderName(void) {
+-  int i = UI_TeamIndexFromName(UI_Cvar_VariableString("ui_opponentName"));
+-	return uiInfo.teamList[i].teamMembers[0];
+-}
+-#endif
+-
+ static const char *UI_AIFromName(const char *name) {
+ 	int j;
+ 	for (j = 0; j < uiInfo.aliasCount; j++) {
+@@ -1430,55 +1417,16 @@
+ 			return uiInfo.aliasList[j].ai;
+ 		}
+ 	}
+-	return "James";
+-}
+-
+-#ifndef MISSIONPACK
+-static const int UI_AIIndex(const char *name) {
+-	int j;
+ 	for (j = 0; j < uiInfo.characterCount; j++) {
+-		if (Q_stricmp(name, uiInfo.characterList[j].name) == 0) {
+-			return j;
++		if (Q_stricmp(uiInfo.characterList[j].name, name) == 0) {
++			return uiInfo.characterList[j].name;
+ 		}
+ 	}
+-	return 0;
++	// Name is listed in team list but not in alias or characters list.
++	Com_Printf( S_COLOR_YELLOW "WARNING: Unknown team character '%s'.\n", name );
++	return name;
+ }
+-#endif
+ 
+-#ifndef MISSIONPACK
+-static const int UI_AIIndexFromName(const char *name) {
+-	int j;
+-	for (j = 0; j < uiInfo.aliasCount; j++) {
+-		if (Q_stricmp(uiInfo.aliasList[j].name, name) == 0) {
+-			return UI_AIIndex(uiInfo.aliasList[j].ai);
+-		}
+-	}
+-	return 0;
+-}
+-#endif
+-
+-
+-#ifndef MISSIONPACK
+-static const char *UI_OpponentLeaderHead(void) {
+-	const char *leader = UI_OpponentLeaderName();
+-	return UI_AIFromName(leader);
+-}
+-#endif
+-
+-#ifndef MISSIONPACK
+-static const char *UI_OpponentLeaderModel(void) {
+-	int i;
+-	const char *head = UI_OpponentLeaderHead();
+-	for (i = 0; i < uiInfo.characterCount; i++) {
+-		if (Q_stricmp(head, uiInfo.characterList[i].name) == 0) {
+-			return uiInfo.characterList[i].base;
+-		}
+-	}
+-	return "James";
+-}
+-#endif
+-
+-
+ static qboolean updateOpponentModel = qtrue;
+ static void UI_DrawOpponent(rectDef_t *rect) {
+   static playerInfo_t info2;
+@@ -1713,10 +1661,7 @@
+ 			s = va("Source: %s", netSources[ui_netSource.integer]);
+ 			break;
+ 		case UI_NETFILTER:
+-			if (ui_serverFilterType.integer < 0 || ui_serverFilterType.integer >= numServerFilters) {
+-				ui_serverFilterType.integer = 0;
+-			}
+-			s = va("Filter: %s", serverFilters[ui_serverFilterType.integer].description );
++			s = va("Filter: %s", UI_FilterDescription( ui_serverFilterType.integer ) );
+ 			break;
+ 		case UI_TIER:
+ 			break;
+@@ -2509,10 +2454,10 @@
+ 	if (select != 0) {
+ 		ui_serverFilterType.integer += select;
+ 
+-		if (ui_serverFilterType.integer >= numServerFilters) {
++		if (ui_serverFilterType.integer > uiInfo.modCount) {
+ 			ui_serverFilterType.integer = 0;
+ 		} else if (ui_serverFilterType.integer < 0) {
+-			ui_serverFilterType.integer = numServerFilters - 1;
++			ui_serverFilterType.integer = uiInfo.modCount;
+ 		}
+ 		UI_BuildServerDisplayList(qtrue);
+ 		return qtrue;
+@@ -3335,6 +3280,8 @@
+ 			UI_StartServerRefresh(qtrue, qfalse);
+ 			UI_BuildServerDisplayList(qtrue);
+ 			UI_FeederSelection(FEEDER_SERVERS, 0);
++
++			UI_LoadMods();
+ 		} else if (Q_stricmp(name, "ServerStatus") == 0) {
+ 			trap_LAN_GetServerAddressString(UI_SourceForLAN(), uiInfo.serverStatus.displayServers[uiInfo.serverStatus.currentServer], uiInfo.serverStatusAddress, sizeof(uiInfo.serverStatusAddress));
+ 			UI_BuildServerStatus(qtrue);
+@@ -3838,7 +3785,7 @@
+ 			}
+ 				
+ 			if (ui_serverFilterType.integer > 0) {
+-				if (Q_stricmp(Info_ValueForKey(info, "game"), serverFilters[ui_serverFilterType.integer].basedir) != 0) {
++				if (Q_stricmp(Info_ValueForKey(info, "game"), UI_FilterDir( ui_serverFilterType.integer ) ) != 0) {
+ 					if (ping > 0) {
+ 						trap_LAN_MarkServerVisible(lanSource, i, qfalse);
+ 					}
+@@ -3880,6 +3827,7 @@
+ 	{"protocol", ""},
+ 	{"timelimit", ""},
+ 	{"fraglimit", ""},
++	{"capturelimit", ""},
+ 	{NULL, NULL}
+ };
+ 
+@@ -4749,7 +4697,17 @@
+     }
+ 
+   }
++}
+ 
++void UI_ValidateTeams( void ) {
++	int i, j;
++
++	// Check for unknown team characters
++	for (i = 0; i < uiInfo.teamCount; i++) {
++		for (j = 0; j < TEAM_MEMBERS; j++) {
++			UI_AIFromName(uiInfo.teamList[i].teamMembers[j]);
++		}
++	}
+ }
+ 
+ 
+@@ -4940,12 +4898,6 @@
+ 	}
+ }
+ 
+-#ifndef MISSIONPACK
+-static int UI_OwnerDraw_Width(int ownerDraw) {
+-  return 0;
+-}
+-#endif
+-
+ static int UI_PlayCinematic(const char *name, float x, float y, float w, float h) {
+   return trap_CIN_PlayCinematic(name, x, y, w, h, (CIN_loop | CIN_silent));
+ }
+@@ -5176,6 +5128,7 @@
+ 	UI_ParseGameInfo("gameinfo.txt");
+ 	UI_LoadArenas();
+ #endif
++	UI_ValidateTeams();
+ 
+ 	menuSet = UI_Cvar_VariableString("ui_menuFiles");
+ 	if (menuSet == NULL || menuSet[0] == '\0') {
+@@ -5297,9 +5250,9 @@
+ 
+ 	// this should be the ONLY way the menu system is brought up
+ 	// ensure minimum menu data is cached
+-  if (Menu_Count() > 0) {
+-		vec3_t v;
+-		v[0] = v[1] = v[2] = 0;
++  if (Menu_Count() <= 0) {
++		return;
++	}
+ 	  switch ( menu ) {
+ 	  case UIMENU_NONE:
+ 			trap_Key_SetCatcher( trap_Key_GetCatcher() & ~KEYCATCH_UI );
+@@ -5360,7 +5313,8 @@
+ 			Menus_CloseAll();
+ 			Menus_ActivateByName("ingame");
+ 		  return;
+-	  }
++		default:
++			Com_Printf( "UI_SetActiveMenu: unknown enum %d\n", menu );
+   }
+ }
+ 
+@@ -5639,35 +5593,10 @@
+ 	int			cvarFlags;
+ } cvarTable_t;
+ 
+-vmCvar_t	ui_ffa_fraglimit;
+-vmCvar_t	ui_ffa_timelimit;
+-
+-vmCvar_t	ui_tourney_fraglimit;
+-vmCvar_t	ui_tourney_timelimit;
+-
+-vmCvar_t	ui_team_fraglimit;
+-vmCvar_t	ui_team_timelimit;
+-vmCvar_t	ui_team_friendly;
+-
+-vmCvar_t	ui_ctf_capturelimit;
+-vmCvar_t	ui_ctf_timelimit;
+-vmCvar_t	ui_ctf_friendly;
+-
+ vmCvar_t	ui_arenasFile;
+ vmCvar_t	ui_botsFile;
+-vmCvar_t	ui_spScores1;
+-vmCvar_t	ui_spScores2;
+-vmCvar_t	ui_spScores3;
+-vmCvar_t	ui_spScores4;
+-vmCvar_t	ui_spScores5;
+-vmCvar_t	ui_spAwards;
+-vmCvar_t	ui_spVideos;
+ vmCvar_t	ui_spSkill;
+ 
+-vmCvar_t	ui_spSelection;
+-
+-vmCvar_t	ui_browserMaster;
+-vmCvar_t	ui_browserGameType;
+ vmCvar_t	ui_browserShowFull;
+ vmCvar_t	ui_browserShowEmpty;
+ 
+@@ -5676,23 +5605,6 @@
+ vmCvar_t	ui_drawCrosshairNames;
+ vmCvar_t	ui_marks;
+ 
+-vmCvar_t	ui_server1;
+-vmCvar_t	ui_server2;
+-vmCvar_t	ui_server3;
+-vmCvar_t	ui_server4;
+-vmCvar_t	ui_server5;
+-vmCvar_t	ui_server6;
+-vmCvar_t	ui_server7;
+-vmCvar_t	ui_server8;
+-vmCvar_t	ui_server9;
+-vmCvar_t	ui_server10;
+-vmCvar_t	ui_server11;
+-vmCvar_t	ui_server12;
+-vmCvar_t	ui_server13;
+-vmCvar_t	ui_server14;
+-vmCvar_t	ui_server15;
+-vmCvar_t	ui_server16;
+-
+ vmCvar_t	ui_cdkeychecked;
+ 
+ vmCvar_t	ui_redteam;
+@@ -5755,40 +5667,13 @@
+ vmCvar_t	ui_Q3Model;
+ vmCvar_t	ui_hudFiles;
+ vmCvar_t	ui_recordSPDemo;
+-vmCvar_t	ui_realCaptureLimit;
+-vmCvar_t	ui_realWarmUp;
+ vmCvar_t	ui_serverStatusTimeOut;
+ 
+ static cvarTable_t		cvarTable[] = {
+-	{ &ui_ffa_fraglimit, "ui_ffa_fraglimit", "50", CVAR_ARCHIVE },
+-	{ &ui_ffa_timelimit, "ui_ffa_timelimit", "15", CVAR_ARCHIVE },
+-
+-	{ &ui_tourney_fraglimit, "ui_tourney_fraglimit", "0", CVAR_ARCHIVE },
+-	{ &ui_tourney_timelimit, "ui_tourney_timelimit", "15", CVAR_ARCHIVE },
+-
+-	{ &ui_team_fraglimit, "ui_team_fraglimit", "0", CVAR_ARCHIVE },
+-	{ &ui_team_timelimit, "ui_team_timelimit", "15", CVAR_ARCHIVE },
+-	{ &ui_team_friendly, "ui_team_friendly",  "1", CVAR_ARCHIVE },
+-
+-	{ &ui_ctf_capturelimit, "ui_ctf_capturelimit", "8", CVAR_ARCHIVE },
+-	{ &ui_ctf_timelimit, "ui_ctf_timelimit", "15", CVAR_ARCHIVE },
+-	{ &ui_ctf_friendly, "ui_ctf_friendly",  "1", CVAR_ARCHIVE },
+-
+ 	{ &ui_arenasFile, "g_arenasFile", "", CVAR_INIT|CVAR_ROM },
+ 	{ &ui_botsFile, "g_botsFile", "", CVAR_INIT|CVAR_ROM },
+-	{ &ui_spScores1, "g_spScores1", "", CVAR_ARCHIVE },
+-	{ &ui_spScores2, "g_spScores2", "", CVAR_ARCHIVE },
+-	{ &ui_spScores3, "g_spScores3", "", CVAR_ARCHIVE },
+-	{ &ui_spScores4, "g_spScores4", "", CVAR_ARCHIVE },
+-	{ &ui_spScores5, "g_spScores5", "", CVAR_ARCHIVE },
+-	{ &ui_spAwards, "g_spAwards", "", CVAR_ARCHIVE },
+-	{ &ui_spVideos, "g_spVideos", "", CVAR_ARCHIVE },
+ 	{ &ui_spSkill, "g_spSkill", "2", CVAR_ARCHIVE },
+ 
+-	{ &ui_spSelection, "ui_spSelection", "", CVAR_ROM },
+-
+-	{ &ui_browserMaster, "ui_browserMaster", "0", CVAR_ARCHIVE },
+-	{ &ui_browserGameType, "ui_browserGameType", "0", CVAR_ARCHIVE },
+ 	{ &ui_browserShowFull, "ui_browserShowFull", "1", CVAR_ARCHIVE },
+ 	{ &ui_browserShowEmpty, "ui_browserShowEmpty", "1", CVAR_ARCHIVE },
+ 
+@@ -5797,22 +5682,6 @@
+ 	{ &ui_drawCrosshairNames, "cg_drawCrosshairNames", "0", CVAR_ARCHIVE },
+ 	{ &ui_marks, "cg_marks", "1", CVAR_ARCHIVE },
+ 
+-	{ &ui_server1, "server1", "", CVAR_ARCHIVE },
+-	{ &ui_server2, "server2", "", CVAR_ARCHIVE },
+-	{ &ui_server3, "server3", "", CVAR_ARCHIVE },
+-	{ &ui_server4, "server4", "", CVAR_ARCHIVE },
+-	{ &ui_server5, "server5", "", CVAR_ARCHIVE },
+-	{ &ui_server6, "server6", "", CVAR_ARCHIVE },
+-	{ &ui_server7, "server7", "", CVAR_ARCHIVE },
+-	{ &ui_server8, "server8", "", CVAR_ARCHIVE },
+-	{ &ui_server9, "server9", "", CVAR_ARCHIVE },
+-	{ &ui_server10, "server10", "", CVAR_ARCHIVE },
+-	{ &ui_server11, "server11", "", CVAR_ARCHIVE },
+-	{ &ui_server12, "server12", "", CVAR_ARCHIVE },
+-	{ &ui_server13, "server13", "", CVAR_ARCHIVE },
+-	{ &ui_server14, "server14", "", CVAR_ARCHIVE },
+-	{ &ui_server15, "server15", "", CVAR_ARCHIVE },
+-	{ &ui_server16, "server16", "", CVAR_ARCHIVE },
+ 	{ &ui_cdkeychecked, "ui_cdkeychecked", "1", CVAR_ROM },
+ 	{ &ui_new, "ui_new", "0", CVAR_TEMP },
+ 	{ &ui_debug, "ui_debug", "0", CVAR_TEMP },
+@@ -5877,8 +5746,16 @@
+ 	{ &ui_hudFiles, "cg_hudFiles", "ui/hud.txt", CVAR_ARCHIVE},
+ 	{ &ui_recordSPDemo, "ui_recordSPDemo", "0", CVAR_ARCHIVE},
+ 	{ &ui_teamArenaFirstRun, "ui_teamArenaFirstRun", "0", CVAR_ARCHIVE},
+-	{ &ui_realWarmUp, "g_warmup", "10", CVAR_ARCHIVE},
+-	{ &ui_realCaptureLimit, "capturelimit", "8", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART},
++	{ NULL, "g_warmup", "10", CVAR_ARCHIVE},
++	{ NULL, "timelimit", "15", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART},
++	{ NULL, "fraglimit", "0", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART},
++	{ NULL, "capturelimit", "8", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART},
++
++	{ NULL, "g_friendlyFire", "1", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART},
++	{ NULL, "g_allowVote", "1", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART},
++	{ NULL, "g_teamAutoJoin", "1", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART},
++	{ NULL, "g_teamForceBalance", "1", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART},
++
+ 	{ &ui_serverStatusTimeOut, "ui_serverStatusTimeOut", "7000", CVAR_ARCHIVE},
+ 
+ 	{ NULL, "ui_videomode", "", CVAR_ROM },
+@@ -5949,23 +5826,6 @@
+ 
+ /*
+ =================
+-ArenaServers_MaxPing
+-=================
+-*/
+-#ifndef MISSIONPACK
+-static int ArenaServers_MaxPing( void ) {
+-	int		maxPing;
+-
+-	maxPing = (int)trap_Cvar_VariableValue( "cl_maxPing" );
+-	if( maxPing < 100 ) {
+-		maxPing = 100;
+-	}
+-	return maxPing;
+-}
+-#endif
+-
+-/*
+-=================
+ UI_DoServerRefresh
+ =================
+ */
+Index: code/ui/ui_players.c
+===================================================================
+--- code/ui/ui_players.c	(revision 3325)
++++ code/ui/ui_players.c	(working copy)
+@@ -88,11 +88,9 @@
+ 		goto tryagain;
+ 	}
+ 
+-	if ( weaponNum == WP_MACHINEGUN || weaponNum == WP_GAUNTLET || weaponNum == WP_BFG ) {
+-		COM_StripExtension( item->world_model[0], path, sizeof(path) );
+-		Q_strcat( path, sizeof(path), "_barrel.md3" );
+-		pi->barrelModel = trap_R_RegisterModel( path );
+-	}
++	COM_StripExtension( item->world_model[0], path, sizeof(path) );
++	Q_strcat( path, sizeof(path), "_barrel.md3" );
++	pi->barrelModel = trap_R_RegisterModel( path );
+ 
+ 	COM_StripExtension( item->world_model[0], path, sizeof(path) );
+ 	Q_strcat( path, sizeof(path), "_flash.md3" );
+@@ -858,7 +856,7 @@
+ 	//
+ 	// add the spinning barrel
+ 	//
+-	if ( pi->realWeapon == WP_MACHINEGUN || pi->realWeapon == WP_GAUNTLET || pi->realWeapon == WP_BFG ) {
++	if ( pi->barrelModel ) {
+ 		vec3_t	angles;
+ 
+ 		memset( &barrel, 0, sizeof(barrel) );
+Index: code/ui/ui_shared.c
+===================================================================
+--- code/ui/ui_shared.c	(revision 3325)
++++ code/ui/ui_shared.c	(working copy)
+@@ -3286,21 +3286,6 @@
+ 
+ static const int g_bindCount = ARRAY_LEN(g_bindings);
+ 
+-#ifndef MISSIONPACK
+-static configcvar_t g_configcvars[] =
+-{
+-	{"cl_run",			0,					0},
+-	{"m_pitch",			0,					0},
+-	{"cg_autoswitch",	0,					0},
+-	{"sensitivity",		0,					0},
+-	{"in_joystick",		0,					0},
+-	{"joy_threshold",	0,					0},
+-	{"m_filter",		0,					0},
+-	{"cl_freelook",		0,					0},
+-	{NULL,				0,					0}
+-};
+-#endif
+-
+ /*
+ =================
+ Controls_GetKeyAssignment
+@@ -5490,7 +5475,6 @@
+ 			listPtr->cursorPos = 0;
+ 			listPtr->startPos = 0;
+ 			listPtr->endPos = 0;
+-			listPtr->cursorPos = 0;
+ 		}
+ 	}
+ }
+@@ -5982,11 +5966,6 @@
+ displayContextDef_t *Display_GetContext(void) {
+ 	return DC;
+ }
+- 
+-#ifndef MISSIONPACK
+-static float captureX;
+-static float captureY;
+-#endif
+ 
+ void *Display_CaptureItem(int x, int y) {
+ 	int i;

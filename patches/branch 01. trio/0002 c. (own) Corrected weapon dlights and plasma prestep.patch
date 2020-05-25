@@ -1,0 +1,119 @@
+Index: code/cgame/cg_weapons.c
+===================================================================
+--- code/cgame/cg_weapons.c	(revision 3455)
++++ code/cgame/cg_weapons.c	(working copy)
+@@ -828,7 +828,7 @@
+ //		weaponInfo->missileModel = cgs.media.invulnerabilityPowerupModel;
+ 		weaponInfo->missileTrailFunc = CG_PlasmaTrail;
+ 		weaponInfo->missileSound = trap_S_RegisterSound( "sound/weapons/plasma/lasfly.wav", qfalse );
+-		MAKERGB( weaponInfo->flashDlightColor, 0.6f, 0.6f, 1.0f );
++		MAKERGB( weaponInfo->flashDlightColor, 0.6f, 0.8f, 1.0f );
+ 		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/plasma/hyprbf1a.wav", qfalse );
+ 		cgs.media.plasmaExplosionShader = trap_R_RegisterShader( "plasmaExplosion" );
+ 		cgs.media.railRingsShader = trap_R_RegisterShader( "railDisc" );
+@@ -836,7 +836,7 @@
+ 
+ 	case WP_RAILGUN:
+ 		weaponInfo->readySound = trap_S_RegisterSound( "sound/weapons/railgun/rg_hum.wav", qfalse );
+-		MAKERGB( weaponInfo->flashDlightColor, 1, 0.5f, 0 );
++		MAKERGB( weaponInfo->flashDlightColor, 1, 0, 0.7f );
+ 		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/railgun/railgf1a.wav", qfalse );
+ 		cgs.media.railExplosionShader = trap_R_RegisterShader( "railExplosion" );
+ 		cgs.media.railRingsShader = trap_R_RegisterShader( "railDisc" );
+@@ -845,7 +845,7 @@
+ 
+ 	case WP_BFG:
+ 		weaponInfo->readySound = trap_S_RegisterSound( "sound/weapons/bfg/bfg_hum.wav", qfalse );
+-		MAKERGB( weaponInfo->flashDlightColor, 1, 0.7f, 1 );
++		MAKERGB( weaponInfo->flashDlightColor, 0.65f, 1.0f, 0.7f );
+ 		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/bfg/bfg_fire.wav", qfalse );
+ 		cgs.media.bfgExplosionShader = trap_R_RegisterShader( "bfgExplosion" );
+ 		weaponInfo->missileModel = trap_R_RegisterModel( "models/weaphits/bfg.md3" );
+@@ -1933,6 +1933,10 @@
+ 		sfx = cgs.media.sfx_rockexp;
+ 		mark = cgs.media.burnMarkShader;
+ 		radius = 32;
++		light = 300;
++		lightColor[0] = 0.65f;
++		lightColor[1] = 1.0f;
++		lightColor[2] = 0.7f;
+ 		isSprite = qtrue;
+ 		break;
+ 	case WP_SHOTGUN:
+Index: code/game/g_missile.c
+===================================================================
+--- code/game/g_missile.c	(revision 3455)
++++ code/game/g_missile.c	(working copy)
+@@ -542,7 +542,7 @@
+ 	bolt->target_ent = NULL;
+ 
+ 	bolt->s.pos.trType = TR_LINEAR;
+-	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
++	bolt->s.pos.trTime = level.time;
+ 	VectorCopy( start, bolt->s.pos.trBase );
+ 	VectorScale( dir, 2000, bolt->s.pos.trDelta );
+ 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
+Index: code/q3_ui/ui_players.c
+===================================================================
+--- code/q3_ui/ui_players.c	(revision 3455)
++++ code/q3_ui/ui_players.c	(working copy)
+@@ -111,7 +111,7 @@
+ 		break;
+ 
+ 	case WP_GRENADE_LAUNCHER:
+-		MAKERGB( pi->flashDlightColor, 1, 0.7f, 0.5f );
++		MAKERGB( pi->flashDlightColor, 1, 0.7f, 0 );
+ 		break;
+ 
+ 	case WP_ROCKET_LAUNCHER:
+@@ -123,15 +123,15 @@
+ 		break;
+ 
+ 	case WP_RAILGUN:
+-		MAKERGB( pi->flashDlightColor, 1, 0.5f, 0 );
++		MAKERGB( pi->flashDlightColor, 1, 0, 0.7f );
+ 		break;
+ 
+ 	case WP_PLASMAGUN:
+-		MAKERGB( pi->flashDlightColor, 0.6f, 0.6f, 1 );
++		MAKERGB( pi->flashDlightColor, 0.6f, 0.8f, 1 );
+ 		break;
+ 
+ 	case WP_BFG:
+-		MAKERGB( pi->flashDlightColor, 1, 0.7f, 1 );
++		MAKERGB( pi->flashDlightColor, 0.65f, 1, 0.7f );
+ 		break;
+ 
+ 	case WP_GRAPPLING_HOOK:
+Index: code/ui/ui_players.c
+===================================================================
+--- code/ui/ui_players.c	(revision 3455)
++++ code/ui/ui_players.c	(working copy)
+@@ -110,7 +110,7 @@
+ 		break;
+ 
+ 	case WP_GRENADE_LAUNCHER:
+-		MAKERGB( pi->flashDlightColor, 1, 0.7f, 0.5f );
++		MAKERGB( pi->flashDlightColor, 1, 0.7f, 0 );
+ 		break;
+ 
+ 	case WP_ROCKET_LAUNCHER:
+@@ -122,15 +122,15 @@
+ 		break;
+ 
+ 	case WP_RAILGUN:
+-		MAKERGB( pi->flashDlightColor, 1, 0.5f, 0 );
++		MAKERGB( pi->flashDlightColor, 1, 0, 0.7f );
+ 		break;
+ 
+ 	case WP_PLASMAGUN:
+-		MAKERGB( pi->flashDlightColor, 0.6f, 0.6f, 1 );
++		MAKERGB( pi->flashDlightColor, 0.6f, 0.8f, 1 );
+ 		break;
+ 
+ 	case WP_BFG:
+-		MAKERGB( pi->flashDlightColor, 1, 0.7f, 1 );
++		MAKERGB( pi->flashDlightColor, 0.65f, 1, 0.7f );
+ 		break;
+ 
+ 	case WP_GRAPPLING_HOOK:

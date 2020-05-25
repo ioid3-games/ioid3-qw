@@ -1,0 +1,22 @@
+Index: code/game/bg_pmove.c
+===================================================================
+--- code/game/bg_pmove.c	(revision 3373)
++++ code/game/bg_pmove.c	(working copy)
+@@ -667,8 +667,6 @@
+ 	wishspeed = VectorNormalize(wishdir);
+ 	wishspeed *= scale;
+ 
+-	// not on ground, so little effect on velocity
+-	PM_Accelerate (wishdir, wishspeed, pm_airaccelerate);
+ 
+ 	// we may have a ground plane that is very steep, even
+ 	// though we don't have a groundentity
+@@ -689,6 +687,8 @@
+ #endif
+ 
+ 	PM_StepSlideMove ( qtrue );
++	// not on ground, so little effect on velocity
++	PM_Accelerate (wishdir, wishspeed, pm_airaccelerate);
+ }
+ 
+ /*

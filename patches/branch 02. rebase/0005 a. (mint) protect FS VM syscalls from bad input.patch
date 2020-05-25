@@ -1,0 +1,141 @@
+Index: code/qcommon/files.c
+===================================================================
+--- code/qcommon/files.c	(revision 106)
++++ code/qcommon/files.c	(working copy)
+@@ -810,6 +810,10 @@
+ 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
+ 	}
+ 
++	if ( !from || !*from || !to || !*to || Q_stricmp( from, to ) == 0 ) {
++		return;
++	}
++
+ 	// don't let sound stutter
+ 	S_ClearSoundBuffer();
+ 
+@@ -844,6 +848,10 @@
+ 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
+ 	}
+ 
++	if ( !from || !*from || !to || !*to || Q_stricmp( from, to ) == 0 ) {
++		return;
++	}
++
+ 	// don't let sound stutter
+ 	S_ClearSoundBuffer();
+ 
+@@ -874,6 +882,10 @@
+ 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
+ 	}
+ 
++	if ( f < 1 || f >= MAX_FILE_HANDLES ) {
++		return;
++	}
++
+ 	if (fsh[f].zipFile == qtrue) {
+ 		unzCloseCurrentFile( fsh[f].handleFiles.file.z );
+ 		if ( fsh[f].handleFiles.unique ) {
+@@ -1525,10 +1537,14 @@
+ 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
+ 	}
+ 
+-	if ( !f ) {
++	if ( f < 1 || f >= MAX_FILE_HANDLES ) {
+ 		return 0;
+ 	}
+ 
++	if ( !buffer || len < 1 ) {
++		return 0;
++	}
++
+ 	buf = (byte *)buffer;
+ 	fs_readCount += len;
+ 
+@@ -1579,10 +1595,14 @@
+ 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
+ 	}
+ 
+-	if ( !h ) {
++	if ( h < 1 || h >= MAX_FILE_HANDLES ) {
+ 		return 0;
+ 	}
+ 
++	if ( !buffer || len < 1 ) {
++		return 0;
++	}
++
+ 	f = FS_FileForHandle(h);
+ 	buf = (byte *)buffer;
+ 
+@@ -1642,6 +1662,10 @@
+ 		return -1;
+ 	}
+ 
++	if ( f < 1 || f >= MAX_FILE_HANDLES ) {
++		return -1;
++	}
++
+ 	if (fsh[f].zipFile == qtrue) {
+ 		//FIXME: this is really, really crappy
+ 		//(but better than what was here before)
+@@ -2381,6 +2405,14 @@
+ 	int		nFiles, i, nTotal, nLen;
+ 	char **pFiles = NULL;
+ 
++	if ( !path || !listbuf || bufsize < 1 ) {
++		return 0;
++	}
++
++	if ( !extension ) {
++		extension = "";
++	}
++
+ 	*listbuf = 0;
+ 	nFiles = 0;
+ 	nTotal = 0;
+@@ -4093,6 +4125,10 @@
+ 	int		r;
+ 	qboolean	sync;
+ 
++	if ( !qpath || !*qpath ) {
++		return -1;
++	}
++
+ 	sync = qfalse;
+ 
+ 	switch( mode ) {
+@@ -4100,6 +4136,9 @@
+ 			r = FS_FOpenFileRead( qpath, f, qtrue );
+ 			break;
+ 		case FS_WRITE:
++			if (!f) {
++				return -1;
++			}
+ 			*f = FS_FOpenFileWrite( qpath );
+ 			r = 0;
+ 			if (*f == 0) {
+@@ -4109,6 +4148,9 @@
+ 		case FS_APPEND_SYNC:
+ 			sync = qtrue;
+ 		case FS_APPEND:
++			if (!f) {
++				return -1;
++			}
+ 			*f = FS_FOpenFileAppend( qpath );
+ 			r = 0;
+ 			if (*f == 0) {
+@@ -4134,6 +4176,14 @@
+ 
+ int		FS_FTell( fileHandle_t f ) {
+ 	int pos;
++
++	if ( !fs_searchpaths ) {
++		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
++	}
++
++	if ( f < 1 || f >= MAX_FILE_HANDLES ) {
++		return -1;
++	}
+ 	if (fsh[f].zipFile == qtrue) {
+ 		pos = unztell(fsh[f].handleFiles.file.z);
+ 	} else {

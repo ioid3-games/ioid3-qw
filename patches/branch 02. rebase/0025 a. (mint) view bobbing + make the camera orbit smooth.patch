@@ -1,0 +1,145 @@
+Index: code/cgame/cg_consolecmds.c
+===================================================================
+--- code/cgame/cg_consolecmds.c	(revision 3409)
++++ code/cgame/cg_consolecmds.c	(working copy)
+@@ -159,8 +159,7 @@
+ 
+ 
+ static void CG_spWin_f( void) {
+-	trap_Cvar_SetValue("cg_cameraOrbit", 2);
+-	trap_Cvar_SetValue("cg_cameraOrbitDelay", 35);
++	trap_Cvar_SetValue("cg_cameraOrbit", 30);
+ 	trap_Cvar_SetValue("cg_thirdPerson", 1);
+ 	trap_Cvar_SetValue("cg_thirdPersonAngle", 0);
+ 	trap_Cvar_SetValue("cg_thirdPersonRange", 100);
+@@ -170,8 +169,7 @@
+ }
+ 
+ static void CG_spLose_f( void) {
+-	trap_Cvar_SetValue("cg_cameraOrbit", 2);
+-	trap_Cvar_SetValue("cg_cameraOrbitDelay", 35);
++	trap_Cvar_SetValue("cg_cameraOrbit", 30);
+ 	trap_Cvar_SetValue("cg_thirdPerson", 1);
+ 	trap_Cvar_SetValue("cg_thirdPersonAngle", 0);
+ 	trap_Cvar_SetValue("cg_thirdPersonRange", 100);
+@@ -426,7 +424,7 @@
+ 		trap_Cvar_SetValue("cg_cameraOrbit", 0);
+ 		trap_Cvar_SetValue("cg_thirdPerson", 0);
+ 	} else {
+-		trap_Cvar_SetValue("cg_cameraOrbit", 5);
++		trap_Cvar_SetValue("cg_cameraOrbit", 30);
+ 		trap_Cvar_SetValue("cg_thirdPerson", 1);
+ 		trap_Cvar_SetValue("cg_thirdPersonAngle", 0);
+ 		trap_Cvar_SetValue("cg_thirdPersonRange", 100);
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 3409)
++++ code/cgame/cg_local.h	(working copy)
+@@ -1107,9 +1107,11 @@
+ extern	vmCvar_t		cg_centertime;
+ extern	vmCvar_t		cg_runpitch;
+ extern	vmCvar_t		cg_runroll;
++extern	vmCvar_t		cg_runyaw;
+ extern	vmCvar_t		cg_bobup;
+ extern	vmCvar_t		cg_bobpitch;
+ extern	vmCvar_t		cg_bobroll;
++extern	vmCvar_t		cg_bobyaw;
+ extern	vmCvar_t		cg_swingSpeed;
+ extern	vmCvar_t		cg_shadows;
+ extern	vmCvar_t		cg_gibs;
+@@ -1184,7 +1186,6 @@
+ extern	vmCvar_t		pmove_msec;
+ //extern	vmCvar_t		cg_pmove_fixed;
+ extern	vmCvar_t		cg_cameraOrbit;
+-extern	vmCvar_t		cg_cameraOrbitDelay;
+ extern	vmCvar_t		cg_timescaleFadeEnd;
+ extern	vmCvar_t		cg_timescaleFadeSpeed;
+ extern	vmCvar_t		cg_timescale;
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 3409)
++++ code/cgame/cg_main.c	(working copy)
+@@ -97,9 +97,11 @@
+ vmCvar_t	cg_centertime;
+ vmCvar_t	cg_runpitch;
+ vmCvar_t	cg_runroll;
++vmCvar_t	cg_runyaw;
+ vmCvar_t	cg_bobup;
+ vmCvar_t	cg_bobpitch;
+ vmCvar_t	cg_bobroll;
++vmCvar_t	cg_bobyaw;
+ vmCvar_t	cg_swingSpeed;
+ vmCvar_t	cg_shadows;
+ vmCvar_t	cg_gibs;
+@@ -176,7 +178,6 @@
+ vmCvar_t	cg_pmove_msec;
+ vmCvar_t	cg_cameraMode;
+ vmCvar_t	cg_cameraOrbit;
+-vmCvar_t	cg_cameraOrbitDelay;
+ vmCvar_t	cg_timescaleFadeEnd;
+ vmCvar_t	cg_timescaleFadeSpeed;
+ vmCvar_t	cg_timescale;
+@@ -251,9 +252,11 @@
+ 	{ &cg_centertime, "cg_centertime", "3", CVAR_CHEAT },
+ 	{ &cg_runpitch, "cg_runpitch", "0.002", CVAR_ARCHIVE},
+ 	{ &cg_runroll, "cg_runroll", "0.005", CVAR_ARCHIVE },
++	{ &cg_runyaw, "cg_runyaw", "0.002", CVAR_ARCHIVE },
+ 	{ &cg_bobup , "cg_bobup", "0.005", CVAR_CHEAT },
+ 	{ &cg_bobpitch, "cg_bobpitch", "0.002", CVAR_ARCHIVE },
+ 	{ &cg_bobroll, "cg_bobroll", "0.002", CVAR_ARCHIVE },
++	{ &cg_bobyaw, "cg_bobyaw", "0.001", CVAR_ARCHIVE },
+ 	{ &cg_swingSpeed, "cg_swingSpeed", "0.3", CVAR_CHEAT },
+ 	{ &cg_animSpeed, "cg_animspeed", "1", CVAR_CHEAT },
+ 	{ &cg_debugAnim, "cg_debuganim", "0", CVAR_CHEAT },
+@@ -308,7 +311,6 @@
+ 	{ &cg_hudFiles, "cg_hudFiles", "ui/hud.txt", CVAR_ARCHIVE},
+ #endif
+ 	{ &cg_cameraOrbit, "cg_cameraOrbit", "0", CVAR_CHEAT},
+-	{ &cg_cameraOrbitDelay, "cg_cameraOrbitDelay", "50", CVAR_ARCHIVE},
+ 	{ &cg_timescaleFadeEnd, "cg_timescaleFadeEnd", "1", 0},
+ 	{ &cg_timescaleFadeSpeed, "cg_timescaleFadeSpeed", "0", 0},
+ 	{ &cg_timescale, "timescale", "1", 0},
+Index: code/cgame/cg_view.c
+===================================================================
+--- code/cgame/cg_view.c	(revision 3409)
++++ code/cgame/cg_view.c	(working copy)
+@@ -373,6 +373,8 @@
+ 	delta = DotProduct ( predictedVelocity, cg.refdef.viewaxis[1]);
+ 	angles[ROLL] -= delta * cg_runroll.value;
+ 
++	delta = DotProduct( predictedVelocity, cg.refdef.viewaxis[0]);
++	angles[YAW] -= delta * cg_runyaw.value;
+ 	// add angles based on bob
+ 
+ 	// make sure the bob is visible even at low speeds
+@@ -388,9 +390,12 @@
+ 	if (cg.bobcycle & 1)
+ 		delta = -delta;
+ 	angles[ROLL] += delta;
+-
+-//===================================
+-
++	delta = cg.bobfracsin * cg_bobyaw.value * speed;
++	if (cg.predictedPlayerState.pm_flags & PMF_DUCKED)
++		delta *= 2;		// crouching accentuates roll
++	if (cg.bobcycle & 1)
++		delta = -delta;
++	angles[YAW] += delta;
+ 	// add view height
+ 	origin[2] += cg.predictedPlayerState.viewheight;
+ 
+@@ -693,11 +698,9 @@
+ 	VectorCopy( ps->viewangles, cg.refdefViewAngles );
+ 
+ 	if (cg_cameraOrbit.integer) {
+-		if (cg.time > cg.nextOrbitTime) {
+-			cg.nextOrbitTime = cg.time + cg_cameraOrbitDelay.integer;
+-			cg_thirdPersonAngle.value += cg_cameraOrbit.value;
+-		}
+-	}
++		cg_thirdPersonAngle.value += cg_cameraOrbit.value * cg.frametime * 0.001f;
++	}
++
+ 	// add error decay
+ 	if ( cg_errorDecay.value > 0 ) {
+ 		int		t;

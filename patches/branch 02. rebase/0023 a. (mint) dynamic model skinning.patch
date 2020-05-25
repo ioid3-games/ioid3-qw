@@ -1,0 +1,3039 @@
+Index: code/cgame/cg_draw.c
+===================================================================
+--- code/cgame/cg_draw.c	(revision 3379)
++++ code/cgame/cg_draw.c	(working copy)
+@@ -264,7 +264,7 @@
+ 
+ ================
+ */
+-void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandle_t skin, vec3_t origin, vec3_t angles ) {
++void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, cgSkin_t *skin, vec3_t origin, vec3_t angles ) {
+ 	refdef_t		refdef;
+ 	refEntity_t		ent;
+ 
+@@ -280,7 +280,7 @@
+ 	AnglesToAxis( angles, ent.axis );
+ 	VectorCopy( origin, ent.origin );
+ 	ent.hModel = model;
+-	ent.customSkin = skin;
++	ent.customSkin = CG_AddSkinToFrame( skin );
+ 	ent.renderfx = RF_NOSHADOW;		// no stencil shadows
+ 
+ 	refdef.rdflags = RDF_NOWORLDMODEL;
+@@ -338,7 +338,7 @@
+ 		// allow per-model tweaking
+ 		VectorAdd( origin, ci->headOffset, origin );
+ 
+-		CG_Draw3DModel( x, y, w, h, ci->headModel, ci->headSkin, origin, headAngles );
++		CG_Draw3DModel( x, y, w, h, ci->headModel, &ci->modelSkin, origin, headAngles );
+ 	} else if ( cg_drawIcons.integer ) {
+ 		CG_DrawPic( x, y, w, h, ci->modelIcon );
+ 	}
+@@ -391,7 +391,7 @@
+ 		} else {
+ 			return;
+ 		}
+-		CG_Draw3DModel( x, y, w, h, handle, 0, origin, angles );
++		CG_Draw3DModel( x, y, w, h, handle, NULL, origin, angles );
+ 	} else if ( cg_drawIcons.integer ) {
+ 		gitem_t *item;
+ 
+@@ -551,7 +551,7 @@
+ 		origin[2] = 0;
+ 		angles[YAW] = 90 + 20 * sin( cg.time / 1000.0 );
+ 		CG_Draw3DModel( CHAR_WIDTH*3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE,
+-					   cg_weapons[ cent->currentState.weapon ].ammoModel, 0, origin, angles );
++					   cg_weapons[ cent->currentState.weapon ].ammoModel, NULL, origin, angles );
+ 	}
+ 
+ 	CG_DrawStatusBarHead( 185 + CHAR_WIDTH*3 + TEXT_ICON_SPACE );
+@@ -570,7 +570,7 @@
+ 		origin[2] = -10;
+ 		angles[YAW] = ( cg.time & 2047 ) * 360 / 2048.0;
+ 		CG_Draw3DModel( 370 + CHAR_WIDTH*3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE,
+-					   cgs.media.armorModel, 0, origin, angles );
++					   cgs.media.armorModel, NULL, origin, angles );
+ 	}
+ 	//
+ 	// ammo
+Index: code/cgame/cg_ents.c
+===================================================================
+--- code/cgame/cg_ents.c	(revision 3379)
++++ code/cgame/cg_ents.c	(working copy)
+@@ -968,11 +968,11 @@
+ 
+ 		if ( cent->currentState.modelindex == TEAM_RED ) {
+ 			model.hModel = cgs.media.harvesterModel;
+-			model.customSkin = cgs.media.harvesterRedSkin;
++			model.customSkin = CG_AddSkinToFrame( &cgs.media.harvesterRedSkin );
+ 		}
+ 		else if ( cent->currentState.modelindex == TEAM_BLUE ) {
+ 			model.hModel = cgs.media.harvesterModel;
+-			model.customSkin = cgs.media.harvesterBlueSkin;
++			model.customSkin = CG_AddSkinToFrame( &cgs.media.harvesterBlueSkin );
+ 		}
+ 		else {
+ 			model.hModel = cgs.media.harvesterNeutralModel;
+Index: code/cgame/cg_local.h
+===================================================================
+--- code/cgame/cg_local.h	(revision 3379)
++++ code/cgame/cg_local.h	(working copy)
+@@ -344,14 +344,11 @@
+ 	gender_t		gender;			// from model
+ 
+ 	qhandle_t		legsModel;
+-	qhandle_t		legsSkin;
+-
+ 	qhandle_t		torsoModel;
+-	qhandle_t		torsoSkin;
+-
+ 	qhandle_t		headModel;
+-	qhandle_t		headSkin;
+ 
++	cgSkin_t		modelSkin;
++
+ 	qhandle_t		modelIcon;
+ 
+ 	animation_t		animations[MAX_TOTALANIMATIONS];
+@@ -627,6 +624,7 @@
+ 	qhandle_t	charsetPropGlow;
+ 	qhandle_t	charsetPropB;
+ 	qhandle_t	whiteShader;
++	qhandle_t	nodrawShader;
+ 
+ #ifdef MISSIONPACK
+ 	qhandle_t	redCubeModel;
+@@ -644,9 +642,9 @@
+ 	qhandle_t	flagPoleModel;
+ 	qhandle_t	flagFlapModel;
+ 
+-	qhandle_t	redFlagFlapSkin;
+-	qhandle_t	blueFlagFlapSkin;
+-	qhandle_t	neutralFlagFlapSkin;
++	cgSkin_t	redFlagFlapSkin;
++	cgSkin_t	blueFlagFlapSkin;
++	cgSkin_t	neutralFlagFlapSkin;
+ 
+ 	qhandle_t	redFlagBaseModel;
+ 	qhandle_t	blueFlagBaseModel;
+@@ -659,8 +657,8 @@
+ 	qhandle_t	overloadEnergyModel;
+ 
+ 	qhandle_t	harvesterModel;
+-	qhandle_t	harvesterRedSkin;
+-	qhandle_t	harvesterBlueSkin;
++	cgSkin_t	harvesterRedSkin;
++	cgSkin_t	harvesterBlueSkin;
+ 	qhandle_t	harvesterNeutralModel;
+ #endif
+ 
+@@ -1269,7 +1267,7 @@
+ void CG_GetTeamColor(vec4_t *color);
+ const char *CG_GetGameStatusText( void );
+ const char *CG_GetKillerText( void );
+-void CG_Draw3DModel(float x, float y, float w, float h, qhandle_t model, qhandle_t skin, vec3_t origin, vec3_t angles);
++void CG_Draw3DModel(float x, float y, float w, float h, qhandle_t model, cgSkin_t *skin, vec3_t origin, vec3_t angles);
+ void CG_Text_PaintChar(float x, float y, float width, float height, float scale, float s, float t, float s2, float t2, qhandle_t hShader);
+ void CG_CheckOrderPending( void );
+ const char *CG_GameTypeString( void );
+@@ -1285,6 +1283,8 @@
+ void CG_Player( centity_t *cent );
+ void CG_ResetPlayerEntity( centity_t *cent );
+ void CG_AddRefEntityWithPowerups( refEntity_t *ent, entityState_t *state, int team );
++qhandle_t CG_AddSkinToFrame( const cgSkin_t *skin );
++qboolean CG_RegisterSkin( const char *name, cgSkin_t *skin, qboolean append );
+ void CG_NewClientInfo( int clientNum );
+ sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName );
+ void CG_CachePlayerSounds( const char *modelName );
+@@ -1543,7 +1543,7 @@
+ // all media should be registered during level startup to prevent
+ // hitches during gameplay
+ qhandle_t	trap_R_RegisterModel( const char *name );			// returns rgb axis if not found
+-qhandle_t	trap_R_RegisterSkin( const char *name );			// returns all white if not found
++qhandle_t	trap_R_RegisterShaderEx( const char *name, int lightmapIndex, qboolean mipRawImage ); // returns all white if not found
+ qhandle_t	trap_R_RegisterShader( const char *name );			// returns all white if not found
+ qhandle_t	trap_R_RegisterShaderNoMip( const char *name );			// returns all white if not found
+ 
+@@ -1567,6 +1567,10 @@
+ void		trap_R_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
+ int			trap_R_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, 
+ 					   float frac, const char *tagName );
++
++// skin (entity model surface remap) management
++qhandle_t	trap_R_AllocSkinSurface( const char *surface, qhandle_t hShader );
++qhandle_t	trap_R_AddSkinToFrame( int numSurfaces, const qhandle_t *surfaces );
+ void		trap_R_RemapShader( const char *oldShader, const char *newShader, const char *timeOffset );
+ qboolean	trap_R_inPVS( const vec3_t p1, const vec3_t p2 );
+ 
+Index: code/cgame/cg_main.c
+===================================================================
+--- code/cgame/cg_main.c	(revision 3379)
++++ code/cgame/cg_main.c	(working copy)
+@@ -903,9 +903,9 @@
+ 		cgs.media.flagPoleModel = trap_R_RegisterModel( "models/flag2/flagpole.md3" );
+ 		cgs.media.flagFlapModel = trap_R_RegisterModel( "models/flag2/flagflap3.md3" );
+ 
+-		cgs.media.redFlagFlapSkin = trap_R_RegisterSkin( "models/flag2/red.skin" );
+-		cgs.media.blueFlagFlapSkin = trap_R_RegisterSkin( "models/flag2/blue.skin" );
+-		cgs.media.neutralFlagFlapSkin = trap_R_RegisterSkin( "models/flag2/white.skin" );
++		CG_RegisterSkin( "models/flag2/red.skin", &cgs.media.redFlagFlapSkin, qfalse );
++		CG_RegisterSkin( "models/flag2/blue.skin", &cgs.media.blueFlagFlapSkin, qfalse );
++		CG_RegisterSkin( "models/flag2/white.skin", &cgs.media.neutralFlagFlapSkin, qfalse );
+ 
+ 		cgs.media.redFlagBaseModel = trap_R_RegisterModel( "models/mapobjects/flagbase/red_base.md3" );
+ 		cgs.media.blueFlagBaseModel = trap_R_RegisterModel( "models/mapobjects/flagbase/blue_base.md3" );
+@@ -932,8 +932,8 @@
+ 
+ 	if ( cgs.gametype == GT_HARVESTER || cg_buildScript.integer ) {
+ 		cgs.media.harvesterModel = trap_R_RegisterModel( "models/powerups/harvester/harvester.md3" );
+-		cgs.media.harvesterRedSkin = trap_R_RegisterSkin( "models/powerups/harvester/red.skin" );
+-		cgs.media.harvesterBlueSkin = trap_R_RegisterSkin( "models/powerups/harvester/blue.skin" );
++		CG_RegisterSkin( "models/powerups/harvester/red.skin", &cgs.media.harvesterRedSkin, qfalse );
++		CG_RegisterSkin( "models/powerups/harvester/blue.skin", &cgs.media.harvesterBlueSkin, qfalse );
+ 		cgs.media.harvesterNeutralModel = trap_R_RegisterModel( "models/powerups/obelisk/obelisk.md3" );
+ 	}
+ 
+@@ -1855,6 +1855,7 @@
+ 	// load a few needed things before we do any screen updates
+ 	cgs.media.charsetShader		= trap_R_RegisterShader( "gfx/2d/bigchars" );
+ 	cgs.media.whiteShader		= trap_R_RegisterShader( "white" );
++	cgs.media.nodrawShader		= trap_R_RegisterShaderEx( "nodraw", LIGHTMAP_NONE, qtrue );
+ 	cgs.media.charsetProp		= trap_R_RegisterShaderNoMip( "menu/art/font1_prop.tga" );
+ 	cgs.media.charsetPropGlow	= trap_R_RegisterShaderNoMip( "menu/art/font1_prop_glo.tga" );
+ 	cgs.media.charsetPropB		= trap_R_RegisterShaderNoMip( "menu/art/font2_prop.tga" );
+Index: code/cgame/cg_newdraw.c
+===================================================================
+--- code/cgame/cg_newdraw.c	(revision 3379)
++++ code/cgame/cg_newdraw.c	(working copy)
+@@ -175,7 +175,7 @@
+ 		origin[1] = 0;
+ 		origin[2] = -10;
+ 		angles[YAW] = ( cg.time & 2047 ) * 360 / 2048.0f;
+-		CG_Draw3DModel( rect->x, rect->y, rect->w, rect->h, cgs.media.armorModel, 0, origin, angles );
++		CG_Draw3DModel( rect->x, rect->y, rect->w, rect->h, cgs.media.armorModel, NULL, origin, angles );
+ 	}
+ }
+ 
+@@ -219,7 +219,7 @@
+ 			origin[1] = 0;
+ 			origin[2] = 0;
+ 			angles[YAW] = 90 + 20 * sin( cg.time / 1000.0 );
+-			CG_Draw3DModel( rect->x, rect->y, rect->w, rect->h, cg_weapons[ cent->currentState.weapon ].ammoModel, 0, origin, angles );
++			CG_Draw3DModel( rect->x, rect->y, rect->w, rect->h, cg_weapons[ cent->currentState.weapon ].ammoModel, NULL, origin, angles );
+ 		}
+ 	}
+ }
+@@ -476,7 +476,7 @@
+   		origin[1] = 0;
+    		origin[2] = -10;
+   		angles[YAW] = ( cg.time & 2047 ) * 360 / 2048.0;
+-			CG_Draw3DModel(rect->x, rect->y, rect->w, rect->h, cg_items[ value ].models[0], 0, origin, angles );
++			CG_Draw3DModel(rect->x, rect->y, rect->w, rect->h, cg_items[ value ].models[0], NULL, origin, angles );
+ 		}
+ 	}
+ 
+@@ -543,7 +543,7 @@
+     	angles[YAW] = 180;
+     	angles[ROLL] = 0;
+   	
+-      CG_Draw3DModel( rect->x, rect->y, rect->w, rect->h, ci->headModel, ci->headSkin, origin, angles );
++      CG_Draw3DModel( rect->x, rect->y, rect->w, rect->h, ci->headModel, &ci->modelSkin, origin, angles );
+   	} else if ( cg_drawIcons.integer ) {
+ 	  	CG_DrawPic( rect->x, rect->y, rect->w, rect->h, ci->modelIcon );
+   	}
+@@ -744,7 +744,7 @@
+ 			} else {
+ 				handle = cgs.media.blueCubeModel;
+ 			}
+-			CG_Draw3DModel( rect->x, rect->y, 35, 35, handle, 0, origin, angles );
++			CG_Draw3DModel( rect->x, rect->y, 35, 35, handle, NULL, origin, angles );
+ 		} else {
+ 			if( cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE ) {
+ 				handle = cgs.media.redCubeIcon;
+Index: code/cgame/cg_players.c
+===================================================================
+--- code/cgame/cg_players.c	(revision 3379)
++++ code/cgame/cg_players.c	(working copy)
+@@ -514,12 +514,139 @@
+ 
+ /*
+ ==========================
++CG_AddSkinToFrame
++==========================
++*/
++qhandle_t CG_AddSkinToFrame( const cgSkin_t *skin ) {
++	if ( !skin || !skin->numSurfaces ) {
++		return 0;
++	}
++
++	return trap_R_AddSkinToFrame( skin->numSurfaces, skin->surfaces );
++}
++
++/*
++==========================
++CG_RegisterSkin
++==========================
++*/
++qboolean CG_RegisterSkin( const char *name, cgSkin_t *skin, qboolean append ) {
++	char		*text_p;
++	int			len;
++	char		*token;
++	char		text[20000];
++	fileHandle_t	f;
++	char		surfName[MAX_QPATH];
++	char		shaderName[MAX_QPATH];
++	qhandle_t	hShader;
++	int			initialSurfaces;
++	int			totalSurfaces;
++
++	if ( !name || !name[0] ) {
++		Com_Printf( "Empty name passed to RE_RegisterSkin\n" );
++		return 0;
++	}
++
++	if ( strlen( name ) >= MAX_QPATH ) {
++		Com_Printf( "Skin name exceeds MAX_QPATH\n" );
++		return 0;
++	}
++
++	if ( !COM_CompareExtension( name, ".skin" ) ) {
++		Com_Printf( "WARNING: CG_RegisterSkin ignoring '%s', must have \".skin\" extension\n", name );
++		return 0;
++	}
++
++	if ( !append ) {
++		skin->numSurfaces = 0;
++	}
++
++	initialSurfaces = skin->numSurfaces;
++	totalSurfaces = skin->numSurfaces;
++
++	// load the file
++	len = trap_FS_FOpenFile( name, &f, FS_READ );
++	if ( len <= 0 ) {
++		return qfalse;
++	}
++	if ( len >= sizeof( text ) - 1 ) {
++		CG_Printf( "File %s too long\n", name );
++		trap_FS_FCloseFile( f );
++		return qfalse;
++	}
++	trap_FS_Read( text, len, f );
++	text[len] = 0;
++	trap_FS_FCloseFile( f );
++
++	// parse the text
++	text_p = text;
++
++	while ( text_p && *text_p ) {
++		// get surface name
++		token = COM_ParseExt2( &text_p, qtrue, ',' );
++		Q_strncpyz( surfName, token, sizeof( surfName ) );
++
++		if ( !token[0] ) {
++			break;
++		}
++
++		if ( *text_p == ',' ) {
++			text_p++;
++		}
++
++		if ( !Q_stricmpn( token, "tag_", 4 ) ) {
++			SkipRestOfLine( &text_p );
++			continue;
++		}
++
++		// skip RTCW/ET skin settings
++		if ( !Q_stricmpn( token, "md3_", 4 ) || !Q_stricmp( token, "playerscale" ) ) {
++			SkipRestOfLine( &text_p );
++			continue;
++		}
++
++		// parse the shader name
++		token = COM_ParseExt2( &text_p, qfalse, ',' );
++		Q_strncpyz( shaderName, token, sizeof( shaderName ) );
++
++		if ( skin->numSurfaces < MAX_CG_SKIN_SURFACES ) {
++			hShader = trap_R_RegisterShaderEx( shaderName, LIGHTMAP_NONE, qtrue );
++
++			// for compatibility with quake3 skins, don't render missing shaders listed in skins
++			if ( !hShader ) {
++				hShader = cgs.media.nodrawShader;
++			}
++
++			skin->surfaces[skin->numSurfaces] = trap_R_AllocSkinSurface( surfName, hShader );
++			skin->numSurfaces++;
++		}
++
++		totalSurfaces++;
++	}
++
++	if ( totalSurfaces > MAX_CG_SKIN_SURFACES ) {
++		CG_Printf( "WARNING: Ignoring excess surfaces (found %d, max is %d) in skin '%s'!\n",
++					totalSurfaces - initialSurfaces, MAX_CG_SKIN_SURFACES - initialSurfaces, name );
++	}
++
++	// failed to load surfaces
++	if ( !skin->numSurfaces ) {
++		return qfalse;
++	}
++
++	return qtrue;
++}
++
++/*
++==========================
+ CG_RegisterClientSkin
+ ==========================
+ */
+ static qboolean	CG_RegisterClientSkin( clientInfo_t *ci, const char *teamName, const char *modelName, const char *skinName, const char *headModelName, const char *headSkinName ) {
+ 	char filename[MAX_QPATH];
++	qboolean legsSkin, torsoSkin, headSkin;
+ 
++	legsSkin = torsoSkin = headSkin = qfalse;
+ 	/*
+ 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/%slower_%s.skin", modelName, teamName, skinName );
+ 	ci->legsSkin = trap_R_RegisterSkin( filename );
+@@ -543,28 +670,28 @@
+ 	}
+ 	*/
+ 	if ( CG_FindClientModelFile( filename, sizeof(filename), ci, teamName, modelName, skinName, "lower", "skin" ) ) {
+-		ci->legsSkin = trap_R_RegisterSkin( filename );
++		legsSkin = CG_RegisterSkin( filename, &ci->modelSkin, qfalse );
+ 	}
+-	if (!ci->legsSkin) {
++	if (!legsSkin) {
+ 		Com_Printf( "Leg skin load failure: %s\n", filename );
+ 	}
+ 
+ 	if ( CG_FindClientModelFile( filename, sizeof(filename), ci, teamName, modelName, skinName, "upper", "skin" ) ) {
+-		ci->torsoSkin = trap_R_RegisterSkin( filename );
++		torsoSkin = CG_RegisterSkin( filename, &ci->modelSkin, qtrue );
+ 	}
+-	if (!ci->torsoSkin) {
++	if (!torsoSkin) {
+ 		Com_Printf( "Torso skin load failure: %s\n", filename );
+ 	}
+ 
+ 	if ( CG_FindClientHeadFile( filename, sizeof(filename), ci, teamName, headModelName, headSkinName, "head", "skin" ) ) {
+-		ci->headSkin = trap_R_RegisterSkin( filename );
++		headSkin = CG_RegisterSkin( filename, &ci->modelSkin, qtrue );
+ 	}
+-	if (!ci->headSkin) {
++	if (!headSkin) {
+ 		Com_Printf( "Head skin load failure: %s\n", filename );
+ 	}
+ 
+ 	// if any skins failed to load
+-	if ( !ci->legsSkin || !ci->torsoSkin || !ci->headSkin ) {
++	if ( !legsSkin || !torsoSkin || !headSkin ) {
+ 		return qfalse;
+ 	}
+ 	return qtrue;
+@@ -796,11 +923,9 @@
+ 	to->gender = from->gender;
+ 
+ 	to->legsModel = from->legsModel;
+-	to->legsSkin = from->legsSkin;
+ 	to->torsoModel = from->torsoModel;
+-	to->torsoSkin = from->torsoSkin;
+ 	to->headModel = from->headModel;
+-	to->headSkin = from->headSkin;
++	to->modelSkin = from->modelSkin;
+ 	to->modelIcon = from->modelIcon;
+ 
+ 	to->newAnims = from->newAnims;
+@@ -1732,7 +1857,7 @@
+ CG_PlayerFlag
+ ===============
+ */
+-static void CG_PlayerFlag( centity_t *cent, qhandle_t hSkin, refEntity_t *torso ) {
++static void CG_PlayerFlag( centity_t *cent, const cgSkin_t *skin, refEntity_t *torso ) {
+ 	clientInfo_t	*ci;
+ 	refEntity_t	pole;
+ 	refEntity_t	flag;
+@@ -1752,7 +1877,7 @@
+ 	// show the flag model
+ 	memset( &flag, 0, sizeof(flag) );
+ 	flag.hModel = cgs.media.flagFlapModel;
+-	flag.customSkin = hSkin;
++	flag.customSkin = CG_AddSkinToFrame( skin );
+ 	VectorCopy( torso->lightingOrigin, flag.lightingOrigin );
+ 	flag.shadowPlane = torso->shadowPlane;
+ 	flag.renderfx = torso->renderfx;
+@@ -1943,7 +2068,7 @@
+ 	// redflag
+ 	if ( powerups & ( 1 << PW_REDFLAG ) ) {
+ 		if (ci->newAnims) {
+-			CG_PlayerFlag( cent, cgs.media.redFlagFlapSkin, torso );
++			CG_PlayerFlag( cent, &cgs.media.redFlagFlapSkin, torso );
+ 		}
+ 		else {
+ 			CG_TrailItem( cent, cgs.media.redFlagModel );
+@@ -1954,7 +2079,7 @@
+ 	// blueflag
+ 	if ( powerups & ( 1 << PW_BLUEFLAG ) ) {
+ 		if (ci->newAnims){
+-			CG_PlayerFlag( cent, cgs.media.blueFlagFlapSkin, torso );
++			CG_PlayerFlag( cent, &cgs.media.blueFlagFlapSkin, torso );
+ 		}
+ 		else {
+ 			CG_TrailItem( cent, cgs.media.blueFlagModel );
+@@ -1965,7 +2090,7 @@
+ 	// neutralflag
+ 	if ( powerups & ( 1 << PW_NEUTRALFLAG ) ) {
+ 		if (ci->newAnims) {
+-			CG_PlayerFlag( cent, cgs.media.neutralFlagFlapSkin, torso );
++			CG_PlayerFlag( cent, &cgs.media.neutralFlagFlapSkin, torso );
+ 		}
+ 		else {
+ 			CG_TrailItem( cent, cgs.media.neutralFlagModel );
+@@ -2399,7 +2524,7 @@
+ 	// add the legs
+ 	//
+ 	legs.hModel = ci->legsModel;
+-	legs.customSkin = ci->legsSkin;
++	legs.customSkin = CG_AddSkinToFrame( &ci->modelSkin );
+ 
+ 	VectorCopy( cent->lerpOrigin, legs.origin );
+ 
+@@ -2423,7 +2548,7 @@
+ 		return;
+ 	}
+ 
+-	torso.customSkin = ci->torsoSkin;
++	torso.customSkin = legs.customSkin;
+ 
+ 	VectorCopy( cent->lerpOrigin, torso.lightingOrigin );
+ 
+@@ -2649,7 +2774,7 @@
+ 	if (!head.hModel) {
+ 		return;
+ 	}
+-	head.customSkin = ci->headSkin;
++	head.customSkin = legs.customSkin;
+ 
+ 	VectorCopy( cent->lerpOrigin, head.lightingOrigin );
+ 
+Index: code/cgame/cg_public.h
+===================================================================
+--- code/cgame/cg_public.h	(revision 3379)
++++ code/cgame/cg_public.h	(working copy)
+@@ -111,8 +111,8 @@
+ 	CG_S_STARTBACKGROUNDTRACK,
+ 	CG_R_LOADWORLDMAP,
+ 	CG_R_REGISTERMODEL,
+-	CG_R_REGISTERSKIN,
+ 	CG_R_REGISTERSHADER,
++	CG_R_REGISTERSHADEREX,
+ 	CG_R_CLEARSCENE,
+ 	CG_R_ADDREFENTITYTOSCENE,
+ 	CG_R_ADDPOLYTOSCENE,
+@@ -154,6 +154,8 @@
+ 	CG_CIN_SETEXTENTS,
+ 	CG_R_REMAP_SHADER,
+ 	CG_R_SETCLIPREGION,
++	CG_R_ALLOCSKINSURFACE,
++	CG_R_ADDSKINTOFRAME,
+ 	CG_S_ADDREALLOOPINGSOUND,
+ 	CG_S_STOPLOOPINGSOUND,
+ 
+Index: code/cgame/cg_syscalls.asm
+===================================================================
+--- code/cgame/cg_syscalls.asm	(revision 3379)
++++ code/cgame/cg_syscalls.asm	(working copy)
+@@ -39,8 +39,8 @@
+ equ	trap_S_StartBackgroundTrack			-37
+ equ	trap_R_LoadWorldMap					-38
+ equ	trap_R_RegisterModel				-39
+-equ	trap_R_RegisterSkin					-40
+-equ	trap_R_RegisterShader				-41
++equ	trap_R_RegisterShader				-40
++equ	trap_R_RegisterShaderEx				-41
+ equ	trap_R_ClearScene					-42
+ equ	trap_R_AddRefEntityToScene			-43
+ equ	trap_R_AddPolyToScene				-44
+@@ -82,16 +82,18 @@
+ equ trap_CIN_SetExtents					-80
+ equ trap_R_RemapShader					-81
+ equ trap_R_SetClipRegion				-82
+-equ	trap_S_AddRealLoopingSound			-83
+-equ trap_S_StopLoopingSound				-84
+-equ trap_CM_TempCapsuleModel			-85
+-equ trap_CM_CapsuleTrace				-86
+-equ trap_CM_TransformedCapsuleTrace		-87
+-equ trap_R_AddAdditiveLightToScene		-88
+-equ trap_GetEntityToken					-89
+-equ	trap_R_AddPolysToScene				-90
+-equ trap_R_inPVS						-91
+-equ trap_FS_Seek			-92
++equ trap_R_AllocSkinSurface				-83
++equ trap_R_AddSkinToFrame				-84
++equ	trap_S_AddRealLoopingSound			-85
++equ trap_S_StopLoopingSound				-86
++equ trap_CM_TempCapsuleModel			-87
++equ trap_CM_CapsuleTrace				-88
++equ trap_CM_TransformedCapsuleTrace		-89
++equ trap_R_AddAdditiveLightToScene		-90
++equ trap_GetEntityToken					-91
++equ	trap_R_AddPolysToScene				-92
++equ trap_R_inPVS						-93
++equ trap_FS_Seek			-94
+ 
+ equ	memset						-101
+ equ	memcpy						-102
+Index: code/cgame/cg_syscalls.c
+===================================================================
+--- code/cgame/cg_syscalls.c	(revision 3379)
++++ code/cgame/cg_syscalls.c	(working copy)
+@@ -238,8 +238,8 @@
+ 	return syscall( CG_R_REGISTERMODEL, name );
+ }
+ 
+-qhandle_t trap_R_RegisterSkin( const char *name ) {
+-	return syscall( CG_R_REGISTERSKIN, name );
++qhandle_t trap_R_RegisterShaderEx( const char *name, int lightmapIndex, qboolean mipRawImage ) {
++	return syscall( CG_R_REGISTERSHADEREX, name, lightmapIndex, mipRawImage );
+ }
+ 
+ qhandle_t trap_R_RegisterShader( const char *name ) {
+@@ -312,6 +312,14 @@
+ 	syscall( CG_R_SETCLIPREGION, region );
+ }
+ 
++qhandle_t	trap_R_AllocSkinSurface( const char *surface, qhandle_t hShader ) {
++	return syscall( CG_R_ALLOCSKINSURFACE, surface, hShader );
++}
++
++qhandle_t	trap_R_AddSkinToFrame( int numSurfaces, const qhandle_t *surfaces ) {
++	return syscall( CG_R_ADDSKINTOFRAME, numSurfaces, surfaces );
++}
++
+ void		trap_GetGlconfig( glconfig_t *glconfig ) {
+ 	syscall( CG_GETGLCONFIG, glconfig );
+ }
+Index: code/client/cl_cgame.c
+===================================================================
+--- code/client/cl_cgame.c	(revision 3379)
++++ code/client/cl_cgame.c	(working copy)
+@@ -536,8 +536,8 @@
+ 		return 0; 
+ 	case CG_R_REGISTERMODEL:
+ 		return re.RegisterModel( VMA(1) );
+-	case CG_R_REGISTERSKIN:
+-		return re.RegisterSkin( VMA(1) );
++	case CG_R_REGISTERSHADEREX:
++		return re.RegisterShaderEx( VMA(1), args[2], args[3] );
+ 	case CG_R_REGISTERSHADER:
+ 		return re.RegisterShader( VMA(1) );
+ 	case CG_R_REGISTERSHADERNOMIP:
+@@ -680,6 +680,12 @@
+ 		re.RemapShader( VMA(1), VMA(2), VMA(3) );
+ 		return 0;
+ 
++	case CG_R_ALLOCSKINSURFACE:
++		return re.AllocSkinSurface( VMA(1), args[2] );
++
++	case CG_R_ADDSKINTOFRAME:
++		return re.AddSkinToFrame( args[1], VMA(2) );
++
+ 	case CG_R_SETCLIPREGION:
+ 		re.SetClipRegion( VMA(1) );
+ 		return 0;
+Index: code/client/cl_ui.c
+===================================================================
+--- code/client/cl_ui.c	(revision 3379)
++++ code/client/cl_ui.c	(working copy)
+@@ -763,8 +763,8 @@
+ 	case UI_R_REGISTERMODEL:
+ 		return re.RegisterModel( VMA(1) );
+ 
+-	case UI_R_REGISTERSKIN:
+-		return re.RegisterSkin( VMA(1) );
++	case UI_R_REGISTERSHADEREX:
++		return re.RegisterShaderEx( VMA(1), args[2], args[3] );
+ 
+ 	case UI_R_REGISTERSHADERNOMIP:
+ 		return re.RegisterShaderNoMip( VMA(1) );
+@@ -1009,6 +1009,12 @@
+ 		re.RemapShader( VMA(1), VMA(2), VMA(3) );
+ 		return 0;
+ 
++	case UI_R_ALLOCSKINSURFACE:
++		return re.AllocSkinSurface( VMA(1), args[2] );
++
++	case UI_R_ADDSKINTOFRAME:
++		return re.AddSkinToFrame( args[1], VMA(2) );
++
+ 	case UI_R_SETCLIPREGION:
+ 		re.SetClipRegion( VMA(1) );
+ 		return 0;
+Index: code/game/bg_public.h
+===================================================================
+--- code/game/bg_public.h	(revision 3379)
++++ code/game/bg_public.h	(working copy)
+@@ -546,6 +546,11 @@
+ // flip the togglebit every time an animation
+ // changes so a restart of the same anim can be detected
+ #define	ANIM_TOGGLEBIT		128
++#define MAX_CG_SKIN_SURFACES 32
++typedef struct {
++	int numSurfaces;
++	qhandle_t surfaces[MAX_CG_SKIN_SURFACES];
++} cgSkin_t;
+ 
+ #define DEFAULT_PLAYER_NAME		"UnnamedPlayer"
+ // Default player model names
+Index: code/q3_ui/ui_local.h
+===================================================================
+--- code/q3_ui/ui_local.h	(revision 3379)
++++ code/q3_ui/ui_local.h	(working copy)
+@@ -465,16 +465,15 @@
+ typedef struct {
+ 	// model info
+ 	qhandle_t		legsModel;
+-	qhandle_t		legsSkin;
+ 	lerpFrame_t		legs;
+ 
+ 	qhandle_t		torsoModel;
+-	qhandle_t		torsoSkin;
+ 	lerpFrame_t		torso;
+ 
+ 	qhandle_t		headModel;
+-	qhandle_t		headSkin;
+ 
++	cgSkin_t		modelSkin;
++
+ 	animation_t		animations[MAX_ANIMATIONS];
+ 
+ 	qboolean		fixedlegs;		// true if legs yaw is always the same as torso yaw
+@@ -585,6 +584,8 @@
+ extern char			*UI_Cvar_VariableString( const char *var_name );
+ extern void			UI_Refresh( int time );
+ extern void			UI_StartDemoLoop( void );
++qhandle_t			UI_AddSkinToFrame( const cgSkin_t *skin );
++qboolean			UI_RegisterSkin( const char *name, cgSkin_t *skin, qboolean append );
+ extern qboolean		m_entersound;
+ extern uiStatic_t	uis;
+ 
+@@ -638,7 +639,7 @@
+ int				trap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize );
+ int				trap_FS_Seek( fileHandle_t f, long offset, int origin ); // fsOrigin_t
+ qhandle_t		trap_R_RegisterModel( const char *name );
+-qhandle_t		trap_R_RegisterSkin( const char *name );
++qhandle_t		trap_R_RegisterShaderEx( const char *name, int lightmapIndex, qboolean mipRawImage ); // returns all white if not found
+ qhandle_t		trap_R_RegisterShaderNoMip( const char *name );
+ void			trap_R_ClearScene( void );
+ void			trap_R_AddRefEntityToScene( const refEntity_t *re );
+@@ -649,6 +650,9 @@
+ void			trap_R_DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader );
+ void			trap_UpdateScreen( void );
+ int				trap_CM_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, float frac, const char *tagName );
++// skin (entity model surface remap) management
++qhandle_t		trap_R_AllocSkinSurface( const char *surface, qhandle_t hShader );
++qhandle_t		trap_R_AddSkinToFrame( int numSurfaces, const qhandle_t *surfaces );
+ void			trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum );
+ sfxHandle_t	trap_S_RegisterSound( const char *sample, qboolean compressed );
+ void			trap_Key_KeynumToStringBuf( int keynum, char *buf, int buflen );
+Index: code/q3_ui/ui_players.c
+===================================================================
+--- code/q3_ui/ui_players.c	(revision 3379)
++++ code/q3_ui/ui_players.c	(working copy)
+@@ -801,7 +801,7 @@
+ 	// add the legs
+ 	//
+ 	legs.hModel = pi->legsModel;
+-	legs.customSkin = pi->legsSkin;
++	legs.customSkin = UI_AddSkinToFrame( &pi->modelSkin );
+ 
+ 	VectorCopy( origin, legs.origin );
+ 
+@@ -823,7 +823,7 @@
+ 		return;
+ 	}
+ 
+-	torso.customSkin = pi->torsoSkin;
++	torso.customSkin = legs.customSkin;
+ 
+ 	VectorCopy( origin, torso.lightingOrigin );
+ 
+@@ -840,7 +840,7 @@
+ 	if (!head.hModel) {
+ 		return;
+ 	}
+-	head.customSkin = pi->headSkin;
++	head.customSkin = legs.customSkin;
+ 
+ 	VectorCopy( origin, head.lightingOrigin );
+ 
+@@ -938,25 +938,146 @@
+ 	trap_R_RenderScene( &refdef );
+ }
+ 
++/*
++==========================
++UI_AddSkinToFrame
++==========================
++*/
++qhandle_t UI_AddSkinToFrame( const cgSkin_t *skin ) {
++	if ( !skin || !skin->numSurfaces ) {
++		return 0;
++	}
+ 
++	return trap_R_AddSkinToFrame( skin->numSurfaces, skin->surfaces );
++}
++
+ /*
+ ==========================
++UI_RegisterSkin
++==========================
++*/
++qboolean UI_RegisterSkin( const char *name, cgSkin_t *skin, qboolean append ) {
++	char		*text_p;
++	int			len;
++	char		*token;
++	char		text[20000];
++	fileHandle_t	f;
++	char		surfName[MAX_QPATH];
++	char		shaderName[MAX_QPATH];
++	qhandle_t	hShader;
++	int			initialSurfaces;
++	int			totalSurfaces;
++
++	if ( !name || !name[0] ) {
++		Com_Printf( "Empty name passed to RE_RegisterSkin\n" );
++		return 0;
++	}
++
++	if ( strlen( name ) >= MAX_QPATH ) {
++		Com_Printf( "Skin name exceeds MAX_QPATH\n" );
++		return 0;
++	}
++
++	if ( !COM_CompareExtension( name, ".skin" ) ) {
++		Com_Printf( "WARNING: CG_RegisterSkin ignoring '%s', must have \".skin\" extension\n", name );
++		return 0;
++	}
++
++	if ( !append ) {
++		skin->numSurfaces = 0;
++	}
++
++	initialSurfaces = skin->numSurfaces;
++	totalSurfaces = skin->numSurfaces;
++
++	// load the file
++	len = trap_FS_FOpenFile( name, &f, FS_READ );
++	if ( len <= 0 ) {
++		return qfalse;
++	}
++	if ( len >= sizeof( text ) - 1 ) {
++		Com_Printf( "File %s too long\n", name );
++		trap_FS_FCloseFile( f );
++		return qfalse;
++	}
++	trap_FS_Read( text, len, f );
++	text[len] = 0;
++	trap_FS_FCloseFile( f );
++
++	// parse the text
++	text_p = text;
++
++	while ( text_p && *text_p ) {
++		// get surface name
++		token = COM_ParseExt2( &text_p, qtrue, ',' );
++		Q_strncpyz( surfName, token, sizeof( surfName ) );
++
++		if ( !token[0] ) {
++			break;
++		}
++
++		if ( *text_p == ',' ) {
++			text_p++;
++		}
++
++		if ( !Q_stricmpn( token, "tag_", 4 ) ) {
++			SkipRestOfLine( &text_p );
++			continue;
++		}
++
++		// skip RTCW/ET skin settings
++		if ( !Q_stricmpn( token, "md3_", 4 ) || !Q_stricmp( token, "playerscale" ) ) {
++			SkipRestOfLine( &text_p );
++			continue;
++		}
++
++		// parse the shader name
++		token = COM_ParseExt2( &text_p, qfalse, ',' );
++		Q_strncpyz( shaderName, token, sizeof( shaderName ) );
++
++		if ( skin->numSurfaces < MAX_CG_SKIN_SURFACES ) {
++			hShader = trap_R_RegisterShaderEx( shaderName, LIGHTMAP_NONE, qtrue );
++
++			skin->surfaces[skin->numSurfaces] = trap_R_AllocSkinSurface( surfName, hShader );
++			skin->numSurfaces++;
++		}
++
++		totalSurfaces++;
++	}
++
++	if ( totalSurfaces > MAX_CG_SKIN_SURFACES ) {
++		Com_Printf( "WARNING: Ignoring excess surfaces (found %d, max is %d) in skin '%s'!\n",
++					totalSurfaces - initialSurfaces, MAX_CG_SKIN_SURFACES - initialSurfaces, name );
++	}
++
++	// failed to load surfaces
++	if ( !skin->numSurfaces ) {
++		return qfalse;
++	}
++
++	return qtrue;
++}
++
++/*
++==========================
+ UI_RegisterClientSkin
+ ==========================
+ */
+ static qboolean UI_RegisterClientSkin( playerInfo_t *pi, const char *modelName, const char *skinName ) {
++
+ 	char		filename[MAX_QPATH];
++	qboolean	legsSkin, torsoSkin, headSkin;
+ 
+ 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/lower_%s.skin", modelName, skinName );
+-	pi->legsSkin = trap_R_RegisterSkin( filename );
++	legsSkin = UI_RegisterSkin( filename, &pi->modelSkin, qfalse );
+ 
+ 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/upper_%s.skin", modelName, skinName );
+-	pi->torsoSkin = trap_R_RegisterSkin( filename );
++	torsoSkin = UI_RegisterSkin( filename, &pi->modelSkin, qtrue );
+ 
+ 	Com_sprintf( filename, sizeof( filename ), "models/players/%s/head_%s.skin", modelName, skinName );
+-	pi->headSkin = trap_R_RegisterSkin( filename );
++	headSkin = UI_RegisterSkin( filename, &pi->modelSkin, qtrue );
+ 
+-	if ( !pi->legsSkin || !pi->torsoSkin || !pi->headSkin ) {
++	if ( !legsSkin || !torsoSkin || !headSkin ) {
+ 		return qfalse;
+ 	}
+ 
+Index: code/qcommon/q_shared.c
+===================================================================
+--- code/qcommon/q_shared.c	(revision 3379)
++++ code/qcommon/q_shared.c	(working copy)
+@@ -333,9 +333,14 @@
+ 
+ char *COM_Parse( char **data_p )
+ {
+-	return COM_ParseExt( data_p, qtrue );
++	return COM_ParseExt2(data_p, qtrue, 0);
+ }
+ 
++char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
++{
++	return COM_ParseExt2(data_p, allowLineBreaks, 0);
++}
++
+ void COM_ParseError( char *format, ... )
+ {
+ 	va_list argptr;
+@@ -372,7 +377,7 @@
+ a newline.
+ ==============
+ */
+-static char *SkipWhitespace( char *data, qboolean *hasNewLines ) {
++static char *SkipWhitespace( char *data, int *linesSkipped ) {
+ 	int c;
+ 
+ 	while( (c = *data) <= ' ') {
+@@ -380,8 +385,7 @@
+ 			return NULL;
+ 		}
+ 		if( c == '\n' ) {
+-			com_lines++;
+-			*hasNewLines = qtrue;
++			*linesSkipped += 1;
+ 		}
+ 		data++;
+ 	}
+@@ -458,10 +462,10 @@
+ 	return out - data_p;
+ }
+ 
+-char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
++char *COM_ParseExt2( char **data_p, qboolean allowLineBreaks, char delimiter )
+ {
+ 	int c = 0, len;
+-	qboolean hasNewLines = qfalse;
++	int linesSkipped = 0;
+ 	char *data;
+ 
+ 	data = *data_p;
+@@ -479,18 +483,21 @@
+ 	while ( 1 )
+ 	{
+ 		// skip whitespace
+-		data = SkipWhitespace( data, &hasNewLines );
++		data = SkipWhitespace( data, &linesSkipped );
+ 		if ( !data )
+ 		{
+ 			*data_p = NULL;
+ 			return com_token;
+ 		}
+-		if ( hasNewLines && !allowLineBreaks )
++		if ( data && linesSkipped && !allowLineBreaks )
+ 		{
+-			*data_p = data;
++			// ZTM: Don't move the pointer so that calling SkipRestOfLine afterwards works as expected
++			//*data_p = data;
+ 			return com_token;
+ 		}
+ 
++		com_lines += linesSkipped;
++
+ 		c = *data;
+ 
+ 		// skip double slash comments
+@@ -562,7 +569,7 @@
+ 		}
+ 		data++;
+ 		c = *data;
+-	} while (c>32);
++	} while (c>32 && c != delimiter);
+ 
+ 	com_token[len] = 0;
+ 
+Index: code/qcommon/q_shared.h
+===================================================================
+--- code/qcommon/q_shared.h	(revision 3379)
++++ code/qcommon/q_shared.h	(working copy)
+@@ -747,7 +747,8 @@
+ void	COM_BeginParseSession( const char *name );
+ int		COM_GetCurrentParseLine( void );
+ char	*COM_Parse( char **data_p );
+-char	*COM_ParseExt( char **data_p, qboolean allowLineBreak );
++char	*COM_ParseExt( char **data_p, qboolean allowLineBreaks );
++char	*COM_ParseExt2( char **data_p, qboolean allowLineBreaks, char delimiter );
+ int		COM_Compress( char *data_p );
+ void	COM_ParseError( char *format, ... ) __attribute__ ((format (printf, 1, 2)));
+ void	COM_ParseWarning( char *format, ... ) __attribute__ ((format (printf, 1, 2)));
+Index: code/renderercommon/tr_common.h
+===================================================================
+--- code/renderercommon/tr_common.h	(revision 3379)
++++ code/renderercommon/tr_common.h	(working copy)
+@@ -63,13 +63,6 @@
+ 	struct image_s*	next;
+ } image_t;
+ 
+-// any change in the LIGHTMAP_* defines here MUST be reflected in
+-// R_FindShader() in tr_bsp.c
+-#define LIGHTMAP_2D         -4	// shader is for 2D rendering
+-#define LIGHTMAP_BY_VERTEX  -3	// pre-lit triangle models
+-#define LIGHTMAP_WHITEIMAGE -2
+-#define LIGHTMAP_NONE       -1
+-
+ extern	refimport_t		ri;
+ extern glconfig_t	glConfig;		// outside of TR since it shouldn't be cleared during ref re-init
+ 
+@@ -124,7 +117,7 @@
+ image_t *R_CreateImage( const char *name, byte *pic, int width, int height, imgType_t type, imgFlags_t flags, int internalFormat );
+ 
+ void R_IssuePendingRenderCommands( void );
+-qhandle_t		 RE_RegisterShaderLightMap( const char *name, int lightmapIndex );
++qhandle_t		 RE_RegisterShaderEx( const char *name, int lightmapIndex, qboolean mipRawImage );
+ qhandle_t		 RE_RegisterShader( const char *name );
+ qhandle_t		 RE_RegisterShaderNoMip( const char *name );
+ qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_t *image, qboolean mipRawImage);
+Index: code/renderercommon/tr_public.h
+===================================================================
+--- code/renderercommon/tr_public.h	(revision 3379)
++++ code/renderercommon/tr_public.h	(working copy)
+@@ -46,9 +46,10 @@
+ 	// size display elements
+ 	void	(*BeginRegistration)( glconfig_t *config );
+ 	qhandle_t (*RegisterModel)( const char *name );
+-	qhandle_t (*RegisterSkin)( const char *name );
++	qhandle_t (*RegisterShaderEx)( const char *name, int lightmap, qboolean mip );
+ 	qhandle_t (*RegisterShader)( const char *name );
+ 	qhandle_t (*RegisterShaderNoMip)( const char *name );
++	qhandle_t (*AllocSkinSurface)( const char *name, qhandle_t hShader );
+ 	void	(*LoadWorld)( const char *name );
+ 
+ 	// the vis data is a large enough block of data that we go to the trouble
+@@ -79,6 +80,7 @@
+ 	void	(*UploadCinematic) (int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty);
+ 
+ 	void	(*BeginFrame)( stereoFrame_t stereoFrame );
++	qhandle_t (*AddSkinToFrame)( int numSurfaces, const qhandle_t *surfaces );
+ 
+ 	// if the pointers are not NULL, timing info will be returned
+ 	void	(*EndFrame)( int *frontEndMsec, int *backEndMsec );
+Index: code/renderercommon/tr_types.h
+===================================================================
+--- code/renderercommon/tr_types.h	(revision 3379)
++++ code/renderercommon/tr_types.h	(working copy)
+@@ -59,6 +59,13 @@
+ #define RDF_NOWORLDMODEL	0x0001		// used for player configuration screen
+ #define RDF_HYPERSPACE		0x0004		// teleportation effect
+ 
++// any change in the LIGHTMAP_* defines here MUST be reflected in
++// R_FindShader() in tr_bsp.c
++#define LIGHTMAP_2D         -4	// shader is for 2D rendering
++#define LIGHTMAP_BY_VERTEX  -3	// pre-lit triangle models
++#define LIGHTMAP_WHITEIMAGE -2
++#define LIGHTMAP_NONE       -1
++
+ typedef struct {
+ 	vec3_t		xyz;
+ 	float		st[2];
+Index: code/renderergl1/tr_animation.c
+===================================================================
+--- code/renderergl1/tr_animation.c	(revision 3379)
++++ code/renderergl1/tr_animation.c	(working copy)
+@@ -254,20 +254,11 @@
+ 	for ( i = 0 ; i < lod->numSurfaces ; i++ )
+ 	{
+ 		
+-		if(ent->e.customShader)
+-			shader = R_GetShaderByHandle(ent->e.customShader);
+-		else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
+-		{
+-			skin = R_GetSkinByHandle(ent->e.customSkin);
+-			shader = tr.defaultShader;
+-			
+-			for(j = 0; j < skin->numSurfaces; j++)
+-			{
+-				if (!strcmp(skin->surfaces[j].name, surface->name))
+-				{
+-					shader = skin->surfaces[j].shader;
+-					break;
+-				}
++		if ( ent->e.customShader || ent->e.customSkin ) {
++			shader = R_CustomSurfaceShader( surface->name, ent->e.customShader, ent->e.customSkin );
++			if (shader == tr.nodrawShader) {
++				surface = (mdrSurface_t *)( (byte *)surface + surface->ofsEnd );
++				continue;
+ 			}
+ 		}
+ 		else if(surface->shaderIndex > 0)
+Index: code/renderergl1/tr_image.c
+===================================================================
+--- code/renderergl1/tr_image.c	(revision 3379)
++++ code/renderergl1/tr_image.c	(working copy)
+@@ -1497,124 +1497,69 @@
+ 
+ /*
+ ===============
+-RE_RegisterSkin
+-
++RE_AllocSkinSurface
+ ===============
+ */
+-qhandle_t RE_RegisterSkin( const char *name ) {
+-	skinSurface_t parseSurfaces[MAX_SKIN_SURFACES];
+-	qhandle_t	hSkin;
+-	skin_t		*skin;
++qhandle_t	RE_AllocSkinSurface( const char *name, qhandle_t hShader ) {
++	qhandle_t		hSurf;
+ 	skinSurface_t	*surf;
+-	union {
+-		char *c;
+-		void *v;
+-	} text;
+-	char		*text_p;
+-	char		*token;
+-	char		surfName[MAX_QPATH];
+-	int			totalSurfaces;
++	shader_t		*shader;
++	char			*reuseName;
++	int				nameLen;
++	char			localName[MAX_QPATH];
+ 
+ 	if ( !name || !name[0] ) {
+-		ri.Printf( PRINT_DEVELOPER, "Empty name passed to RE_RegisterSkin\n" );
++		ri.Printf( PRINT_DEVELOPER, "Empty name passed to RE_AllocSkinSurface\n" );
+ 		return 0;
+ 	}
+ 
+ 	if ( strlen( name ) >= MAX_QPATH ) {
+-		ri.Printf( PRINT_DEVELOPER, "Skin name exceeds MAX_QPATH\n" );
++		ri.Printf( PRINT_DEVELOPER, "Skin surface name exceeds MAX_QPATH\n" );
+ 		return 0;
+ 	}
+ 
++	Q_strncpyz( localName, name, sizeof(localName) );
+ 
+-	// see if the skin is already loaded
+-	for ( hSkin = 1; hSkin < tr.numSkins ; hSkin++ ) {
+-		skin = tr.skins[hSkin];
+-		if ( !Q_stricmp( skin->name, name ) ) {
+-			if( skin->numSurfaces == 0 ) {
+-				return 0;		// default skin
++	// lowercase the surface name so skin compares are faster
++	Q_strlwr( localName );
++
++	reuseName = NULL;
++	shader = R_GetShaderByHandle( hShader );
++
++	// see if the surface is already loaded
++	for ( hSurf = 1; hSurf < tr.numSkinSurfaces ; hSurf++ ) {
++		surf = &tr.skinSurfaces[hSurf];
++		if ( !strcmp( surf->name, localName ) ) {
++			if ( surf->shader == shader ) {
++				return hSurf;
+ 			}
+-			return hSkin;
++			reuseName = surf->name;
+ 		}
+ 	}
+ 
+-	// allocate a new skin
+-	if ( tr.numSkins == MAX_SKINS ) {
+-		ri.Printf( PRINT_WARNING, "WARNING: RE_RegisterSkin( '%s' ) MAX_SKINS hit\n", name );
++	if ( tr.numSkinSurfaces >= MAX_SKINSURFACES ) {
++		ri.Printf( PRINT_WARNING, "WARNING: RE_AllocSkinSurface( '%s' ) MAX_SKINSURFACES hit\n", name );
+ 		return 0;
+ 	}
+-	tr.numSkins++;
+-	skin = ri.Hunk_Alloc( sizeof( skin_t ), h_low );
+-	tr.skins[hSkin] = skin;
+-	Q_strncpyz( skin->name, name, sizeof( skin->name ) );
+-	skin->numSurfaces = 0;
+ 
+-	R_IssuePendingRenderCommands();
++	// add a new skin surface
++	tr.numSkinSurfaces++;
+ 
+-	// If not a .skin file, load as a single shader
+-	if ( strcmp( name + strlen( name ) - 5, ".skin" ) ) {
+-		skin->numSurfaces = 1;
+-		skin->surfaces = ri.Hunk_Alloc( sizeof( skinSurface_t ), h_low );
+-		skin->surfaces[0].shader = R_FindShader( name, LIGHTMAP_NONE, qtrue );
+-		return hSkin;
+-	}
++	surf = &tr.skinSurfaces[hSurf];
++	surf->shader = shader;
+ 
+-	// load and parse the skin file
+-    ri.FS_ReadFile( name, &text.v );
+-	if ( !text.c ) {
+-		return 0;
+-	}
++	if ( reuseName ) {
++		surf->name = reuseName;
++	} else {
++		nameLen = strlen( localName ) + 1;
+ 
+-	totalSurfaces = 0;
+-	text_p = text.c;
+-	while ( text_p && *text_p ) {
+-		// get surface name
+-		token = CommaParse( &text_p );
+-		Q_strncpyz( surfName, token, sizeof( surfName ) );
++		surf->name = ri.Hunk_Alloc( nameLen, h_low );
++		tr.skinSurfaceNameMemory += nameLen;
+ 
+-		if ( !token[0] ) {
+-			break;
+-		}
+-		// lowercase the surface name so skin compares are faster
+-		Q_strlwr( surfName );
+-
+-		if ( *text_p == ',' ) {
+-			text_p++;
+-		}
+-
+-		if ( strstr( token, "tag_" ) ) {
+-			continue;
+-		}
+-		
+-		// parse the shader name
+-		token = CommaParse( &text_p );
+-
+-		if ( skin->numSurfaces < MAX_SKIN_SURFACES ) {
+-			surf = &parseSurfaces[skin->numSurfaces];
+-			Q_strncpyz( surf->name, surfName, sizeof( surf->name ) );
+-			surf->shader = R_FindShader( token, LIGHTMAP_NONE, qtrue );
+-			skin->numSurfaces++;
+-		}
+-
+-		totalSurfaces++;
++		Q_strncpyz( surf->name, localName, nameLen );
+ 	}
+ 
+-	ri.FS_FreeFile( text.v );
+-
+-	if ( totalSurfaces > MAX_SKIN_SURFACES ) {
+-		ri.Printf( PRINT_WARNING, "WARNING: Ignoring excess surfaces (found %d, max is %d) in skin '%s'!\n",
+-					totalSurfaces, MAX_SKIN_SURFACES, name );
+-	}
+-
+-	// never let a skin have 0 shaders
+-	if ( skin->numSurfaces == 0 ) {
+-		return 0;		// use default skin
+-	}
+-
+-	// copy surfaces to skin
+-	skin->surfaces = ri.Hunk_Alloc( skin->numSurfaces * sizeof( skinSurface_t ), h_low );
+-	memcpy( skin->surfaces, parseSurfaces, skin->numSurfaces * sizeof( skinSurface_t ) );
+-
+-	return hSkin;
++	return hSurf;
+ }
+ 
+ 
+@@ -1624,49 +1569,26 @@
+ ===============
+ */
+ void	R_InitSkins( void ) {
+-	skin_t		*skin;
+-
+-	tr.numSkins = 1;
+-
+-	// make the default skin have all default shaders
+-	skin = tr.skins[0] = ri.Hunk_Alloc( sizeof( skin_t ), h_low );
+-	Q_strncpyz( skin->name, "<default skin>", sizeof( skin->name )  );
+-	skin->numSurfaces = 1;
+-	skin->surfaces = ri.Hunk_Alloc( sizeof( skinSurface_t ), h_low );
+-	skin->surfaces[0].shader = tr.defaultShader;
++	tr.numSkinSurfaces = 1;
+ }
+ 
+ /*
+ ===============
+-R_GetSkinByHandle
+-===============
+-*/
+-skin_t	*R_GetSkinByHandle( qhandle_t hSkin ) {
+-	if ( hSkin < 1 || hSkin >= tr.numSkins ) {
+-		return tr.skins[0];
+-	}
+-	return tr.skins[ hSkin ];
+-}
+-
+-/*
+-===============
+ R_SkinList_f
+ ===============
+ */
+ void	R_SkinList_f( void ) {
+-	int			i, j;
+-	skin_t		*skin;
++	int			i;
++	skinSurface_t *surf;
+ 
++	ri.Printf (PRINT_ALL, "Skin surface name memory: %d bytes\n", tr.skinSurfaceNameMemory);
+ 	ri.Printf (PRINT_ALL, "------------------\n");
+ 
+-	for ( i = 0 ; i < tr.numSkins ; i++ ) {
+-		skin = tr.skins[i];
++	for ( i = 1 ; i < tr.numSkinSurfaces ; i++ ) {
++		surf = &tr.skinSurfaces[i];
+ 
+-		ri.Printf( PRINT_ALL, "%3i:%s (%d surfaces)\n", i, skin->name, skin->numSurfaces );
+-		for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
+-			ri.Printf( PRINT_ALL, "       %s = %s\n", 
+-				skin->surfaces[j].name, skin->surfaces[j].shader->name );
+-		}
++		ri.Printf( PRINT_ALL, "%3i: %s = %s\n",
++				i, surf->name, surf->shader->name );
+ 	}
+ 	ri.Printf (PRINT_ALL, "------------------\n");
+ }
+Index: code/renderergl1/tr_init.c
+===================================================================
+--- code/renderergl1/tr_init.c	(revision 3379)
++++ code/renderergl1/tr_init.c	(working copy)
+@@ -1349,9 +1349,10 @@
+ 
+ 	re.BeginRegistration = RE_BeginRegistration;
+ 	re.RegisterModel = RE_RegisterModel;
+-	re.RegisterSkin = RE_RegisterSkin;
++	re.RegisterShaderEx = RE_RegisterShaderEx;
+ 	re.RegisterShader = RE_RegisterShader;
+ 	re.RegisterShaderNoMip = RE_RegisterShaderNoMip;
++	re.AllocSkinSurface = RE_AllocSkinSurface;
+ 	re.LoadWorld = RE_LoadWorldMap;
+ 	re.SetWorldVisData = RE_SetWorldVisData;
+ 	re.EndRegistration = RE_EndRegistration;
+@@ -1364,6 +1365,7 @@
+ 	re.ModelBounds = R_ModelBounds;
+ 
+ 	re.ClearScene = RE_ClearScene;
++	re.AddSkinToFrame = RE_AddSkinToFrame;
+ 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
+ 	re.AddPolyToScene = RE_AddPolyToScene;
+ 	re.LightForPoint = R_LightForPoint;
+Index: code/renderergl1/tr_local.h
+===================================================================
+--- code/renderergl1/tr_local.h	(revision 3379)
++++ code/renderergl1/tr_local.h	(working copy)
+@@ -413,6 +413,8 @@
+ 	int			numDrawSurfs;
+ 	struct drawSurf_s	*drawSurfs;
+ 
++	int			numSkins;
++	struct skin_s *skins;
+ 
+ } trRefdef_t;
+ 
+@@ -426,15 +428,14 @@
+ #define MAX_SKIN_SURFACES	256
+ 
+ // skins allow models to be retextured without modifying the model file
+-typedef struct {
+-	char		name[MAX_QPATH];
+-	shader_t	*shader;
++typedef struct skinSurface_s {
++	char			*name;
++	shader_t		*shader;
+ } skinSurface_t;
+ 
+ typedef struct skin_s {
+-	char		name[MAX_QPATH];		// game path, including extension
+ 	int			numSurfaces;
+-	skinSurface_t	*surfaces;			// dynamically allocated array of surfaces
++	qhandle_t	*surfaces; // indexes in tr.skinSurfaces
+ } skin_t;
+ 
+ 
+@@ -777,6 +778,7 @@
+ int			R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFrame, 
+ 					 float frac, const char *tagName );
+ void		R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs );
++shader_t	*R_CustomSurfaceShader( const char *surfaceName, qhandle_t customShader, qhandle_t customSkin );
+ 
+ void		R_Modellist_f (void);
+ 
+@@ -784,6 +786,7 @@
+ 
+ #define	MAX_DRAWIMAGES			2048
+ #define	MAX_SKINS				1024
++#define	MAX_SKINSURFACES		(MAX_SKINS*16)
+ 
+ 
+ #define	MAX_DRAWSURFS			0x10000
+@@ -911,6 +914,7 @@
+ 	image_t					*identityLightImage;	// full of tr.identityLightByte
+ 
+ 	shader_t				*defaultShader;
++	shader_t				*nodrawShader;
+ 	shader_t				*shadowShader;
+ 	shader_t				*projectionShadowShader;
+ 
+@@ -962,8 +966,9 @@
+ 	shader_t				*shaders[MAX_SHADERS];
+ 	shader_t				*sortedShaders[MAX_SHADERS];
+ 
+-	int						numSkins;
+-	skin_t					*skins[MAX_SKINS];
++	int						numSkinSurfaces;
++	skinSurface_t			skinSurfaces[MAX_SKINSURFACES];
++	int						skinSurfaceNameMemory;
+ 
+ 	float					sinTable[FUNCTABLE_SIZE];
+ 	float					squareTable[FUNCTABLE_SIZE];
+@@ -1169,6 +1174,7 @@
+ void		RE_SetWorldVisData( const byte *vis );
+ qhandle_t	RE_RegisterModel( const char *name );
+ qhandle_t	RE_RegisterSkin( const char *name );
++qhandle_t	RE_AllocSkinSurface( const char *surface, qhandle_t hShader );
+ void		RE_Shutdown( qboolean destroyWindow );
+ 
+ qboolean	R_GetEntityToken( char *buffer, int size );
+@@ -1192,7 +1198,6 @@
+ void	R_DeleteTextures( void );
+ int		R_SumOfUsedImages( void );
+ void	R_InitSkins( void );
+-skin_t	*R_GetSkinByHandle( qhandle_t hSkin );
+ 
+ int R_ComputeLOD( trRefEntity_t *ent );
+ 
+@@ -1375,6 +1380,7 @@
+ */
+ 
+ void R_InitNextFrame( void );
++qhandle_t RE_AddSkinToFrame( int numSurfaces, const qhandle_t *surfaces );
+ 
+ void RE_ClearScene( void );
+ void RE_AddRefEntityToScene( const refEntity_t *ent );
+@@ -1575,6 +1581,8 @@
+ 	drawSurf_t	drawSurfs[MAX_DRAWSURFS];
+ 	dlight_t	dlights[MAX_DLIGHTS];
+ 	trRefEntity_t	entities[MAX_REFENTITIES];
++	skin_t		skins[MAX_SKINS];
++	qhandle_t	skinSurfaces[MAX_SKINSURFACES];
+ 	srfPoly_t	*polys;//[MAX_POLYS];
+ 	polyVert_t	*polyVerts;//[MAX_POLYVERTS];
+ 	renderCommandList_t	commands;
+Index: code/renderergl1/tr_mesh.c
+===================================================================
+--- code/renderergl1/tr_mesh.c	(revision 3379)
++++ code/renderergl1/tr_mesh.c	(working copy)
+@@ -348,30 +348,12 @@
+ 	//
+ 	surface = (md3Surface_t *)( (byte *)header + header->ofsSurfaces );
+ 	for ( i = 0 ; i < header->numSurfaces ; i++ ) {
+-
+-		if ( ent->e.customShader ) {
+-			shader = R_GetShaderByHandle( ent->e.customShader );
+-		} else if ( ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins ) {
+-			skin_t *skin;
+-			int		j;
+-
+-			skin = R_GetSkinByHandle( ent->e.customSkin );
+-
+-			// match the surface name to something in the skin file
+-			shader = tr.defaultShader;
+-			for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
+-				// the names have both been lowercased
+-				if ( !strcmp( skin->surfaces[j].name, surface->name ) ) {
+-					shader = skin->surfaces[j].shader;
+-					break;
+-				}
++		if ( ent->e.customShader || ent->e.customSkin ) {
++			shader = R_CustomSurfaceShader( surface->name, ent->e.customShader, ent->e.customSkin );
++			if ( shader == tr.nodrawShader ) {
++				surface = (md3Surface_t *)( (byte *)surface + surface->ofsEnd );
++				continue;
+ 			}
+-			if (shader == tr.defaultShader) {
+-				ri.Printf( PRINT_DEVELOPER, "WARNING: no shader for surface %s in skin %s\n", surface->name, skin->name);
+-			}
+-			else if (shader->defaultShader) {
+-				ri.Printf( PRINT_DEVELOPER, "WARNING: shader %s in skin %s not found\n", shader->name, skin->name);
+-			}
+ 		} else if ( surface->numShaders <= 0 ) {
+ 			shader = tr.defaultShader;
+ 		} else {
+Index: code/renderergl1/tr_model.c
+===================================================================
+--- code/renderergl1/tr_model.c	(revision 3379)
++++ code/renderergl1/tr_model.c	(working copy)
+@@ -1118,3 +1118,48 @@
+ 	VectorClear( mins );
+ 	VectorClear( maxs );
+ }
++
++/*
++====================
++R_CustomSurfaceShader
++
++surfaceName must be lowercase
++
++Returns the shader to use for the surface, or tr.nodrawShader if the surface should not be rendered
++
++If there is a custom shader and skin, the skin will be used to see if the surface should
++be drawn (returning tr.nodrawShader if it should not) and then return the custom shader.
++====================
++*/
++shader_t *R_CustomSurfaceShader( const char *surfaceName, qhandle_t customShader, qhandle_t customSkin ) {
++	shader_t *shader = tr.defaultShader;
++
++	if ( customSkin > 0 && customSkin <= tr.refdef.numSkins ) {
++		skin_t *skin;
++		skinSurface_t *skinSurf;
++		int j;
++
++		skin = &tr.refdef.skins[customSkin - 1];
++
++		// match the surface name to something in the skin
++		for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
++			skinSurf = &tr.skinSurfaces[ skin->surfaces[ j ] ];
++			// the names have both been lowercased
++			if ( !strcmp( skinSurf->name, surfaceName ) ) {
++				shader = skinSurf->shader;
++				break;
++			}
++		}
++
++		if ( shader == tr.nodrawShader ) {
++			return shader;
++		}
++	}
++
++	if ( customShader ) {
++		shader = R_GetShaderByHandle( customShader );
++	}
++
++	return shader;
++}
++
+Index: code/renderergl1/tr_model_iqm.c
+===================================================================
+--- code/renderergl1/tr_model_iqm.c	(revision 3379)
++++ code/renderergl1/tr_model_iqm.c	(working copy)
+@@ -1115,20 +1115,11 @@
+ 	fogNum = R_ComputeIQMFogNum( data, ent );
+ 
+ 	for ( i = 0 ; i < data->num_surfaces ; i++ ) {
+-		if(ent->e.customShader)
+-			shader = R_GetShaderByHandle( ent->e.customShader );
+-		else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
+-		{
+-			skin = R_GetSkinByHandle(ent->e.customSkin);
+-			shader = tr.defaultShader;
+-
+-			for(j = 0; j < skin->numSurfaces; j++)
+-			{
+-				if (!strcmp(skin->surfaces[j].name, surface->name))
+-				{
+-					shader = skin->surfaces[j].shader;
+-					break;
+-				}
++		if ( ent->e.customShader || ent->e.customSkin ) {
++			shader = R_CustomSurfaceShader( surface->name, ent->e.customShader, ent->e.customSkin );
++			if (shader == tr.nodrawShader) {
++				surface++;
++				continue;
+ 			}
+ 		} else {
+ 			shader = surface->shader;
+Index: code/renderergl1/tr_scene.c
+===================================================================
+--- code/renderergl1/tr_scene.c	(revision 3379)
++++ code/renderergl1/tr_scene.c	(working copy)
+@@ -27,6 +27,9 @@
+ int			r_numdlights;
+ int			r_firstSceneDlight;
+ 
++int			r_numskins;
++int			r_numskinsurfaces;
++
+ int			r_numentities;
+ int			r_firstSceneEntity;
+ 
+@@ -50,6 +53,9 @@
+ 	r_numdlights = 0;
+ 	r_firstSceneDlight = 0;
+ 
++	r_numskins = 0;
++	r_numskinsurfaces = 0;
++
+ 	r_numentities = 0;
+ 	r_firstSceneEntity = 0;
+ 
+@@ -73,6 +79,69 @@
+ }
+ 
+ /*
++=====================
++RE_AddSkinToFrame
++
++=====================
++*/
++qhandle_t RE_AddSkinToFrame( int numSurfaces, const qhandle_t *surfaces ) {
++	int		i, j;
++
++	if ( !tr.registered ) {
++		return 0;
++	}
++	if ( numSurfaces <= 0 ) {
++		return 0;
++	}
++
++	// validate surfaces (should only fail if there is a bug in cgame)
++	for ( i = 0; i < numSurfaces; i++ ) {
++		if ( surfaces[i] < 0 || surfaces[i] >= tr.numSkinSurfaces ) {
++			ri.Printf(PRINT_DEVELOPER, "RE_AddSkinToFrame: Dropping skin, surface index out of range\n");
++			return 0;
++		}
++	}
++
++	// check if skin was already added this frame
++	for ( i = 0; i < r_numskins; i++ ) {
++		if ( backEndData->skins[i].numSurfaces != numSurfaces )
++			continue;
++
++		for ( j = 0; j < numSurfaces; j++ ) {
++			if ( backEndData->skins[i].surfaces[j] != surfaces[j] ) {
++				break;
++			}
++		}
++
++		if ( j == numSurfaces ) {
++			return i+1;
++		}
++	}
++
++	if ( r_numskins >= MAX_SKINS ) {
++		ri.Printf(PRINT_DEVELOPER, "RE_AddSkinToFrame: Dropping skin, reached MAX_SKINS\n");
++		return 0;
++	}
++	if ( r_numskinsurfaces + numSurfaces > MAX_SKINSURFACES ) {
++		ri.Printf(PRINT_DEVELOPER, "RE_AddSkinToFrame: Dropping skin, reached MAX_SKINSURFACES\n");
++		return 0;
++	}
++
++	// create new skin
++	backEndData->skins[r_numskins].surfaces = &backEndData->skinSurfaces[r_numskinsurfaces];
++	backEndData->skins[r_numskins].numSurfaces = numSurfaces;
++
++	for ( i = 0; i < numSurfaces; i++ ) {
++		backEndData->skinSurfaces[r_numskinsurfaces+i] = surfaces[i];
++	}
++
++	r_numskinsurfaces += numSurfaces;
++	r_numskins++;
++
++	return r_numskins;
++}
++
++/*
+ ===========================================================================
+ 
+ DISCRETE POLYS
+@@ -349,6 +418,9 @@
+ 	tr.refdef.numDrawSurfs = r_firstSceneDrawSurf;
+ 	tr.refdef.drawSurfs = backEndData->drawSurfs;
+ 
++	tr.refdef.numSkins = r_numskins;
++	tr.refdef.skins = backEndData->skins;
++
+ 	tr.refdef.num_entities = r_numentities - r_firstSceneEntity;
+ 	tr.refdef.entities = &backEndData->entities[r_firstSceneEntity];
+ 
+Index: code/renderergl1/tr_shader.c
+===================================================================
+--- code/renderergl1/tr_shader.c	(revision 3379)
++++ code/renderergl1/tr_shader.c	(working copy)
+@@ -73,7 +73,7 @@
+ 
+ 	sh = R_FindShaderByName( shaderName );
+ 	if (sh == NULL || sh == tr.defaultShader) {
+-		h = RE_RegisterShaderLightMap(shaderName, 0);
++		h = RE_RegisterShaderEx(shaderName, 0, qtrue);
+ 		sh = R_GetShaderByHandle(h);
+ 	}
+ 	if (sh == NULL || sh == tr.defaultShader) {
+@@ -83,7 +83,7 @@
+ 
+ 	sh2 = R_FindShaderByName( newShaderName );
+ 	if (sh2 == NULL || sh2 == tr.defaultShader) {
+-		h = RE_RegisterShaderLightMap(newShaderName, 0);
++		h = RE_RegisterShaderEx(newShaderName, 0, qtrue);
+ 		sh2 = R_GetShaderByHandle(h);
+ 	}
+ 
+@@ -2753,16 +2753,13 @@
+ 
+ /* 
+ ====================
+-RE_RegisterShader
++RE_RegisterShaderEx
+ 
+ This is the exported shader entry point for the rest of the system
+ It will always return an index that will be valid.
+-
+-This should really only be used for explicit shaders, because there is no
+-way to ask for different implicit lighting modes (vertex, lightmap, etc)
+ ====================
+ */
+-qhandle_t RE_RegisterShaderLightMap( const char *name, int lightmapIndex ) {
++qhandle_t RE_RegisterShaderEx( const char *name, int lightmapIndex, qboolean mipRawImage ) {
+ 	shader_t	*sh;
+ 
+ 	if ( strlen( name ) >= MAX_QPATH ) {
+@@ -2770,7 +2767,7 @@
+ 		return 0;
+ 	}
+ 
+-	sh = R_FindShader( name, lightmapIndex, qtrue );
++	sh = R_FindShader( name, lightmapIndex, mipRawImage );
+ 
+ 	// we want to return 0 if the shader failed to
+ 	// load for some reason, but R_FindShader should
+@@ -2797,25 +2794,7 @@
+ ====================
+ */
+ qhandle_t RE_RegisterShader( const char *name ) {
+-	shader_t	*sh;
+-
+-	if ( strlen( name ) >= MAX_QPATH ) {
+-		ri.Printf( PRINT_ALL, "Shader name exceeds MAX_QPATH\n" );
+-		return 0;
+-	}
+-
+-	sh = R_FindShader( name, LIGHTMAP_2D, qtrue );
+-
+-	// we want to return 0 if the shader failed to
+-	// load for some reason, but R_FindShader should
+-	// still keep a name allocated for it, so if
+-	// something calls RE_RegisterShader again with
+-	// the same name, we don't try looking for it again
+-	if ( sh->defaultShader ) {
+-		return 0;
+-	}
+-
+-	return sh->index;
++	return RE_RegisterShaderEx( name, LIGHTMAP_2D, qtrue );
+ }
+ 
+ 
+@@ -2827,25 +2806,7 @@
+ ====================
+ */
+ qhandle_t RE_RegisterShaderNoMip( const char *name ) {
+-	shader_t	*sh;
+-
+-	if ( strlen( name ) >= MAX_QPATH ) {
+-		ri.Printf( PRINT_ALL, "Shader name exceeds MAX_QPATH\n" );
+-		return 0;
+-	}
+-
+-	sh = R_FindShader( name, LIGHTMAP_2D, qfalse );
+-
+-	// we want to return 0 if the shader failed to
+-	// load for some reason, but R_FindShader should
+-	// still keep a name allocated for it, so if
+-	// something calls RE_RegisterShader again with
+-	// the same name, we don't try looking for it again
+-	if ( sh->defaultShader ) {
+-		return 0;
+-	}
+-
+-	return sh->index;
++	return RE_RegisterShaderEx( name, LIGHTMAP_2D, qfalse );
+ }
+ 
+ /*
+Index: code/renderergl2/tr_animation.c
+===================================================================
+--- code/renderergl2/tr_animation.c	(revision 3379)
++++ code/renderergl2/tr_animation.c	(working copy)
+@@ -183,8 +183,7 @@
+ 	mdrSurface_t	*surface;
+ 	mdrLOD_t		*lod;
+ 	shader_t		*shader;
+-	skin_t		*skin;
+-	int				i, j;
++	int				i;
+ 	int				lodnum = 0;
+ 	int				fogNum = 0;
+ 	int				cull;
+@@ -193,6 +192,7 @@
+ 
+ 	header = (mdrHeader_t *) tr.currentModel->modelData;
+ 	
++	// don't add mirror only objects if not in a mirror/portal
+ 	personalModel = (ent->e.renderfx & RF_THIRD_PERSON) && !(tr.viewParms.isPortal 
+ 	                 || (tr.viewParms.flags & (VPF_SHADOWMAP | VPF_DEPTHSHADOW)));
+ 	
+@@ -258,20 +258,11 @@
+ 	for ( i = 0 ; i < lod->numSurfaces ; i++ )
+ 	{
+ 		
+-		if(ent->e.customShader)
+-			shader = R_GetShaderByHandle(ent->e.customShader);
+-		else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
+-		{
+-			skin = R_GetSkinByHandle(ent->e.customSkin);
+-			shader = tr.defaultShader;
+-			
+-			for(j = 0; j < skin->numSurfaces; j++)
+-			{
+-				if (!strcmp(skin->surfaces[j].name, surface->name))
+-				{
+-					shader = skin->surfaces[j].shader;
+-					break;
+-				}
++		if ( ent->e.customShader || ent->e.customSkin ) {
++			shader = R_CustomSurfaceShader( surface->name, ent->e.customShader, ent->e.customSkin );
++			if (shader == tr.nodrawShader) {
++				surface = (mdrSurface_t *)( (byte *)surface + surface->ofsEnd );
++				continue;
+ 			}
+ 		}
+ 		else if(surface->shaderIndex > 0)
+Index: code/renderergl2/tr_image.c
+===================================================================
+--- code/renderergl2/tr_image.c	(revision 3379)
++++ code/renderergl2/tr_image.c	(working copy)
+@@ -2941,231 +2941,70 @@
+ */
+ 
+ /*
+-==================
+-CommaParse
+-
+-This is unfortunate, but the skin files aren't
+-compatible with our normal parsing rules.
+-==================
+-*/
+-static char *CommaParse( char **data_p ) {
+-	int c = 0, len;
+-	char *data;
+-	static	char	com_token[MAX_TOKEN_CHARS];
+-
+-	data = *data_p;
+-	len = 0;
+-	com_token[0] = 0;
+-
+-	// make sure incoming data is valid
+-	if ( !data ) {
+-		*data_p = NULL;
+-		return com_token;
+-	}
+-
+-	while ( 1 ) {
+-		// skip whitespace
+-		while( (c = *data) <= ' ') {
+-			if( !c ) {
+-				break;
+-			}
+-			data++;
+-		}
+-
+-
+-		c = *data;
+-
+-		// skip double slash comments
+-		if ( c == '/' && data[1] == '/' )
+-		{
+-			data += 2;
+-			while (*data && *data != '\n') {
+-				data++;
+-			}
+-		}
+-		// skip /* */ comments
+-		else if ( c=='/' && data[1] == '*' ) 
+-		{
+-			data += 2;
+-			while ( *data && ( *data != '*' || data[1] != '/' ) ) 
+-			{
+-				data++;
+-			}
+-			if ( *data ) 
+-			{
+-				data += 2;
+-			}
+-		}
+-		else
+-		{
+-			break;
+-		}
+-	}
+-
+-	if ( c == 0 ) {
+-		return "";
+-	}
+-
+-	// handle quoted strings
+-	if (c == '\"')
+-	{
+-		data++;
+-		while (1)
+-		{
+-			c = *data++;
+-			if (c=='\"' || !c)
+-			{
+-				com_token[len] = 0;
+-				*data_p = ( char * ) data;
+-				return com_token;
+-			}
+-			if (len < MAX_TOKEN_CHARS - 1)
+-			{
+-				com_token[len] = c;
+-				len++;
+-			}
+-		}
+-	}
+-
+-	// parse a regular word
+-	do
+-	{
+-		if (len < MAX_TOKEN_CHARS - 1)
+-		{
+-			com_token[len] = c;
+-			len++;
+-		}
+-		data++;
+-		c = *data;
+-	} while (c>32 && c != ',' );
+-
+-	com_token[len] = 0;
+-
+-	*data_p = ( char * ) data;
+-	return com_token;
+-}
+-
+-
+-/*
+ ===============
+-RE_RegisterSkin
+-
++RE_AllocSkinSurface
+ ===============
+ */
+-qhandle_t RE_RegisterSkin( const char *name ) {
+-	skinSurface_t parseSurfaces[MAX_SKIN_SURFACES];
+-	qhandle_t	hSkin;
+-	skin_t		*skin;
++qhandle_t	RE_AllocSkinSurface( const char *name, qhandle_t hShader ) {
++	qhandle_t		hSurf;
+ 	skinSurface_t	*surf;
+-	union {
+-		char *c;
+-		void *v;
+-	} text;
+-	char		*text_p;
+-	char		*token;
+-	char		surfName[MAX_QPATH];
+-	int			totalSurfaces;
++	shader_t		*shader;
++	char			*reuseName;
++	int				nameLen;
++	char			localName[MAX_QPATH];
+ 
+ 	if ( !name || !name[0] ) {
+-		ri.Printf( PRINT_DEVELOPER, "Empty name passed to RE_RegisterSkin\n" );
++		ri.Printf( PRINT_DEVELOPER, "Empty name passed to RE_AllocSkinSurface\n" );
+ 		return 0;
+ 	}
+ 
+ 	if ( strlen( name ) >= MAX_QPATH ) {
+-		ri.Printf( PRINT_DEVELOPER, "Skin name exceeds MAX_QPATH\n" );
++		ri.Printf( PRINT_DEVELOPER, "Skin surface name exceeds MAX_QPATH\n" );
+ 		return 0;
+ 	}
+ 
++	Q_strncpyz( localName, name, sizeof(localName) );
+ 
+-	// see if the skin is already loaded
+-	for ( hSkin = 1; hSkin < tr.numSkins ; hSkin++ ) {
+-		skin = tr.skins[hSkin];
+-		if ( !Q_stricmp( skin->name, name ) ) {
+-			if( skin->numSurfaces == 0 ) {
+-				return 0;		// default skin
++	// lowercase the surface name so skin compares are faster
++	Q_strlwr( localName );
++
++	reuseName = NULL;
++	shader = R_GetShaderByHandle( hShader );
++
++	// see if the surface is already loaded
++	for ( hSurf = 1; hSurf < tr.numSkinSurfaces ; hSurf++ ) {
++		surf = &tr.skinSurfaces[hSurf];
++		if ( !strcmp( surf->name, localName ) ) {
++			if ( surf->shader == shader ) {
++				return hSurf;
+ 			}
+-			return hSkin;
++			reuseName = surf->name;
+ 		}
+ 	}
+ 
+-	// allocate a new skin
+-	if ( tr.numSkins == MAX_SKINS ) {
+-		ri.Printf( PRINT_WARNING, "WARNING: RE_RegisterSkin( '%s' ) MAX_SKINS hit\n", name );
++	if ( tr.numSkinSurfaces >= MAX_SKINSURFACES ) {
++		ri.Printf( PRINT_WARNING, "WARNING: RE_AllocSkinSurface( '%s' ) MAX_SKINSURFACES hit\n", name );
+ 		return 0;
+ 	}
+-	tr.numSkins++;
+-	skin = ri.Hunk_Alloc( sizeof( skin_t ), h_low );
+-	tr.skins[hSkin] = skin;
+-	Q_strncpyz( skin->name, name, sizeof( skin->name ) );
+-	skin->numSurfaces = 0;
+ 
+-	R_IssuePendingRenderCommands();
++	// add a new skin surface
++	tr.numSkinSurfaces++;
+ 
+-	// If not a .skin file, load as a single shader
+-	if ( strcmp( name + strlen( name ) - 5, ".skin" ) ) {
+-		skin->numSurfaces = 1;
+-		skin->surfaces = ri.Hunk_Alloc( sizeof( skinSurface_t ), h_low );
+-		skin->surfaces[0].shader = R_FindShader( name, LIGHTMAP_NONE, qtrue );
+-		return hSkin;
+-	}
++	surf = &tr.skinSurfaces[hSurf];
++	surf->shader = shader;
+ 
+-	// load and parse the skin file
+-    ri.FS_ReadFile( name, &text.v );
+-	if ( !text.c ) {
+-		return 0;
+-	}
++	if ( reuseName ) {
++		surf->name = reuseName;
++	} else {
++		nameLen = strlen( localName ) + 1;
+ 
+-	totalSurfaces = 0;
+-	text_p = text.c;
+-	while ( text_p && *text_p ) {
+-		// get surface name
+-		token = CommaParse( &text_p );
+-		Q_strncpyz( surfName, token, sizeof( surfName ) );
++		surf->name = ri.Hunk_Alloc( nameLen, h_low );
++		tr.skinSurfaceNameMemory += nameLen;
+ 
+-		if ( !token[0] ) {
+-			break;
+-		}
+-		// lowercase the surface name so skin compares are faster
+-		Q_strlwr( surfName );
+-
+-		if ( *text_p == ',' ) {
+-			text_p++;
+-		}
+-
+-		if ( strstr( token, "tag_" ) ) {
+-			continue;
+-		}
+-		
+-		// parse the shader name
+-		token = CommaParse( &text_p );
+-
+-		if ( skin->numSurfaces < MAX_SKIN_SURFACES ) {
+-			surf = &parseSurfaces[skin->numSurfaces];
+-			Q_strncpyz( surf->name, surfName, sizeof( surf->name ) );
+-			surf->shader = R_FindShader( token, LIGHTMAP_NONE, qtrue );
+-			skin->numSurfaces++;
+-		}
+-
+-		totalSurfaces++;
++		Q_strncpyz( surf->name, localName, nameLen );
+ 	}
+ 
+-	ri.FS_FreeFile( text.v );
+-
+-	if ( totalSurfaces > MAX_SKIN_SURFACES ) {
+-		ri.Printf( PRINT_WARNING, "WARNING: Ignoring excess surfaces (found %d, max is %d) in skin '%s'!\n",
+-					totalSurfaces, MAX_SKIN_SURFACES, name );
+-	}
+-
+-	// never let a skin have 0 shaders
+-	if ( skin->numSurfaces == 0 ) {
+-		return 0;		// use default skin
+-	}
+-
+-	// copy surfaces to skin
+-	skin->surfaces = ri.Hunk_Alloc( skin->numSurfaces * sizeof( skinSurface_t ), h_low );
+-	memcpy( skin->surfaces, parseSurfaces, skin->numSurfaces * sizeof( skinSurface_t ) );
+-
+-	return hSkin;
++	return hSurf;
+ }
+ 
+ 
+@@ -3175,51 +3014,29 @@
+ ===============
+ */
+ void	R_InitSkins( void ) {
+-	skin_t		*skin;
+-
+-	tr.numSkins = 1;
+-
+-	// make the default skin have all default shaders
+-	skin = tr.skins[0] = ri.Hunk_Alloc( sizeof( skin_t ), h_low );
+-	Q_strncpyz( skin->name, "<default skin>", sizeof( skin->name )  );
+-	skin->numSurfaces = 1;
+-	skin->surfaces = ri.Hunk_Alloc( sizeof( skinSurface_t ), h_low );
+-	skin->surfaces[0].shader = tr.defaultShader;
++	tr.numSkinSurfaces = 1;
+ }
+ 
+ /*
+ ===============
+-R_GetSkinByHandle
+-===============
+-*/
+-skin_t	*R_GetSkinByHandle( qhandle_t hSkin ) {
+-	if ( hSkin < 1 || hSkin >= tr.numSkins ) {
+-		return tr.skins[0];
+-	}
+-	return tr.skins[ hSkin ];
+-}
+-
+-/*
+-===============
+ R_SkinList_f
+ ===============
+ */
+ void	R_SkinList_f( void ) {
+-	int			i, j;
+-	skin_t		*skin;
++	int			i;
++	skinSurface_t *surf;
+ 
++	ri.Printf (PRINT_ALL, "Skin surface name memory: %d bytes\n", tr.skinSurfaceNameMemory);
+ 	ri.Printf (PRINT_ALL, "------------------\n");
+ 
+-	for ( i = 0 ; i < tr.numSkins ; i++ ) {
+-		skin = tr.skins[i];
++	for ( i = 1 ; i < tr.numSkinSurfaces ; i++ ) {
++		surf = &tr.skinSurfaces[i];
+ 
+-		ri.Printf( PRINT_ALL, "%3i:%s (%d surfaces)\n", i, skin->name, skin->numSurfaces );
+-		for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
+-			ri.Printf( PRINT_ALL, "       %s = %s\n", 
+-				skin->surfaces[j].name, skin->surfaces[j].shader->name );
+-		}
++		ri.Printf( PRINT_ALL, "%3i: %s = %s\n",
++				i, surf->name, surf->shader->name );
+ 	}
+ 	ri.Printf (PRINT_ALL, "------------------\n");
+ }
+ 
+ 
++
+Index: code/renderergl2/tr_init.c
+===================================================================
+--- code/renderergl2/tr_init.c	(revision 3379)
++++ code/renderergl2/tr_init.c	(working copy)
+@@ -1607,9 +1607,10 @@
+ 
+ 	re.BeginRegistration = RE_BeginRegistration;
+ 	re.RegisterModel = RE_RegisterModel;
+-	re.RegisterSkin = RE_RegisterSkin;
++	re.RegisterShaderEx = RE_RegisterShaderEx;
+ 	re.RegisterShader = RE_RegisterShader;
+ 	re.RegisterShaderNoMip = RE_RegisterShaderNoMip;
++	re.AllocSkinSurface = RE_AllocSkinSurface;
+ 	re.LoadWorld = RE_LoadWorldMap;
+ 	re.SetWorldVisData = RE_SetWorldVisData;
+ 	re.EndRegistration = RE_EndRegistration;
+@@ -1622,6 +1623,7 @@
+ 	re.ModelBounds = R_ModelBounds;
+ 
+ 	re.ClearScene = RE_ClearScene;
++	re.AddSkinToFrame = RE_AddSkinToFrame;
+ 	re.AddRefEntityToScene = RE_AddRefEntityToScene;
+ 	re.AddPolyToScene = RE_AddPolyToScene;
+ 	re.LightForPoint = R_LightForPoint;
+Index: code/renderergl2/tr_local.h
+===================================================================
+--- code/renderergl2/tr_local.h	(revision 3379)
++++ code/renderergl2/tr_local.h	(working copy)
+@@ -756,6 +756,9 @@
+ 	int			numDrawSurfs;
+ 	struct drawSurf_s	*drawSurfs;
+ 
++	int			numSkins;
++	struct skin_s *skins;
++
+ 	unsigned int dlightMask;
+ 	int         num_pshadows;
+ 	struct pshadow_s *pshadows;
+@@ -772,25 +775,19 @@
+ 
+ //=================================================================================
+ 
+-// max surfaces per-skin
+-// This is an arbitry limit. Vanilla Q3 only supported 32 surfaces in skins but failed to
+-// enforce the maximum limit when reading skin files. It was possile to use more than 32
+-// surfaces which accessed out of bounds memory past end of skin->surfaces hunk block.
+-#define MAX_SKIN_SURFACES	256
+-
+ // skins allow models to be retextured without modifying the model file
+-typedef struct {
+-	char		name[MAX_QPATH];
+-	shader_t	*shader;
++typedef struct skinSurface_s {
++	char			*name;
++	shader_t		*shader;
+ } skinSurface_t;
+ 
+ typedef struct skin_s {
+-	char		name[MAX_QPATH];		// game path, including extension
+ 	int			numSurfaces;
+-	skinSurface_t	*surfaces;			// dynamically allocated array of surfaces
++	qhandle_t	*surfaces; // indexes in tr.skinSurfaces
+ } skin_t;
+ 
+ 
++
+ typedef struct {
+ 	int			originalBrushNumber;
+ 	vec3_t		bounds[2];
+@@ -1294,6 +1291,7 @@
+ int			R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFrame, 
+ 					 float frac, const char *tagName );
+ void		R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs );
++shader_t	*R_CustomSurfaceShader( const char *surfaceName, qhandle_t customShader, qhandle_t customSkin );
+ 
+ void		R_Modellist_f (void);
+ 
+@@ -1301,6 +1299,7 @@
+ 
+ #define	MAX_DRAWIMAGES			2048
+ #define	MAX_SKINS				1024
++#define	MAX_SKINSURFACES		(MAX_SKINS*16)
+ 
+ 
+ #define	MAX_DRAWSURFS			0x10000
+@@ -1552,6 +1551,7 @@
+ 	FBO_t                   *renderCubeFbo;
+ 
+ 	shader_t				*defaultShader;
++	shader_t				*nodrawShader;
+ 	shader_t				*shadowShader;
+ 	shader_t				*projectionShadowShader;
+ 
+@@ -1645,8 +1645,9 @@
+ 	shader_t				*shaders[MAX_SHADERS];
+ 	shader_t				*sortedShaders[MAX_SHADERS];
+ 
+-	int						numSkins;
+-	skin_t					*skins[MAX_SKINS];
++	int						numSkinSurfaces;
++	skinSurface_t			skinSurfaces[MAX_SKINSURFACES];
++	int						skinSurfaceNameMemory;
+ 
+ 	GLuint					sunFlareQuery[2];
+ 	int						sunFlareQueryIndex;
+@@ -1956,6 +1957,7 @@
+ void		RE_SetWorldVisData( const byte *vis );
+ qhandle_t	RE_RegisterModel( const char *name );
+ qhandle_t	RE_RegisterSkin( const char *name );
++qhandle_t	RE_AllocSkinSurface( const char *surface, qhandle_t hShader );
+ void		RE_Shutdown( qboolean destroyWindow );
+ 
+ qboolean	R_GetEntityToken( char *buffer, int size );
+@@ -1980,7 +1982,6 @@
+ void	R_DeleteTextures( void );
+ int		R_SumOfUsedImages( void );
+ void	R_InitSkins( void );
+-skin_t	*R_GetSkinByHandle( qhandle_t hSkin );
+ 
+ int R_ComputeLOD( trRefEntity_t *ent );
+ 
+@@ -2250,6 +2251,7 @@
+ void R_InitNextFrame( void );
+ 
+ void RE_ClearScene( void );
++qhandle_t RE_AddSkinToFrame( int numSurfaces, const qhandle_t *surfaces );
+ void RE_AddRefEntityToScene( const refEntity_t *ent );
+ void RE_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts, int num );
+ void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
+@@ -2463,6 +2465,8 @@
+ 	drawSurf_t	drawSurfs[MAX_DRAWSURFS];
+ 	dlight_t	dlights[MAX_DLIGHTS];
+ 	trRefEntity_t	entities[MAX_REFENTITIES];
++	skin_t		skins[MAX_SKINS];
++	qhandle_t	skinSurfaces[MAX_SKINSURFACES];
+ 	srfPoly_t	*polys;//[MAX_POLYS];
+ 	polyVert_t	*polyVerts;//[MAX_POLYVERTS];
+ 	pshadow_t pshadows[MAX_CALC_PSHADOWS];
+Index: code/renderergl2/tr_mesh.c
+===================================================================
+--- code/renderergl2/tr_mesh.c	(revision 3379)
++++ code/renderergl2/tr_mesh.c	(working copy)
+@@ -353,29 +353,12 @@
+ 	surface = model->surfaces;
+ 	for ( i = 0 ; i < model->numSurfaces ; i++ ) {
+ 
+-		if ( ent->e.customShader ) {
+-			shader = R_GetShaderByHandle( ent->e.customShader );
+-		} else if ( ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins ) {
+-			skin_t *skin;
+-			int		j;
+-
+-			skin = R_GetSkinByHandle( ent->e.customSkin );
+-
+-			// match the surface name to something in the skin file
+-			shader = tr.defaultShader;
+-			for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
+-				// the names have both been lowercased
+-				if ( !strcmp( skin->surfaces[j].name, surface->name ) ) {
+-					shader = skin->surfaces[j].shader;
+-					break;
+-				}
++		if ( ent->e.customShader || ent->e.customSkin ) {
++			shader = R_CustomSurfaceShader( surface->name, ent->e.customShader, ent->e.customSkin );
++			if ( shader == tr.nodrawShader ) {
++				surface++;
++				continue;
+ 			}
+-			if (shader == tr.defaultShader) {
+-				ri.Printf( PRINT_DEVELOPER, "WARNING: no shader for surface %s in skin %s\n", surface->name, skin->name);
+-			}
+-			else if (shader->defaultShader) {
+-				ri.Printf( PRINT_DEVELOPER, "WARNING: shader %s in skin %s not found\n", shader->name, skin->name);
+-			}
+ 		} else if ( surface->numShaderIndexes <= 0 ) {
+ 			shader = tr.defaultShader;
+ 		} else {
+Index: code/renderergl2/tr_model.c
+===================================================================
+--- code/renderergl2/tr_model.c	(revision 3379)
++++ code/renderergl2/tr_model.c	(working copy)
+@@ -1416,3 +1416,48 @@
+ 	VectorClear( mins );
+ 	VectorClear( maxs );
+ }
++
++/*
++====================
++R_CustomSurfaceShader
++
++surfaceName must be lowercase
++
++Returns the shader to use for the surface, or tr.nodrawShader if the surface should not be rendered
++
++If there is a custom shader and skin, the skin will be used to see if the surface should
++be drawn (returning tr.nodrawShader if it should not) and then return the custom shader.
++====================
++*/
++shader_t *R_CustomSurfaceShader( const char *surfaceName, qhandle_t customShader, qhandle_t customSkin ) {
++	shader_t *shader = tr.defaultShader;
++
++	if ( customSkin > 0 && customSkin <= tr.refdef.numSkins ) {
++		skin_t *skin;
++		skinSurface_t *skinSurf;
++		int j;
++
++		skin = &tr.refdef.skins[customSkin - 1];
++
++		// match the surface name to something in the skin
++		for ( j = 0 ; j < skin->numSurfaces ; j++ ) {
++			skinSurf = &tr.skinSurfaces[ skin->surfaces[ j ] ];
++			// the names have both been lowercased
++			if ( !strcmp( skinSurf->name, surfaceName ) ) {
++				shader = skinSurf->shader;
++				break;
++			}
++		}
++
++		if ( shader == tr.nodrawShader ) {
++			return shader;
++		}
++	}
++
++	if ( customShader ) {
++		shader = R_GetShaderByHandle( customShader );
++	}
++
++	return shader;
++}
++
+Index: code/renderergl2/tr_model_iqm.c
+===================================================================
+--- code/renderergl2/tr_model_iqm.c	(revision 3379)
++++ code/renderergl2/tr_model_iqm.c	(working copy)
+@@ -1226,13 +1226,12 @@
+ 	iqmData_t		*data;
+ 	srfIQModel_t		*surface;
+ 	void			*drawSurf;
+-	int			i, j;
++	int			i;
+ 	qboolean		personalModel;
+ 	int			cull;
+ 	int			fogNum;
+ 	int         cubemapIndex;
+ 	shader_t		*shader;
+-	skin_t			*skin;
+ 
+ 	data = tr.currentModel->modelData;
+ 	surface = data->surfaces;
+@@ -1287,20 +1286,11 @@
+ 	cubemapIndex = R_CubemapForPoint(ent->e.origin);
+ 
+ 	for ( i = 0 ; i < data->num_surfaces ; i++ ) {
+-		if(ent->e.customShader)
+-			shader = R_GetShaderByHandle( ent->e.customShader );
+-		else if(ent->e.customSkin > 0 && ent->e.customSkin < tr.numSkins)
+-		{
+-			skin = R_GetSkinByHandle(ent->e.customSkin);
+-			shader = tr.defaultShader;
+-
+-			for(j = 0; j < skin->numSurfaces; j++)
+-			{
+-				if (!strcmp(skin->surfaces[j].name, surface->name))
+-				{
+-					shader = skin->surfaces[j].shader;
+-					break;
+-				}
++		if ( ent->e.customShader || ent->e.customSkin ) {
++			shader = R_CustomSurfaceShader( surface->name, ent->e.customShader, ent->e.customSkin );
++			if (shader == tr.nodrawShader) {
++				surface++;
++				continue;
+ 			}
+ 		} else {
+ 			shader = surface->shader;
+Index: code/renderergl2/tr_scene.c
+===================================================================
+--- code/renderergl2/tr_scene.c	(revision 3379)
++++ code/renderergl2/tr_scene.c	(working copy)
+@@ -27,6 +27,9 @@
+ int			r_numdlights;
+ int			r_firstSceneDlight;
+ 
++int			r_numskins;
++int			r_numskinsurfaces;
++
+ int			r_numentities;
+ int			r_firstSceneEntity;
+ 
+@@ -50,6 +53,9 @@
+ 	r_numdlights = 0;
+ 	r_firstSceneDlight = 0;
+ 
++	r_numskins = 0;
++	r_numskinsurfaces = 0;
++
+ 	r_numentities = 0;
+ 	r_firstSceneEntity = 0;
+ 
+@@ -73,6 +79,69 @@
+ }
+ 
+ /*
++=====================
++RE_AddSkinToFrame
++
++=====================
++*/
++qhandle_t RE_AddSkinToFrame( int numSurfaces, const qhandle_t *surfaces ) {
++	int		i, j;
++
++	if ( !tr.registered ) {
++		return 0;
++	}
++	if ( numSurfaces <= 0 ) {
++		return 0;
++	}
++
++	// validate surfaces (should only fail if there is a bug in cgame)
++	for ( i = 0; i < numSurfaces; i++ ) {
++		if ( surfaces[i] < 0 || surfaces[i] >= tr.numSkinSurfaces ) {
++			ri.Printf(PRINT_DEVELOPER, "RE_AddSkinToFrame: Dropping skin, surface index out of range\n");
++			return 0;
++		}
++	}
++
++	// check if skin was already added this frame
++	for ( i = 0; i < r_numskins; i++ ) {
++		if ( backEndData->skins[i].numSurfaces != numSurfaces )
++			continue;
++
++		for ( j = 0; j < numSurfaces; j++ ) {
++			if ( backEndData->skins[i].surfaces[j] != surfaces[j] ) {
++				break;
++			}
++		}
++
++		if ( j == numSurfaces ) {
++			return i+1;
++		}
++	}
++
++	if ( r_numskins >= MAX_SKINS ) {
++		ri.Printf(PRINT_DEVELOPER, "RE_AddSkinToFrame: Dropping skin, reached MAX_SKINS\n");
++		return 0;
++	}
++	if ( r_numskinsurfaces + numSurfaces > MAX_SKINSURFACES ) {
++		ri.Printf(PRINT_DEVELOPER, "RE_AddSkinToFrame: Dropping skin, reached MAX_SKINSURFACES\n");
++		return 0;
++	}
++
++	// create new skin
++	backEndData->skins[r_numskins].surfaces = &backEndData->skinSurfaces[r_numskinsurfaces];
++	backEndData->skins[r_numskins].numSurfaces = numSurfaces;
++
++	for ( i = 0; i < numSurfaces; i++ ) {
++		backEndData->skinSurfaces[r_numskinsurfaces+i] = surfaces[i];
++	}
++
++	r_numskinsurfaces += numSurfaces;
++	r_numskins++;
++
++	return r_numskins;
++}
++
++/*
+ ===========================================================================
+ 
+ DISCRETE POLYS
+@@ -405,9 +474,12 @@
+ 	tr.refdef.numDrawSurfs = r_firstSceneDrawSurf;
+ 	tr.refdef.drawSurfs = backEndData->drawSurfs;
+ 
++	tr.refdef.numSkins = r_numskins;
++	tr.refdef.skins = backEndData->skins;
++
+ 	tr.refdef.num_entities = r_numentities - r_firstSceneEntity;
+ 	tr.refdef.entities = &backEndData->entities[r_firstSceneEntity];
+-
++
+ 	tr.refdef.num_dlights = r_numdlights - r_firstSceneDlight;
+ 	tr.refdef.dlights = &backEndData->dlights[r_firstSceneDlight];
+ 
+Index: code/renderergl2/tr_shader.c
+===================================================================
+--- code/renderergl2/tr_shader.c	(revision 3379)
++++ code/renderergl2/tr_shader.c	(working copy)
+@@ -73,7 +73,7 @@
+ 
+ 	sh = R_FindShaderByName( shaderName );
+ 	if (sh == NULL || sh == tr.defaultShader) {
+-		h = RE_RegisterShaderLightMap(shaderName, 0);
++		h = RE_RegisterShaderEx(shaderName, 0, qtrue);
+ 		sh = R_GetShaderByHandle(h);
+ 	}
+ 	if (sh == NULL || sh == tr.defaultShader) {
+@@ -83,7 +83,7 @@
+ 
+ 	sh2 = R_FindShaderByName( newShaderName );
+ 	if (sh2 == NULL || sh2 == tr.defaultShader) {
+-		h = RE_RegisterShaderLightMap(newShaderName, 0);
++		h = RE_RegisterShaderEx(newShaderName, 0, qtrue);
+ 		sh2 = R_GetShaderByHandle(h);
+ 	}
+ 
+@@ -3477,16 +3477,13 @@
+ 
+ /* 
+ ====================
+-RE_RegisterShader
++RE_RegisterShaderEx
+ 
+ This is the exported shader entry point for the rest of the system
+ It will always return an index that will be valid.
+-
+-This should really only be used for explicit shaders, because there is no
+-way to ask for different implicit lighting modes (vertex, lightmap, etc)
+ ====================
+ */
+-qhandle_t RE_RegisterShaderLightMap( const char *name, int lightmapIndex ) {
++qhandle_t RE_RegisterShaderEx( const char *name, int lightmapIndex, qboolean mipRawImage ) {
+ 	shader_t	*sh;
+ 
+ 	if ( strlen( name ) >= MAX_QPATH ) {
+@@ -3494,7 +3491,7 @@
+ 		return 0;
+ 	}
+ 
+-	sh = R_FindShader( name, lightmapIndex, qtrue );
++	sh = R_FindShader( name, lightmapIndex, mipRawImage );
+ 
+ 	// we want to return 0 if the shader failed to
+ 	// load for some reason, but R_FindShader should
+@@ -3521,25 +3518,7 @@
+ ====================
+ */
+ qhandle_t RE_RegisterShader( const char *name ) {
+-	shader_t	*sh;
+-
+-	if ( strlen( name ) >= MAX_QPATH ) {
+-		ri.Printf( PRINT_ALL, "Shader name exceeds MAX_QPATH\n" );
+-		return 0;
+-	}
+-
+-	sh = R_FindShader( name, LIGHTMAP_2D, qtrue );
+-
+-	// we want to return 0 if the shader failed to
+-	// load for some reason, but R_FindShader should
+-	// still keep a name allocated for it, so if
+-	// something calls RE_RegisterShader again with
+-	// the same name, we don't try looking for it again
+-	if ( sh->defaultShader ) {
+-		return 0;
+-	}
+-
+-	return sh->index;
++	return RE_RegisterShaderEx( name, LIGHTMAP_2D, qtrue );
+ }
+ 
+ 
+@@ -3551,25 +3530,7 @@
+ ====================
+ */
+ qhandle_t RE_RegisterShaderNoMip( const char *name ) {
+-	shader_t	*sh;
+-
+-	if ( strlen( name ) >= MAX_QPATH ) {
+-		ri.Printf( PRINT_ALL, "Shader name exceeds MAX_QPATH\n" );
+-		return 0;
+-	}
+-
+-	sh = R_FindShader( name, LIGHTMAP_2D, qfalse );
+-
+-	// we want to return 0 if the shader failed to
+-	// load for some reason, but R_FindShader should
+-	// still keep a name allocated for it, so if
+-	// something calls RE_RegisterShader again with
+-	// the same name, we don't try looking for it again
+-	if ( sh->defaultShader ) {
+-		return 0;
+-	}
+-
+-	return sh->index;
++	return RE_RegisterShaderEx( name, LIGHTMAP_2D, qfalse );
+ }
+ 
+ /*
+@@ -3833,12 +3794,16 @@
+ 	InitShader( "<default>", LIGHTMAP_NONE );
+ 	stages[0].bundle[0].image[0] = tr.defaultImage;
+ 	stages[0].active = qtrue;
+-	stages[0].stateBits = GLS_DEFAULT;
+-	tr.defaultShader = FinishShader();
+-
+-	// shadow shader is just a marker
+-	Q_strncpyz( shader.name, "<stencil shadow>", sizeof( shader.name ) );
+-	shader.sort = SS_STENCIL_SHADOW;
++	stages[0].stateBits = GLS_DEFAULT;
++	tr.defaultShader = FinishShader();
++
++	// used for skins for disable surfaces
++	Q_strncpyz( shader.name, "nodraw", sizeof( shader.name ) );
++	tr.nodrawShader = FinishShader();
++
++	// shadow shader is just a marker
++	Q_strncpyz( shader.name, "<stencil shadow>", sizeof( shader.name ) );
++	shader.sort = SS_STENCIL_SHADOW;
+ 	tr.shadowShader = FinishShader();
+ }
+ 
+Index: code/ui/ui_local.h
+===================================================================
+--- code/ui/ui_local.h	(revision 3379)
++++ code/ui/ui_local.h	(working copy)
+@@ -164,16 +164,15 @@
+ typedef struct {
+ 	// model info
+ 	qhandle_t		legsModel;
+-	qhandle_t		legsSkin;
+ 	lerpFrame_t		legs;
+ 
+ 	qhandle_t		torsoModel;
+-	qhandle_t		torsoSkin;
+ 	lerpFrame_t		torso;
+ 
+ 	qhandle_t		headModel;
+-	qhandle_t		headSkin;
+ 
++	cgSkin_t		modelSkin;
++
+ 	animation_t		animations[MAX_TOTALANIMATIONS];
+ 
+ 	qboolean		fixedlegs;		// true if legs yaw is always the same as torso yaw
+@@ -491,6 +490,8 @@
+ extern void			UI_Refresh( int time );
+ extern void			UI_KeyEvent( int key );
+ void UI_LoadBestScores(const char *map, int game);
++qhandle_t			UI_AddSkinToFrame( const cgSkin_t *skin );
++qboolean			UI_RegisterSkin( const char *name, cgSkin_t *skin, qboolean append );
+ 
+ //
+ // ui_syscalls.c
+@@ -515,7 +516,7 @@
+ int				trap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize );
+ int				trap_FS_Seek( fileHandle_t f, long offset, int origin ); // fsOrigin_t
+ qhandle_t		trap_R_RegisterModel( const char *name );
+-qhandle_t		trap_R_RegisterSkin( const char *name );
++qhandle_t	trap_R_RegisterShaderEx( const char *name, int lightmapIndex, qboolean mipRawImage ); // returns all white if not found
+ qhandle_t		trap_R_RegisterShaderNoMip( const char *name );
+ void			trap_R_ClearScene( void );
+ void			trap_R_AddRefEntityToScene( const refEntity_t *re );
+@@ -528,6 +529,9 @@
+ void			trap_UpdateScreen( void );
+ void			trap_R_SetClipRegion( const float *region );
+ int				trap_CM_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, float frac, const char *tagName );
++// skin (entity model surface remap) management
++qhandle_t		trap_R_AllocSkinSurface( const char *surface, qhandle_t hShader );
++qhandle_t		trap_R_AddSkinToFrame( int numSurfaces, const qhandle_t *surfaces );
+ void			trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum );
+ sfxHandle_t		trap_S_RegisterSound( const char *sample, qboolean compressed );
+ void			trap_Key_KeynumToStringBuf( int keynum, char *buf, int buflen );
+Index: code/ui/ui_players.c
+===================================================================
+--- code/ui/ui_players.c	(revision 3379)
++++ code/ui/ui_players.c	(working copy)
+@@ -804,7 +804,7 @@
+ 	// add the legs
+ 	//
+ 	legs.hModel = pi->legsModel;
+-	legs.customSkin = pi->legsSkin;
++	legs.customSkin = UI_AddSkinToFrame( &pi->modelSkin );
+ 
+ 	VectorCopy( origin, legs.origin );
+ 
+@@ -826,7 +826,7 @@
+ 		return;
+ 	}
+ 
+-	torso.customSkin = pi->torsoSkin;
++	torso.customSkin = legs.customSkin;
+ 
+ 	VectorCopy( origin, torso.lightingOrigin );
+ 
+@@ -843,7 +843,7 @@
+ 	if (!head.hModel) {
+ 		return;
+ 	}
+-	head.customSkin = pi->headSkin;
++	head.customSkin = legs.customSkin;
+ 
+ 	VectorCopy( origin, head.lightingOrigin );
+ 
+@@ -998,11 +998,132 @@
+ 
+ /*
+ ==========================
++UI_AddSkinToFrame
++==========================
++*/
++qhandle_t UI_AddSkinToFrame( const cgSkin_t *skin ) {
++	if ( !skin || !skin->numSurfaces ) {
++		return 0;
++	}
++
++	return trap_R_AddSkinToFrame( skin->numSurfaces, skin->surfaces );
++}
++
++/*
++==========================
++UI_RegisterSkin
++==========================
++*/
++qboolean UI_RegisterSkin( const char *name, cgSkin_t *skin, qboolean append ) {
++	char		*text_p;
++	int			len;
++	char		*token;
++	char		text[20000];
++	fileHandle_t	f;
++	char		surfName[MAX_QPATH];
++	char		shaderName[MAX_QPATH];
++	qhandle_t	hShader;
++	int			initialSurfaces;
++	int			totalSurfaces;
++
++	if ( !name || !name[0] ) {
++		Com_Printf( "Empty name passed to RE_RegisterSkin\n" );
++		return 0;
++	}
++
++	if ( strlen( name ) >= MAX_QPATH ) {
++		Com_Printf( "Skin name exceeds MAX_QPATH\n" );
++		return 0;
++	}
++
++	if ( !COM_CompareExtension( name, ".skin" ) ) {
++		Com_Printf( "WARNING: CG_RegisterSkin ignoring '%s', must have \".skin\" extension\n", name );
++		return 0;
++	}
++
++	if ( !append ) {
++		skin->numSurfaces = 0;
++	}
++
++	initialSurfaces = skin->numSurfaces;
++	totalSurfaces = skin->numSurfaces;
++
++	// load the file
++	len = trap_FS_FOpenFile( name, &f, FS_READ );
++	if ( len <= 0 ) {
++		return qfalse;
++	}
++	if ( len >= sizeof( text ) - 1 ) {
++		Com_Printf( "File %s too long\n", name );
++		trap_FS_FCloseFile( f );
++		return qfalse;
++	}
++	trap_FS_Read( text, len, f );
++	text[len] = 0;
++	trap_FS_FCloseFile( f );
++
++	// parse the text
++	text_p = text;
++
++	while ( text_p && *text_p ) {
++		// get surface name
++		token = COM_ParseExt2( &text_p, qtrue, ',' );
++		Q_strncpyz( surfName, token, sizeof( surfName ) );
++
++		if ( !token[0] ) {
++			break;
++		}
++
++		if ( *text_p == ',' ) {
++			text_p++;
++		}
++
++		if ( !Q_stricmpn( token, "tag_", 4 ) ) {
++			SkipRestOfLine( &text_p );
++			continue;
++		}
++
++		// skip RTCW/ET skin settings
++		if ( !Q_stricmpn( token, "md3_", 4 ) || !Q_stricmp( token, "playerscale" ) ) {
++			SkipRestOfLine( &text_p );
++			continue;
++		}
++
++		// parse the shader name
++		token = COM_ParseExt2( &text_p, qfalse, ',' );
++		Q_strncpyz( shaderName, token, sizeof( shaderName ) );
++
++		if ( skin->numSurfaces < MAX_CG_SKIN_SURFACES ) {
++			hShader = trap_R_RegisterShaderEx( shaderName, LIGHTMAP_NONE, qtrue );
++
++			skin->surfaces[skin->numSurfaces] = trap_R_AllocSkinSurface( surfName, hShader );
++			skin->numSurfaces++;
++		}
++
++		totalSurfaces++;
++	}
++
++	if ( totalSurfaces > MAX_CG_SKIN_SURFACES ) {
++		Com_Printf( "WARNING: Ignoring excess surfaces (found %d, max is %d) in skin '%s'!\n",
++					totalSurfaces - initialSurfaces, MAX_CG_SKIN_SURFACES - initialSurfaces, name );
++	}
++
++	// failed to load surfaces
++	if ( !skin->numSurfaces ) {
++		return qfalse;
++	}
++
++	return qtrue;
++}
++
++/*
++==========================
+ UI_RegisterClientSkin
+ ==========================
+ */
+ static qboolean	UI_RegisterClientSkin( playerInfo_t *pi, const char *modelName, const char *skinName, const char *headModelName, const char *headSkinName , const char *teamName) {
+ 	char		filename[MAX_QPATH];
++	qboolean	legsSkin, torsoSkin, headSkin;
+ 
+ 	if (teamName && *teamName) {
+ 		Com_sprintf( filename, sizeof( filename ), "models/players/%s/%s/lower_%s.skin", modelName, teamName, skinName );
+@@ -1009,15 +1130,7 @@
+ 	} else {
+ 		Com_sprintf( filename, sizeof( filename ), "models/players/%s/lower_%s.skin", modelName, skinName );
+ 	}
+-	pi->legsSkin = trap_R_RegisterSkin( filename );
+-	if (!pi->legsSkin) {
+-		if (teamName && *teamName) {
+-			Com_sprintf( filename, sizeof( filename ), "models/players/characters/%s/%s/lower_%s.skin", modelName, teamName, skinName );
+-		} else {
+-			Com_sprintf( filename, sizeof( filename ), "models/players/characters/%s/lower_%s.skin", modelName, skinName );
+-		}
+-		pi->legsSkin = trap_R_RegisterSkin( filename );
+-	}
++	legsSkin = UI_RegisterSkin( filename, &pi->modelSkin, qfalse );
+ 
+ 	if (teamName && *teamName) {
+ 		Com_sprintf( filename, sizeof( filename ), "models/players/%s/%s/upper_%s.skin", modelName, teamName, skinName );
+@@ -1024,21 +1137,15 @@
+ 	} else {
+ 		Com_sprintf( filename, sizeof( filename ), "models/players/%s/upper_%s.skin", modelName, skinName );
+ 	}
+-	pi->torsoSkin = trap_R_RegisterSkin( filename );
+-	if (!pi->torsoSkin) {
+-		if (teamName && *teamName) {
+-			Com_sprintf( filename, sizeof( filename ), "models/players/characters/%s/%s/upper_%s.skin", modelName, teamName, skinName );
+-		} else {
+-			Com_sprintf( filename, sizeof( filename ), "models/players/characters/%s/upper_%s.skin", modelName, skinName );
+-		}
+-		pi->torsoSkin = trap_R_RegisterSkin( filename );
+-	}
++	torsoSkin = UI_RegisterSkin( filename, &pi->modelSkin, qtrue );
+ 
+ 	if ( UI_FindClientHeadFile( filename, sizeof(filename), teamName, headModelName, headSkinName, "head", "skin" ) ) {
+-		pi->headSkin = trap_R_RegisterSkin( filename );
++		headSkin = UI_RegisterSkin( filename, &pi->modelSkin, qtrue );
++	} else {
++		headSkin = qfalse;
+ 	}
+ 
+-	if ( !pi->legsSkin || !pi->torsoSkin || !pi->headSkin ) {
++	if ( !legsSkin || !torsoSkin || !headSkin ) {
+ 		return qfalse;
+ 	}
+ 
+Index: code/ui/ui_public.h
+===================================================================
+--- code/ui/ui_public.h	(revision 3379)
++++ code/ui/ui_public.h	(working copy)
+@@ -56,7 +56,7 @@
+ 	UI_FS_FCLOSEFILE,
+ 	UI_FS_GETFILELIST,
+ 	UI_R_REGISTERMODEL,
+-	UI_R_REGISTERSKIN,
++	UI_R_REGISTERSHADEREX,
+ 	UI_R_REGISTERSHADERNOMIP,
+ 	UI_R_CLEARSCENE,
+ 	UI_R_ADDREFENTITYTOSCENE,
+@@ -117,6 +117,8 @@
+ 	UI_CIN_SETEXTENTS,
+ 	UI_R_REMAP_SHADER,
+ 	UI_R_SETCLIPREGION,
++	UI_R_ALLOCSKINSURFACE,
++	UI_R_ADDSKINTOFRAME,
+ 	UI_LAN_SERVERSTATUS,
+ 	UI_LAN_GETSERVERPING,
+ 	UI_LAN_SERVERISVISIBLE,
+Index: code/ui/ui_syscalls.asm
+===================================================================
+--- code/ui/ui_syscalls.asm	(revision 3380)
++++ code/ui/ui_syscalls.asm	(working copy)
+@@ -21,7 +21,7 @@
+ equ	trap_FS_FCloseFile						-19
+ equ	trap_FS_GetFileList						-20
+ equ	trap_R_RegisterModel					-21
+-equ	trap_R_RegisterSkin						-22
++equ	trap_R_RegisterShaderEx					-22
+ equ	trap_R_RegisterShaderNoMip				-23
+ equ	trap_R_ClearScene						-24
+ equ	trap_R_AddRefEntityToScene				-25
+@@ -82,11 +82,13 @@
+ equ trap_CIN_SetExtents						-80
+ equ trap_R_RemapShader						-81
+ equ trap_R_SetClipRegion					-82
+-equ trap_LAN_ServerStatus					-83
+-equ trap_LAN_GetServerPing					-84
+-equ trap_LAN_ServerIsVisible				-85
+-equ trap_LAN_CompareServers					-86
+-equ trap_FS_Seek		-87
++equ trap_R_AllocSkinSurface					-83
++equ trap_R_AddSkinToFrame					-84
++equ trap_LAN_ServerStatus					-85
++equ trap_LAN_GetServerPing					-86
++equ trap_LAN_ServerIsVisible				-87
++equ trap_LAN_CompareServers					-88
++equ trap_FS_Seek		-89
+ 
+ equ	memset						-101
+ equ	memcpy						-102
+Index: code/ui/ui_syscalls.c
+===================================================================
+--- code/ui/ui_syscalls.c	(revision 3379)
++++ code/ui/ui_syscalls.c	(working copy)
+@@ -141,14 +141,14 @@
+ 	return syscall( UI_R_REGISTERMODEL, name );
+ }
+ 
+-qhandle_t trap_R_RegisterSkin( const char *name ) {
+-	return syscall( UI_R_REGISTERSKIN, name );
+-}
+-
+ void trap_R_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font) {
+ 	syscall( UI_R_REGISTERFONT, fontName, pointSize, font );
+ }
+ 
++qhandle_t trap_R_RegisterShaderEx( const char *name, int lightmapIndex, qboolean mipRawImage ) {
++	return syscall( UI_R_REGISTERSHADEREX, name, lightmapIndex, mipRawImage );
++}
++
+ qhandle_t trap_R_RegisterShaderNoMip( const char *name ) {
+ 	return syscall( UI_R_REGISTERSHADERNOMIP, name );
+ }
+@@ -398,3 +398,11 @@
+ void trap_R_SetClipRegion( const float *region ) {
+ 	syscall( UI_R_SETCLIPREGION, region );
+ }
++
++qhandle_t	trap_R_AllocSkinSurface( const char *surface, qhandle_t hShader ) {
++	return syscall( UI_R_ALLOCSKINSURFACE, surface, hShader );
++}
++
++qhandle_t	trap_R_AddSkinToFrame( int numSurfaces, const qhandle_t *surfaces ) {
++	return syscall( UI_R_ADDSKINTOFRAME, numSurfaces, surfaces );
++}

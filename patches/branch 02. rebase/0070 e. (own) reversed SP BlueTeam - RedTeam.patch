@@ -1,0 +1,112 @@
+Index: code/game/bg_public.h
+===================================================================
+--- code/game/bg_public.h	(revision 3341)
++++ code/game/bg_public.h	(working copy)
+@@ -565,8 +565,8 @@
+ #define DEFAULT_TEAM_HEAD_MALE		"*james"
+ #define DEFAULT_TEAM_MODEL_FEMALE	"janet"
+ #define DEFAULT_TEAM_HEAD_FEMALE	"*janet"
+-#define DEFAULT_REDTEAM_NAME		"Pagans"
+-#define DEFAULT_BLUETEAM_NAME		"Stroggs"
++#define DEFAULT_REDTEAM_NAME		"Stroggs"
++#define DEFAULT_BLUETEAM_NAME		"Pagans"
+ typedef enum {
+ 	TEAM_FREE,
+ 	TEAM_RED,
+Index: code/ui/ui_main.c
+===================================================================
+--- code/ui/ui_main.c	(revision 3341)
++++ code/ui/ui_main.c	(working copy)
+@@ -2807,16 +2807,16 @@
+ 	} else {
+ 		k = UI_TeamIndexFromName(UI_Cvar_VariableString("ui_opponentName"));
+ 		for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+-			Com_sprintf( buff, sizeof(buff), "wait ; addbot %s %i %s 250 %s\n", UI_AIFromName(teamList[k].teamMembers[i]), skill, "Blue", teamList[k].teamMembers[i]);
++			Com_sprintf( buff, sizeof(buff), "wait ; addbot %s %i %s 250 %s\n", UI_AIFromName(teamList[k].teamMembers[i]), skill, "Red", teamList[k].teamMembers[i]);
+ 			trap_Cmd_ExecuteText( EXEC_APPEND, buff );
+ 		}
+ 
+ 		k = UI_TeamIndexFromName(UI_Cvar_VariableString("ui_teamName"));
+ 		for (i = 1; i < PLAYERS_PER_TEAM; i++) {
+-			Com_sprintf( buff, sizeof(buff), "wait ; addbot %s %i %s 250 %s\n", UI_AIFromName(teamList[k].teamMembers[i]), skill, "Red", teamList[k].teamMembers[i]);
++			Com_sprintf( buff, sizeof(buff), "wait ; addbot %s %i %s 250 %s\n", UI_AIFromName(teamList[k].teamMembers[i]), skill, "Blue", teamList[k].teamMembers[i]);
+ 			trap_Cmd_ExecuteText( EXEC_APPEND, buff );
+ 		}
+-		trap_Cmd_ExecuteText( EXEC_APPEND, "wait 5; team Red\n" );
++		trap_Cmd_ExecuteText( EXEC_APPEND, "wait 5; team Blue\n" );
+ 	}
+ 	
+ 
+@@ -3032,8 +3032,8 @@
+ 	trap_Cvar_SetValue("g_warmup", 15);
+ 	trap_Cvar_SetValue("sv_pure", 0);
+ 	trap_Cvar_SetValue("g_friendlyFire", 0);
+-	trap_Cvar_Set("g_redTeam", UI_Cvar_VariableString("ui_teamName"));
+-	trap_Cvar_Set("g_blueTeam", UI_Cvar_VariableString("ui_opponentName"));
++	trap_Cvar_Set("g_redTeam", UI_Cvar_VariableString("ui_opponentName"));
++	trap_Cvar_Set("g_blueTeam", UI_Cvar_VariableString("ui_teamName"));
+ 
+ 	if (trap_Cvar_VariableValue("ui_recordSPDemo")) {
+ 		Com_sprintf(buff, MAX_STRING_CHARS, "%s_%i", uiInfo.mapList[ui_currentMap.integer].mapLoadName, g);
+@@ -3050,13 +3050,13 @@
+ 		temp = uiInfo.mapList[ui_currentMap.integer].teamMembers * 2;
+ 		trap_Cvar_SetValue("sv_maxClients", temp);
+ 		for (i =0; i < uiInfo.mapList[ui_currentMap.integer].teamMembers; i++) {
+-			Com_sprintf( buff, sizeof(buff), "addbot %s %f %s %i %s\n", UI_AIFromName(uiInfo.teamList[k].teamMembers[i]), skill, (g == GT_FFA) ? "" : "Blue", delay, uiInfo.teamList[k].teamMembers[i]);
++			Com_sprintf( buff, sizeof(buff), "addbot %s %f %s %i %s\n", UI_AIFromName(uiInfo.teamList[k].teamMembers[i]), skill, (g == GT_FFA) ? "" : "Red", delay, uiInfo.teamList[k].teamMembers[i]);
+ 			trap_Cmd_ExecuteText( EXEC_APPEND, buff );
+ 			delay += 500;
+ 		}
+ 		k = UI_TeamIndexFromName(UI_Cvar_VariableString("ui_teamName"));
+ 		for (i =0; i < uiInfo.mapList[ui_currentMap.integer].teamMembers-1; i++) {
+-			Com_sprintf( buff, sizeof(buff), "addbot %s %f %s %i %s\n", UI_AIFromName(uiInfo.teamList[k].teamMembers[i]), skill, (g == GT_FFA) ? "" : "Red", delay, uiInfo.teamList[k].teamMembers[i]);
++			Com_sprintf( buff, sizeof(buff), "addbot %s %f %s %i %s\n", UI_AIFromName(uiInfo.teamList[k].teamMembers[i]), skill, (g == GT_FFA) ? "" : "Blue", delay, uiInfo.teamList[k].teamMembers[i]);
+ 			trap_Cmd_ExecuteText( EXEC_APPEND, buff );
+ 			delay += 500;
+ 		}
+@@ -3063,10 +3063,10 @@
+ 	}
+ 	if (g >= GT_TEAM ) {
+ 		// send team command for vanilla q3 game qvm
+-		trap_Cmd_ExecuteText( EXEC_APPEND, "wait 5; team Red\n" );
++		trap_Cmd_ExecuteText( EXEC_APPEND, "wait 5; team Blue\n" );
+ 
+ 		// set g_localTeamPref for ioq3 game qvm
+-		trap_Cvar_Set( "g_localTeamPref", "Red" );
++		trap_Cvar_Set( "g_localTeamPref", "Blue" );
+ 	}
+ }
+ 
+@@ -3213,8 +3213,8 @@
+ 			trap_Cvar_SetValue( "ui_singlePlayerActive", 0 );
+ 			trap_Cvar_SetValue( "dedicated", Com_Clamp( 0, 2, ui_dedicated.integer ) );
+ 			trap_Cvar_SetValue( "g_gametype", Com_Clamp( 0, GT_MAX_GAME_TYPE-1, uiInfo.gameTypes[ui_netGameType.integer].gtEnum ) );
+-			trap_Cvar_Set("g_redTeam", UI_Cvar_VariableString("ui_teamName"));
+-			trap_Cvar_Set("g_blueTeam", UI_Cvar_VariableString("ui_opponentName"));
++			trap_Cvar_Set("g_redTeam", UI_Cvar_VariableString("ui_opponentName"));
++			trap_Cvar_Set("g_blueTeam", UI_Cvar_VariableString("ui_teamName"));
+ 			trap_Cmd_ExecuteText( EXEC_APPEND, va( "wait ; wait ; map %s\n", uiInfo.mapList[ui_currentNetMap.integer].mapLoadName ) );
+ 			skill = trap_Cvar_VariableValue( "g_spSkill" );
+ 			// set max clients based on spots
+@@ -3333,8 +3333,8 @@
+ 			trap_Cvar_SetValue( "ui_singlePlayerActive", 0 );
+ 			trap_Cvar_SetValue( "dedicated", Com_Clamp( 0, 2, ui_dedicated.integer ) );
+ 			trap_Cvar_SetValue( "g_gametype", Com_Clamp( 0, GT_MAX_GAME_TYPE-1, uiInfo.gameTypes[ui_netGameType.integer].gtEnum ) );
+-			trap_Cvar_Set("g_redTeam", UI_Cvar_VariableString("ui_teamName"));
+-			trap_Cvar_Set("g_blueTeam", UI_Cvar_VariableString("ui_opponentName"));
++			trap_Cvar_Set("g_redTeam", UI_Cvar_VariableString("ui_opponentName"));
++			trap_Cvar_Set("g_blueTeam", UI_Cvar_VariableString("ui_teamName"));
+ 			trap_Cmd_ExecuteText( EXEC_APPEND, va( "map %s\n", uiInfo.mapList[ui_currentNetMap.integer].mapLoadName ) );
+ 			// Tobias FIXME: unfortunately kicking bots AFTER map loading spawns some extra skulls again, https://github.com/ioquake/ioq3/commit/f7c3276fe803388bd613ab6bf6ad8e0a6647b740#diff-08c7587b3da3e294c50c64c1024339d7
+ 			trap_Cmd_ExecuteText( EXEC_APPEND, "kickbots\n" );
+@@ -5948,8 +5948,8 @@
+ 	{ &ui_new, "ui_new", "0", CVAR_TEMP },
+ 	{ &ui_debug, "ui_debug", "0", CVAR_TEMP },
+ 	{ &ui_initialized, "ui_initialized", "0", CVAR_TEMP },
+-	{ &ui_teamName, "ui_teamName", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE },
+-	{ &ui_opponentName, "ui_opponentName", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE },
++	{ &ui_opponentName, "ui_opponentName", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE },
++	{ &ui_teamName, "ui_teamName", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE },
+ 	{ &ui_redteam, "ui_redteam", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE },
+ 	{ &ui_blueteam, "ui_blueteam", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE },
+ 	{ &ui_dedicated, "ui_dedicated", "0", CVAR_ARCHIVE },

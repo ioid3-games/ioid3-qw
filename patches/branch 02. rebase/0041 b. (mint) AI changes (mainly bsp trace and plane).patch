@@ -1,0 +1,631 @@
+Index: code/botlib/aasfile.h
+===================================================================
+--- code/botlib/aasfile.h	(revision 3423)
++++ code/botlib/aasfile.h	(working copy)
+@@ -20,6 +20,8 @@
+ ===========================================================================
+ */
+ 
++#ifndef AASFILE_H
++#define AASFILE_H
+ 
+ //NOTE:	int =	default signed
+ //				default long
+@@ -265,3 +267,5 @@
+ -	area zero is a dummy
+ -	node zero is a dummy
+ */
++
++#endif // AASFILE_H
+Index: code/botlib/be_aas.h
+===================================================================
+--- code/botlib/be_aas.h	(revision 3423)
++++ code/botlib/be_aas.h	(working copy)
+@@ -20,6 +20,7 @@
+ ===========================================================================
+ */
+ //
++#include "aasfile.h"
+ 
+ /*****************************************************************************
+  * name:		be_aas.h
+@@ -30,6 +31,7 @@
+  *
+  *****************************************************************************/
+ 
++#define MAX_EPAIRKEY 128
+ #ifndef MAX_STRINGFIELD
+ #define MAX_STRINGFIELD				80
+ #endif
+@@ -89,36 +91,11 @@
+ 	int			ent;		// entity blocking the trace
+ 	int			lastarea;	// last area the trace was in (zero if none)
+ 	int			area;		// area blocking the trace (zero if none)
+-	int			planenum;	// number of the plane that was hit
++	int			planenum;	// number of the plane that was hit (zero if none or hit entity) // ZTM: FIXME: Is zero ever a valid value?
++	aas_plane_t	plane;		// surface normal at impact, transformed to world space
+ } aas_trace_t;
+ 
+-/* Defined in botlib.h
+ 
+-//bsp_trace_t hit surface
+-typedef struct bsp_surface_s
+-{
+-	char name[16];
+-	int flags;
+-	int value;
+-} bsp_surface_t;
+-
+-//a trace is returned when a box is swept through the BSP world
+-typedef struct bsp_trace_s
+-{
+-	qboolean		allsolid;	// if true, plane is not valid
+-	qboolean		startsolid;	// if true, the initial point was in a solid area
+-	float			fraction;	// time completed, 1.0 = didn't hit anything
+-	vec3_t			endpos;		// final position
+-	cplane_t		plane;		// surface normal at impact
+-	float			exp_dist;	// expanded plane distance
+-	int				sidenum;	// number of the brush side hit
+-	bsp_surface_t	surface;	// hit surface
+-	int				contents;	// contents on other side of surface hit
+-	int				ent;		// number of entity hit
+-} bsp_trace_t;
+-//
+-*/
+-
+ //entity info
+ typedef struct aas_entityinfo_s
+ {
+Index: code/botlib/be_aas_bsp.h
+===================================================================
+--- code/botlib/be_aas_bsp.h	(revision 3423)
++++ code/botlib/be_aas_bsp.h	(working copy)
+@@ -55,7 +55,6 @@
+ //
+ #endif //AASINTERN
+ 
+-#define MAX_EPAIRKEY		128
+ 
+ //trace through the world
+ bsp_trace_t AAS_Trace(	vec3_t start,
+Index: code/botlib/be_aas_move.c
+===================================================================
+--- code/botlib/be_aas_move.c	(revision 3423)
++++ code/botlib/be_aas_move.c	(working copy)
+@@ -59,10 +59,17 @@
+ 	vec3_t end;
+ 	bsp_trace_t trace;
+ 
++	// mappers like to put them exactly on the floor, but being coplanar
++	// will sometimes show up as starting in solid, so lif it up one pixel
++	origin[2] += 1;
++
+ 	VectorCopy(origin, end);
+-	end[2] -= 100;
++	end[2] -= 4096;
+ 	trace = AAS_Trace(origin, mins, maxs, end, 0, CONTENTS_SOLID);
+-	if (trace.startsolid) return qfalse;
++	if (trace.startsolid) {
++		origin[2] -= 1;
++		return qfalse;
++	}
+ 	VectorCopy(trace.endpos, origin);
+ 	return qtrue;
+ } //end of the function AAS_DropToFloor
+@@ -201,7 +208,7 @@
+ 	//if too far from the hit plane
+ 	if (origin[2] - trace.endpos[2] > 10) return qfalse;
+ 	//check if the plane isn't too steep
+-	plane = AAS_PlaneFromNum(trace.planenum);
++	plane = &trace.plane; //AAS_PlaneFromNum(trace.planenum);
+ 	if (DotProduct(plane->normal, up) < aassettings.phys_maxsteepness) return qfalse;
+ 	//the bot is on the ground
+ 	return qtrue;
+@@ -465,6 +472,8 @@
+ 		trace->fraction = frac;
+ 		trace->ent = 0;
+ 		trace->planenum = 0;
++		// ZTM: TODO: Use the plane of collision
++		trace->plane = aasworld.planes[trace->planenum];
+ 		trace->area = 0;
+ 		trace->lastarea = 0;
+ 		//trace endpos
+@@ -745,7 +754,7 @@
+ 			if (trace.fraction < 1.0)
+ 			{
+ 				//get the plane the bounding box collided with
+-				plane = AAS_PlaneFromNum(trace.planenum);
++				plane = &trace.plane; //AAS_PlaneFromNum(trace.planenum);
+ 				//
+ 				if (stopevent & SE_HITGROUNDAREA)
+ 				{
+@@ -781,7 +790,7 @@
+ 					//
+ 					if (!steptrace.startsolid)
+ 					{
+-						plane2 = AAS_PlaneFromNum(steptrace.planenum);
++						plane2 = &steptrace.plane; //AAS_PlaneFromNum(steptrace.planenum);
+ 						if (DotProduct(plane2->normal, up) > phys_maxsteepness)
+ 						{
+ 							VectorSubtract(end, steptrace.endpos, left_test_vel);
+@@ -939,7 +948,7 @@
+ 			VectorCopy(org, start);
+ 			VectorCopy(start, end);
+ 			end[2] -= 48 + aassettings.phys_maxbarrier;
+-			gaptrace = AAS_TraceClientBBox(start, end, PRESENCE_CROUCH, -1);
++			gaptrace = AAS_TraceClientBBox(start, end, PRESENCE_CROUCH, entnum);
+ 			//if solid is found the bot cannot walk any further and will not fall into a gap
+ 			if (!gaptrace.startsolid)
+ 			{
+Index: code/botlib/be_aas_reach.c
+===================================================================
+--- code/botlib/be_aas_reach.c	(revision 3423)
++++ code/botlib/be_aas_reach.c	(working copy)
+@@ -3859,7 +3859,7 @@
+ 		//
+ 		bsptrace = AAS_Trace(start, NULL, NULL, end, 0, CONTENTS_SOLID);
+ 		//the grapple won't stick to the sky and the grapple point should be near the AAS wall
+-		if ((bsptrace.surface.flags & SURF_SKY) || (bsptrace.fraction * 500 > 32)) continue;
++		if ((bsptrace.surfaceFlags & SURF_SKY) || (bsptrace.fraction * 500 > 32)) continue;
+ 		//trace a full bounding box from the area center on the ground to
+ 		//the center of the face
+ 		VectorSubtract(facecenter, areastart, dir);
+Index: code/botlib/be_aas_sample.c
+===================================================================
+--- code/botlib/be_aas_sample.c	(revision 3423)
++++ code/botlib/be_aas_sample.c	(working copy)
+@@ -430,10 +430,14 @@
+ 	if (collision)
+ 	{
+ 		trace->startsolid = bsptrace.startsolid;
+-		trace->ent = bsptrace.ent;
++		trace->ent = bsptrace.entityNum;
+ 		VectorCopy(bsptrace.endpos, trace->endpos);
+ 		trace->area = 0;
+ 		trace->planenum = 0;
++		VectorCopy(bsptrace.plane.normal, trace->plane.normal);
++		trace->plane.dist = bsptrace.plane.dist;
++		// ZTM: FIXME: Are AAS plane type and BSP plane type the same values?
++		trace->plane.type = bsptrace.plane.type;
+ 		return qtrue;
+ 	} //end if
+ 	return qfalse;
+@@ -489,6 +493,7 @@
+ 			trace.ent = 0;
+ 			trace.area = 0;
+ 			trace.planenum = 0;
++			trace.plane = aasworld.planes[trace.planenum];
+ 			return trace;
+ 		} //end if
+ 		//number of the current node to test the line against
+@@ -534,6 +539,7 @@
+ 				//always take the plane with normal facing towards the trace start
+ 				plane = &aasworld.planes[trace.planenum];
+ 				if (DotProduct(v1, plane->normal) > 0) trace.planenum ^= 1;
++				trace.plane = aasworld.planes[trace.planenum];
+ 				return trace;
+ 			} //end if
+ 			else
+@@ -587,6 +593,7 @@
+ 			//always take the plane with normal facing towards the trace start
+ 			plane = &aasworld.planes[trace.planenum];
+ 			if (DotProduct(v1, plane->normal) > 0) trace.planenum ^= 1;
++			trace.plane = aasworld.planes[trace.planenum];
+ 			return trace;
+ 		} //end if
+ #ifdef AAS_SAMPLE_DEBUG
+@@ -713,8 +720,9 @@
+ 			} //end if
+ 		} //end else
+ 	} //end while
+-//	return trace;
+-} //end of the function AAS_TraceClientBBox
++	//this point is unreachable
++	return trace;
++} //end of the function AAS_TracePlayerBBox
+ //===========================================================================
+ // recursive subdivision of the line by the BSP tree.
+ //
+@@ -899,7 +907,8 @@
+ 			} //end if
+ 		} //end else
+ 	} //end while
+-//	return numareas;
++	//this point is unreachable
++	return numareas;
+ } //end of the function AAS_TraceAreas
+ //===========================================================================
+ // a simple cross product
+Index: code/botlib/be_ai_move.c
+===================================================================
+--- code/botlib/be_ai_move.c	(revision 3423)
++++ code/botlib/be_ai_move.c	(working copy)
+@@ -309,15 +309,15 @@
+ 	AAS_PresenceTypeBoundingBox(PRESENCE_CROUCH, mins, maxs);
+ 	VectorMA(origin, -3, up, end);
+ 	bsptrace = AAS_Trace(origin, mins, maxs, end, client, CONTENTS_SOLID|CONTENTS_PLAYERCLIP);
+-	if (!bsptrace.startsolid && bsptrace.fraction < 1 && bsptrace.ent != ENTITYNUM_NONE)
++	if (!bsptrace.startsolid && bsptrace.fraction < 1 && bsptrace.entityNum != ENTITYNUM_NONE)
+ 	{
+ 		//if standing on the world the bot should be in a valid area
+-		if (bsptrace.ent == ENTITYNUM_WORLD)
++		if (bsptrace.entityNum == ENTITYNUM_WORLD)
+ 		{
+ 			return BotFuzzyPointReachabilityArea(origin);
+ 		} //end if
+ 
+-		modelnum = AAS_EntityModelindex(bsptrace.ent);
++		modelnum = AAS_EntityModelindex(bsptrace.entityNum);
+ 		modeltype = modeltypes[modelnum];
+ 
+ 		//if standing on a func_plat or func_bobbing then the bot is assumed to be
+@@ -471,7 +471,7 @@
+ 	if (!trace.startsolid && !trace.allsolid)
+ 	{
+ 		//NOTE: the reachability face number is the model number of the elevator
+-		if (trace.ent != ENTITYNUM_NONE && AAS_EntityModelNum(trace.ent) == modelnum)
++		if (trace.entityNum != ENTITYNUM_NONE && AAS_EntityModelNum(trace.entityNum) == modelnum)
+ 		{
+ 			return qtrue;
+ 		} //end if
+@@ -553,9 +553,9 @@
+ 	AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
+ 	VectorMA(ms->origin, -3, up, end);
+ 	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP);
+-	if (!trace.startsolid && (trace.ent != ENTITYNUM_WORLD && trace.ent != ENTITYNUM_NONE) )
++	if (!trace.startsolid && (trace.entityNum != ENTITYNUM_WORLD && trace.entityNum != ENTITYNUM_NONE) )
+ 	{
+-		return trace.ent;
++		return trace.entityNum;
+ 	} //end if
+ 	return -1;
+ } //end of the function BotOnTopOfEntity
+@@ -1293,10 +1293,10 @@
+ 	VectorMA(ms->origin, 3, dir, end);
+ 	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BODY);
+ 	//if not started in solid and not hitting the world entity
+-	if (!trace.startsolid && (trace.ent != ENTITYNUM_WORLD && trace.ent != ENTITYNUM_NONE) )
++	if (!trace.startsolid && (trace.entityNum != ENTITYNUM_WORLD && trace.entityNum != ENTITYNUM_NONE) )
+ 	{
+ 		result->blocked = qtrue;
+-		result->blockentity = trace.ent;
++		result->blockentity = trace.entityNum;
+ #ifdef DEBUG
+ 		//botimport.Print(PRT_MESSAGE, "%d: BotCheckBlocked: I'm blocked\n", ms->client);
+ #endif //DEBUG
+@@ -1308,10 +1308,10 @@
+ 		AAS_PresenceTypeBoundingBox(ms->presencetype, mins, maxs);
+ 		VectorMA(ms->origin, -3, up, end);
+ 		trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP);
+-		if (!trace.startsolid && (trace.ent != ENTITYNUM_WORLD && trace.ent != ENTITYNUM_NONE) )
++		if (!trace.startsolid && (trace.entityNum != ENTITYNUM_WORLD && trace.entityNum != ENTITYNUM_NONE) )
+ 		{
+ 			result->blocked = qtrue;
+-			result->blockentity = trace.ent;
++			result->blockentity = trace.entityNum;
+ 			result->flags |= MOVERESULT_ONTOPOFOBSTACLE;
+ #ifdef DEBUG
+ 			//botimport.Print(PRT_MESSAGE, "%d: BotCheckBlocked: I'm blocked\n", ms->client);
+Index: code/botlib/be_interface.c
+===================================================================
+--- code/botlib/be_interface.c	(revision 3423)
++++ code/botlib/be_interface.c	(working copy)
+@@ -581,9 +581,9 @@
+ 	botimport.DebugLineShow(line[0], eye, trace.endpos, LINECOLOR_BLUE);
+ 	//
+ 	AAS_ClearShownDebugLines();
+-	if (trace.ent)
++	if (trace.entityNum)
+ 	{
+-		ent = &aasworld.entities[trace.ent];
++		ent = &aasworld.entities[trace.entityNum];
+ 		AAS_ShowBoundingBox(ent->origin, ent->mins, ent->maxs);
+ 	} //end if
+ */
+@@ -625,9 +625,9 @@
+ 									bsptrace.plane.normal,
+ 									bsptrace.plane.dist + bsptrace.exp_dist,
+ 									bsptrace.plane.type, LINECOLOR_GREEN);
+-		if (trace.ent)
++		if (trace.entityNum)
+ 		{
+-			ent = &aasworld.entities[trace.ent];
++			ent = &aasworld.entities[trace.entityNum];
+ 			AAS_ShowBoundingBox(ent->origin, ent->mins, ent->maxs);
+ 		} //end if
+ 	} //end if
+@@ -640,7 +640,7 @@
+ 									bsptrace.plane.normal,
+ 									bsptrace.plane.dist,// + bsptrace.exp_dist,
+ 									bsptrace.plane.type, LINECOLOR_RED);
+-		if (bsptrace.ent)
++		if (bsptrace.entityNum)
+ 		{
+ 			ent = &aasworld.entities[bsptrace.ent];
+ 			AAS_ShowBoundingBox(ent->origin, ent->mins, ent->maxs);
+Index: code/botlib/botlib.h
+===================================================================
+--- code/botlib/botlib.h	(revision 3423)
++++ code/botlib/botlib.h	(working copy)
+@@ -115,36 +115,8 @@
+ 	int weapon;				//weapon to use
+ } bot_input_t;
+ 
+-#ifndef BSPTRACE
++typedef trace_t bsp_trace_t;
+ 
+-#define BSPTRACE
+-
+-//bsp_trace_t hit surface
+-typedef struct bsp_surface_s
+-{
+-	char name[16];
+-	int flags;
+-	int value;
+-} bsp_surface_t;
+-
+-//remove the bsp_trace_s structure definition l8r on
+-//a trace is returned when a box is swept through the world
+-typedef struct bsp_trace_s
+-{
+-	qboolean		allsolid;	// if true, plane is not valid
+-	qboolean		startsolid;	// if true, the initial point was in a solid area
+-	float			fraction;	// time completed, 1.0 = didn't hit anything
+-	vec3_t			endpos;		// final position
+-	cplane_t		plane;		// surface normal at impact
+-	float			exp_dist;	// expanded plane distance
+-	int				sidenum;	// number of the brush side hit
+-	bsp_surface_t	surface;	// the hit point surface
+-	int				contents;	// contents on other side of surface hit
+-	int				ent;		// number of entity hit
+-} bsp_trace_t;
+-
+-#endif	// BSPTRACE
+-
+ //entity state
+ typedef struct bot_entitystate_s
+ {
+Index: code/game/ai_chat.c
+===================================================================
+--- code/game/ai_chat.c	(revision 3423)
++++ code/game/ai_chat.c	(working copy)
+@@ -377,7 +377,7 @@
+ 	end[2] -= 10;
+ 	trap_AAS_PresenceTypeBoundingBox(PRESENCE_CROUCH, mins, maxs);
+ 	BotAI_Trace(&trace, start, mins, maxs, end, bs->client, MASK_SOLID);
+-	if (trace.ent != ENTITYNUM_WORLD) return qfalse;
++	if (trace.entityNum != ENTITYNUM_WORLD) return qfalse;
+ 	//the bot is in a position where it can chat
+ 	return qtrue;
+ }
+Index: code/game/ai_dmnet.c
+===================================================================
+--- code/game/ai_dmnet.c	(revision 3423)
++++ code/game/ai_dmnet.c	(working copy)
+@@ -1358,7 +1358,7 @@
+ 						//
+ 						BotAI_Trace(&bsptrace, bs->eye, NULL, NULL, target, bs->entitynum, MASK_SHOT);
+ 						// if the mine is visible from the current position
+-						if (bsptrace.fraction >= 1.0 || bsptrace.ent == state.number) {
++						if (bsptrace.fraction >= 1.0 || bsptrace.entityNum == state.number) {
+ 							// shoot at the mine
+ 							trap_EA_Attack(bs->client);
+ 						}
+@@ -1415,7 +1415,7 @@
+ 						//
+ 						BotAI_Trace(&bsptrace, bs->eye, NULL, NULL, target, bs->entitynum, MASK_SHOT);
+ 						// if the mine is visible from the current position
+-						if (bsptrace.fraction >= 1.0 || bsptrace.ent == state.number) {
++						if (bsptrace.fraction >= 1.0 || bsptrace.entityNum == state.number) {
+ 							// shoot at the mine
+ 							trap_EA_Attack(bs->client);
+ 						}
+@@ -1490,7 +1490,7 @@
+ 		//
+ 		BotAI_Trace(&bsptrace, bs->eye, NULL, NULL, bs->activatestack->target, bs->entitynum, MASK_SHOT);
+ 		// if the shootable entity is visible from the current position
+-		if (bsptrace.fraction >= 1.0 || bsptrace.ent == goal->entitynum) {
++		if (bsptrace.fraction >= 1.0 || bsptrace.entityNum == goal->entitynum) {
+ 			targetvisible = qtrue;
+ 			// if holding the right weapon
+ 			if (bs->cur_ps.weapon == bs->activatestack->weapon) {
+Index: code/game/ai_dmq3.c
+===================================================================
+--- code/game/ai_dmq3.c	(revision 3423)
++++ code/game/ai_dmq3.c	(working copy)
+@@ -1884,7 +1884,7 @@
+ 		VectorSubtract(bs->origin, target, dir);
+ 		if (VectorLengthSquared(dir) < Square(KAMIKAZE_DIST * 0.9)) {
+ 			BotAI_Trace(&trace, bs->eye, NULL, NULL, target, bs->client, CONTENTS_SOLID);
+-			if (trace.fraction >= 1 || trace.ent == goal->entitynum) {
++			if (trace.fraction >= 1 || trace.entityNum == goal->entitynum) {
+ 				trap_EA_Use(bs->client);
+ 				return;
+ 			}
+@@ -1956,7 +1956,7 @@
+ 		VectorSubtract(bs->origin, target, dir);
+ 		if (VectorLengthSquared(dir) < Square(200)) {
+ 			BotAI_Trace(&trace, bs->eye, NULL, NULL, target, bs->client, CONTENTS_SOLID);
+-			if (trace.fraction >= 1 || trace.ent == goal->entitynum) {
++			if (trace.fraction >= 1 || trace.entityNum == goal->entitynum) {
+ 				trap_EA_Use(bs->client);
+ 				return;
+ 			}
+@@ -1980,7 +1980,7 @@
+ 		VectorSubtract(bs->origin, target, dir);
+ 		if (VectorLengthSquared(dir) < Square(200)) {
+ 			BotAI_Trace(&trace, bs->eye, NULL, NULL, target, bs->client, CONTENTS_SOLID);
+-			if (trace.fraction >= 1 || trace.ent == goal->entitynum) {
++			if (trace.fraction >= 1 || trace.entityNum == goal->entitynum) {
+ 				trap_EA_Use(bs->client);
+ 				return;
+ 			}
+@@ -1997,7 +1997,7 @@
+ 		VectorSubtract(bs->origin, target, dir);
+ 		if (VectorLengthSquared(dir) < Square(300)) {
+ 			BotAI_Trace(&trace, bs->eye, NULL, NULL, target, bs->client, CONTENTS_SOLID);
+-			if (trace.fraction >= 1 || trace.ent == goal->entitynum) {
++			if (trace.fraction >= 1 || trace.entityNum == goal->entitynum) {
+ 				trap_EA_Use(bs->client);
+ 				return;
+ 			}
+@@ -2021,7 +2021,7 @@
+ 		VectorSubtract(bs->origin, target, dir);
+ 		if (VectorLengthSquared(dir) < Square(200)) {
+ 			BotAI_Trace(&trace, bs->eye, NULL, NULL, target, bs->client, CONTENTS_SOLID);
+-			if (trace.fraction >= 1 || trace.ent == goal->entitynum) {
++			if (trace.fraction >= 1 || trace.entityNum == goal->entitynum) {
+ 				trap_EA_Use(bs->client);
+ 				return;
+ 			}
+@@ -2894,7 +2894,7 @@
+ 			}
+ 		}
+ 		//if a full trace or the hitent was hit
+-		if (trace.fraction >= 1 || trace.ent == hitent) {
++		if (trace.fraction >= 1 || trace.entityNum == hitent) {
+ 			//check for fog, assuming there's only one fog brush where
+ 			//either the viewer or the entity is in or both are in
+ 			otherinfog = (trap_AAS_PointContents(middle) & CONTENTS_FOG);
+@@ -2985,7 +2985,7 @@
+ 		VectorCopy(goal->origin, target);
+ 		target[2] += 1;
+ 		BotAI_Trace(&trace, bs->eye, NULL, NULL, target, bs->client, CONTENTS_SOLID);
+-		if (trace.fraction >= 1 || trace.ent == goal->entitynum) {
++		if (trace.fraction >= 1 || trace.entityNum == goal->entitynum) {
+ 			if (goal->entitynum == bs->enemy) {
+ 				return qfalse;
+ 			}
+@@ -3420,7 +3420,7 @@
+ 		//
+ 		BotAI_Trace(&trace, start, mins, maxs, bestorigin, bs->entitynum, MASK_SHOT);
+ 		//if the enemy is NOT hit
+-		if (trace.fraction <= 1 && trace.ent != entinfo.number) {
++		if (trace.fraction <= 1 && trace.entityNum != entinfo.number) {
+ 			bestorigin[2] += 16;
+ 		}
+ 		//if it is not an instant hit weapon the bot might want to predict the enemy
+@@ -3656,7 +3656,7 @@
+ 	if (!InFieldOfVision(bs->viewangles, fov, angles))
+ 		return;
+ 	BotAI_Trace(&bsptrace, bs->eye, NULL, NULL, bs->aimtarget, bs->client, CONTENTS_SOLID|CONTENTS_PLAYERCLIP);
+-	if (bsptrace.fraction < 1 && bsptrace.ent != attackentity)
++	if (bsptrace.fraction < 1 && bsptrace.entityNum != attackentity)
+ 		return;
+ 
+ 	//get the weapon info
+@@ -3674,15 +3674,15 @@
+ 	VectorMA(start, -12, forward, start);
+ 	BotAI_Trace(&trace, start, mins, maxs, end, bs->entitynum, MASK_SHOT);
+ 	//if the entity is a client
+-	if (trace.ent >= 0 && trace.ent < MAX_CLIENTS) {
+-		if (trace.ent != attackentity) {
++	if (trace.entityNum >= 0 && trace.entityNum < MAX_CLIENTS) {
++		if (trace.entityNum != attackentity) {
+ 			//if a teammate is hit
+-			if (BotSameTeam(bs, trace.ent))
++			if (BotSameTeam(bs, trace.entityNum))
+ 				return;
+ 		}
+ 	}
+ 	//if won't hit the enemy or not attacking a player (obelisk)
+-	if (trace.ent != attackentity || attackentity >= MAX_CLIENTS) {
++	if (trace.entityNum != attackentity || attackentity >= MAX_CLIENTS) {
+ 		//if the projectile does radial damage
+ 		if (wi.proj.damagetype & DAMAGETYPE_RADIAL) {
+ 			if (trace.fraction * 1000 < wi.proj.radius) {
+@@ -3895,7 +3895,7 @@
+ 		//
+ 		BotAI_Trace(&bsptrace, bs->eye, NULL, NULL, goalorigin, bs->entitynum, MASK_SHOT);
+ 		// if the button is visible from the current position
+-		if (bsptrace.fraction >= 1.0 || bsptrace.ent == entitynum) {
++		if (bsptrace.fraction >= 1.0 || bsptrace.entityNum == entitynum) {
+ 			//
+ 			activategoal->goal.entitynum = entitynum; //NOTE: this is the entity number of the shootable button
+ 			activategoal->goal.number = 0;
+Index: code/game/ai_main.c
+===================================================================
+--- code/game/ai_main.c	(revision 3423)
++++ code/game/ai_main.c	(working copy)
+@@ -134,24 +134,7 @@
+ ==================
+ */
+ void BotAI_Trace(bsp_trace_t *bsptrace, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask) {
+-	trace_t trace;
+-
+-	trap_Trace(&trace, start, mins, maxs, end, passent, contentmask);
+-	//copy the trace information
+-	bsptrace->allsolid = trace.allsolid;
+-	bsptrace->startsolid = trace.startsolid;
+-	bsptrace->fraction = trace.fraction;
+-	VectorCopy(trace.endpos, bsptrace->endpos);
+-	bsptrace->plane.dist = trace.plane.dist;
+-	VectorCopy(trace.plane.normal, bsptrace->plane.normal);
+-	bsptrace->plane.signbits = trace.plane.signbits;
+-	bsptrace->plane.type = trace.plane.type;
+-	bsptrace->surface.value = 0;
+-	bsptrace->surface.flags = trace.surfaceFlags;
+-	bsptrace->ent = trace.entityNum;
+-	bsptrace->exp_dist = 0;
+-	bsptrace->sidenum = 0;
+-	bsptrace->contents = 0;
++	trap_Trace(bsptrace, start, mins, maxs, end, passent, contentmask);
+ }
+ 
+ /*
+Index: code/server/sv_bot.c
+===================================================================
+--- code/server/sv_bot.c	(revision 3423)
++++ code/server/sv_bot.c	(working copy)
+@@ -176,24 +176,7 @@
+ ==================
+ */
+ static void BotImport_Trace(bsp_trace_t *bsptrace, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask) {
+-	trace_t trace;
+-
+-	SV_Trace(&trace, start, mins, maxs, end, passent, contentmask, qfalse);
+-	//copy the trace information
+-	bsptrace->allsolid = trace.allsolid;
+-	bsptrace->startsolid = trace.startsolid;
+-	bsptrace->fraction = trace.fraction;
+-	VectorCopy(trace.endpos, bsptrace->endpos);
+-	bsptrace->plane.dist = trace.plane.dist;
+-	VectorCopy(trace.plane.normal, bsptrace->plane.normal);
+-	bsptrace->plane.signbits = trace.plane.signbits;
+-	bsptrace->plane.type = trace.plane.type;
+-	bsptrace->surface.value = 0;
+-	bsptrace->surface.flags = trace.surfaceFlags;
+-	bsptrace->ent = trace.entityNum;
+-	bsptrace->exp_dist = 0;
+-	bsptrace->sidenum = 0;
+-	bsptrace->contents = 0;
++	SV_Trace(bsptrace, start, mins, maxs, end, passent, contentmask, qfalse);
+ }
+ 
+ /*
+@@ -202,24 +185,7 @@
+ ==================
+ */
+ static void BotImport_EntityTrace(bsp_trace_t *bsptrace, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int entnum, int contentmask) {
+-	trace_t trace;
+-
+-	SV_ClipToEntity(&trace, start, mins, maxs, end, entnum, contentmask, qfalse);
+-	//copy the trace information
+-	bsptrace->allsolid = trace.allsolid;
+-	bsptrace->startsolid = trace.startsolid;
+-	bsptrace->fraction = trace.fraction;
+-	VectorCopy(trace.endpos, bsptrace->endpos);
+-	bsptrace->plane.dist = trace.plane.dist;
+-	VectorCopy(trace.plane.normal, bsptrace->plane.normal);
+-	bsptrace->plane.signbits = trace.plane.signbits;
+-	bsptrace->plane.type = trace.plane.type;
+-	bsptrace->surface.value = 0;
+-	bsptrace->surface.flags = trace.surfaceFlags;
+-	bsptrace->ent = trace.entityNum;
+-	bsptrace->exp_dist = 0;
+-	bsptrace->sidenum = 0;
+-	bsptrace->contents = 0;
++	SV_ClipToEntity(bsptrace, start, mins, maxs, end, entnum, contentmask, qfalse);
+ }
+ 
+ 
