@@ -151,19 +151,13 @@ When building a pak file, make sure a config.cfg isn't present in it, or configs
 
 // every time a new pk3 file is built, this checksum must be updated.
 // the easiest way to get it is to just run the game and see what it spits out
-#ifndef STANDALONE
 static const unsigned int pak_checksums[] = {
-	1566731103u,
-	298122907u,
-	412165236u,
-	2991495316u,
-	1197932710u,
-	4087071573u,
-	3709064859u,
-	908855077u,
-	977125798u
+	4174601226u,
+	2811757899u,
+	2971079541u,
+	2701660775u
 };
-#endif
+
 // if this is defined, the executable positively won't work with any paks other
 // than the demo pak, even if productid is present. This is only used for our
 // last demo release to prevent the mac and linux users from using the demo
@@ -3298,11 +3292,7 @@ static void FS_Startup(const char *gameName) {
 =======================================================================================================================================
 FS_CheckPak0
 
-Check whether any of the original id pak files is present, and start up in standalone mode, if there are none and a different
-com_basegame was set.
-
-NOTE: If you're building a game that doesn't depend on the Q3 media pak0.pk3, you'll want to remove this by defining STANDALONE in
-q_shared.h.
+Check whether any of the original pak files is present.
 =======================================================================================================================================
 */
 static void FS_CheckPak0(void) {
@@ -3321,20 +3311,7 @@ static void FS_CheckPak0(void) {
 
 		if (!Q_stricmpn(curpack->pakGamename, BASEGAME, MAX_OSPATH) && strlen(pakBasename) == 4 && !Q_stricmpn(pakBasename, "pak", 3) && pakBasename[3] >= '0' && pakBasename[3] <= '0' + NUM_QW_PAKS - 1) {
 			if (curpack->checksum != pak_checksums[pakBasename[3] - '0']) {
-				if (pakBasename[3] == '0') {
-					Com_Printf("\n\n"
-							"**************************************************\n"
-							"WARNING: "BASEGAME"/pak0.pk3 is present but its checksum (%u)\n"
-							"is not correct. Please re-copy pak0.pk3 from your\n"
-							"legitimate Q3 CDROM.\n"
-							"**************************************************\n\n\n", curpack->checksum);
-				} else {
-					Com_Printf("\n\n"
-							"**************************************************\n"
-							"WARNING: "BASEGAME"/pak%d.pk3 is present but its checksum (%u)\n"
-							"is not correct. Please re-install the point release\n"
-							"**************************************************\n\n\n", pakBasename[3] - '0', curpack->checksum);
-				}
+				Com_Printf("\n\n**************************************************\nWARNING: "BASEGAME"/pak%d.pk3 is present but its checksum (%u) is not correct. Please re-copy pak%d.pk3.\n**************************************************\n\n\n", pakBasename[3] - '0', curpack->checksum, pakBasename[3] - '0');
 			}
 
 			foundPak |= 1 << (pakBasename[3] - '0');
@@ -3344,32 +3321,17 @@ static void FS_CheckPak0(void) {
 			// finally check whether this pak's checksum is listed because the user tried to trick us by renaming the file, and set foundPak's highest bit to indicate this case
 			for (index = 0; index < ARRAY_LEN(pak_checksums); index++) {
 				if (curpack->checksum == pak_checksums[index]) {
-					Com_Printf("\n\n"
-							"**************************************************\n"
-							"WARNING: %s is renamed pak file %s%cpak%d.pk3\n"
-							"Running in standalone mode won't work\n"
-							"Please rename, or remove this file\n"
-							"**************************************************\n\n\n", curpack->pakFilename, BASEGAME, PATH_SEP, index);
+					Com_Printf("\n\n**************************************************\nWARNING: %s is renamed pak file %s%cpak%d.pk3. Please remove this file.\n**************************************************\n\n\n", curpack->pakFilename, BASEGAME, PATH_SEP, index);
 					foundPak |= 0x80000000;
 				}
 			}
 		}
 	}
 
-	if (!foundPak && Q_stricmp(com_basegame->string, BASEGAME)) {
-		Cvar_Set("com_standalone", "1");
-	} else {
-		Cvar_Set("com_standalone", "0");
-	}
-
-	if ((foundPak & 0x1ff) != 0x1ff) {
+	if ((foundPak & 0x0f) != 0x0f) {
 		char errorText[MAX_STRING_CHARS] = "";
 
-		if ((foundPak & 0x01) != 0x01) {
-			Q_strcat(errorText, sizeof(errorText), "\"pak0.pk3\" is missing. Please copy it from your legitimate Q3 CDROM. ");
-		}
-
-		Q_strcat(errorText, sizeof(errorText), va("Also check that your Quake Wars executable is in the correct place and that every file in the \"%s\" directory is present and readable", BASEGAME));
+		Q_strcat(errorText, sizeof(errorText), va("Missing files. Please re-install Quake Wars. Also check that your Quake Wars executable is in the correct place and that every file in the \"%s\" directory is present and readable!", BASEGAME));
 		Com_Error(ERR_FATAL, "%s", errorText);
 	}
 }
