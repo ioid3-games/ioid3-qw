@@ -49,6 +49,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 typedef struct bot_movestate_s {
 	// input vars (all set outside the movement code)
 	vec3_t origin;								// origin of the bot
+	vec3_t lastorigin;							// origin previous cycle
 	vec3_t velocity;							// velocity of the bot
 	vec3_t viewoffset;							// view offset
 	int entitynum;								// entity number of the bot
@@ -61,7 +62,6 @@ typedef struct bot_movestate_s {
 	int lastareanum;							// last area the bot was in
 	int lastgoalareanum;						// last goal area number
 	int lastreachnum;							// last reachability number
-	vec3_t lastorigin;							// origin previous cycle
 	int reachareanum;							// area number of the reachabilty
 	int moveflags;								// movement flags
 	int jumpreach;								// set when jumped
@@ -1288,9 +1288,9 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 		// don't enter slime or lava and don't fall from too high
 		if (move.stopevent & (SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE)) {
 			//botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, would be hurt\n", ms->client, move.frames, maxframes);
-			//if (move.stopevent & SE_HITGROUNDDAMAGE) botimport.Print(PRT_MESSAGE, "hitground\n");
 			//if (move.stopevent & SE_ENTERSLIME) botimport.Print(PRT_MESSAGE, "slime\n");
 			//if (move.stopevent & SE_ENTERLAVA) botimport.Print(PRT_MESSAGE, "lava\n");
+			//if (move.stopevent & SE_HITGROUNDDAMAGE) botimport.Print(PRT_MESSAGE, "hitground\n");
 			return qfalse;
 		}
 		// if ground was hit

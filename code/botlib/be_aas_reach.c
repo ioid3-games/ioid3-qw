@@ -52,30 +52,30 @@ extern botlib_import_t botimport;
 #define REACHABILITYAREASPERCYCLE 15
 // number of units reachability points are placed inside the areas
 #define INSIDEUNITS 2
-#define INSIDEUNITS_WALKEND 5
 #define INSIDEUNITS_WALKSTART 0.1
+#define INSIDEUNITS_WALKEND 5
 #define INSIDEUNITS_WATERJUMP 15
 // area flag used for weapon jumping
 #define AREA_WEAPONJUMP 8192 // valid area to weapon jump to
 // number of reachabilities of each type
-int reach_swim;			// swim
 int reach_equalfloor;	// walk on floors with equal height
 int reach_step;			// step up
-int reach_walk;			// walk of step
-int reach_barrier;		// jump up to a barrier
-int reach_waterjump;	// jump out of water
-int reach_walkoffledge;	// walk of a ledge
+int reach_walk;			// walk off step
 int reach_jump;			// jump
-int reach_ladder;		// climb or descent a ladder
+int reach_barrier;		// jump up to a barrier
+int reach_walkoffledge;	// walk off a ledge
+int reach_swim;			// swim
+int reach_waterjump;	// jump out of water
+int reach_rocketjump;	// rocket jump
+int reach_bfgjump;		// bfg jump
 int reach_teleport;		// teleport
-int reach_elevator;		// use an elevator
+int reach_jumppad;		// jump pads
 int reach_funcbob;		// use a func bob
+int reach_elevator;		// use an elevator
+int reach_ladder;		// climb or descent a ladder
 int reach_doublejump;	// double jump
 int reach_rampjump;		// ramp jump
 int reach_strafejump;	// strafe jump (just normal jump but further)
-int reach_rocketjump;	// rocket jump
-int reach_bfgjump;		// bfg jump
-int reach_jumppad;		// jump pads
 // linked reachability
 typedef struct aas_lreachability_s {
 	int areanum;					// number of the reachable area
@@ -926,10 +926,9 @@ int AAS_Reachability_Swim(int area1num, int area2num) {
 					lreach->facenum = face1num;
 					lreach->edgenum = 0;
 
-					VectorCopy(start, lreach->start);
-
 					plane = &aasworld.planes[face1->planenum ^ side1];
 
+					VectorCopy(start, lreach->start);
 					VectorMA(lreach->start, -INSIDEUNITS, plane->normal, lreach->end);
 
 					lreach->traveltype = TRAVEL_SWIM;

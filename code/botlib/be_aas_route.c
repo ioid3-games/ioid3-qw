@@ -1832,7 +1832,9 @@ AAS_AreaTravelTimeToGoalArea
 =======================================================================================================================================
 */
 int AAS_AreaTravelTimeToGoalArea(int areanum, vec3_t origin, int goalareanum, int travelflags) {
-	int traveltime, reachnum = 0;
+	int traveltime, reachnum;
+
+	reachnum = 0;
 
 	if (AAS_AreaRouteToGoalArea(areanum, origin, goalareanum, travelflags, &traveltime, &reachnum)) {
 		return traveltime;
@@ -1847,7 +1849,9 @@ AAS_AreaReachabilityToGoalArea
 =======================================================================================================================================
 */
 int AAS_AreaReachabilityToGoalArea(int areanum, vec3_t origin, int goalareanum, int travelflags) {
-	int traveltime, reachnum = 0;
+	int traveltime, reachnum;
+
+	reachnum = 0;
 
 	if (AAS_AreaRouteToGoalArea(areanum, origin, goalareanum, travelflags, &traveltime, &reachnum)) {
 		return reachnum;
