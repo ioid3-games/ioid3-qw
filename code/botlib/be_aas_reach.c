@@ -61,24 +61,21 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 // area flag used for weapon jumping
 #define AREA_WEAPONJUMP 8192 // valid area to weapon jump to
 // number of reachabilities of each type
-int reach_swim;			// swim
 int reach_equalfloor;	// walk on floors with equal height
 int reach_step;			// step up
-int reach_walk;			// walk of step
-int reach_barrier;		// jump up to a barrier
-int reach_waterjump;	// jump out of water
-int reach_walkoffledge;	// walk of a ledge
+int reach_walk;			// walk off step
 int reach_jump;			// jump
-int reach_ladder;		// climb or descent a ladder
-int reach_teleport;		// teleport
-int reach_elevator;		// use an elevator
-int reach_funcbob;		// use a func bob
-int reach_doublejump;	// double jump
-int reach_rampjump;		// ramp jump
-int reach_strafejump;	// strafe jump (just normal jump but further)
+int reach_barrier;		// jump up to a barrier
+int reach_walkoffledge;	// walk off a ledge
+int reach_swim;			// swim
+int reach_waterjump;	// jump out of water
 int reach_rocketjump;	// rocket jump
 int reach_bfgjump;		// bfg jump
+int reach_teleport;		// teleport
 int reach_jumppad;		// jump pads
+int reach_funcbob;		// use a func bob
+int reach_elevator;		// use an elevator
+int reach_ladder;		// climb or descent a ladder
 // linked reachability
 typedef struct aas_lreachability_s {
 	int areanum;					// number of the reachable area
@@ -4532,23 +4529,21 @@ AAS_ContinueInitReachability
 
  TRAVEL_WALK			100% equal floor height + steps
  TRAVEL_CROUCH			100%
- TRAVEL_BARRIERJUMP		100%
- TRAVEL_SCOUTBARRIER	100%
+ TRAVEL_PRONE			100%
  TRAVEL_JUMP			 80%
- TRAVEL_SCOUTJUMP		 80%
- TRAVEL_LADDER			100% + fall down from ladder + jump up to ladder
+ TRAVEL_BARRIERJUMP		100%
  TRAVEL_WALKOFFLEDGE	 90% walk off very steep walls?
  TRAVEL_SWIM			100%
  TRAVEL_WATERJUMP		100%
- TRAVEL_TELEPORT		100%
- TRAVEL_ELEVATOR		100%
- TRAVEL_DOUBLEJUMP		  0%
- TRAVEL_RAMPJUMP		  0%
- TRAVEL_STRAFEJUMP		  0%
+ TRAVEL_SCOUTJUMP		 80%
+ TRAVEL_SCOUTBARRIER	100%
  TRAVEL_ROCKETJUMP		100% (currently limited towards areas with items)
  TRAVEL_BFGJUMP			  0% (currently disabled)
+ TRAVEL_TELEPORT		100%
  TRAVEL_JUMPPAD			100%
  TRAVEL_FUNCBOB			100%
+ TRAVEL_ELEVATOR		100%
+ TRAVEL_LADDER			100% + fall down from ladder + jump up to ladder
 
 Returns: true if NOT finished.
 =======================================================================================================================================
@@ -4597,24 +4592,24 @@ int AAS_ContinueInitReachability(float time) {
 			if (AAS_ReachabilityExists(i, j)) {
 				continue;
 			}
-			// check for a swim reachability
-			if (AAS_Reachability_Swim(i, j)) {
-				continue;
-			}
 			// check for a simple walk on equal floor height reachability
 			if (AAS_Reachability_EqualFloorHeight(i, j)) {
+				continue;
+			}
+			// check for a jump reachability
+			if (AAS_Reachability_Jump(i, j)) {
 				continue;
 			}
 			// check for step, barrier, waterjump and walk off ledge reachabilities
 			if (AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(i, j)) {
 				continue;
 			}
-			// check for ladder reachabilities
-			if (AAS_Reachability_Ladder(i, j)) {
+			// check for a swim reachability
+			if (AAS_Reachability_Swim(i, j)) {
 				continue;
 			}
-			// check for a jump reachability
-			if (AAS_Reachability_Jump(i, j)) {
+			// check for ladder reachabilities
+			if (AAS_Reachability_Ladder(i, j)) {
 				continue;
 			}
 		}
@@ -4659,14 +4654,14 @@ int AAS_ContinueInitReachability(float time) {
 
 			AAS_Reachability_WalkOffLedge(i);
 		}
-		// create jump pad reachabilities
-		AAS_Reachability_JumpPad();
 		// create teleporter reachabilities
 		AAS_Reachability_Teleport();
-		// create elevator (func_plat) reachabilities
-		AAS_Reachability_Elevator();
+		// create jump pad reachabilities
+		AAS_Reachability_JumpPad();
 		// create func_bobbing reachabilities
 		AAS_Reachability_FuncBobbing();
+		// create elevator (func_plat) reachabilities
+		AAS_Reachability_Elevator();
 #ifdef DEBUG
 		botimport.Print(PRT_MESSAGE, "%6d reach swim\n", reach_swim);
 		botimport.Print(PRT_MESSAGE, "%6d reach equal floor\n", reach_equalfloor);
