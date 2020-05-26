@@ -407,8 +407,7 @@ int AAS_LoadAASFile(char *filename) {
 	if (header.version == AASVERSION) {
 		AAS_DData((unsigned char *)&header + 8, sizeof(aas_header_t) - 8);
 	}
-// Tobias HACK: temporarely stop checking AAS/BSP checksums
-/*
+
 	aasworld.bspchecksum = atoi(LibVarGetString("sv_mapChecksum"));
 
 	if (LittleLong(header.bspchecksum) != aasworld.bspchecksum) {
@@ -416,8 +415,6 @@ int AAS_LoadAASFile(char *filename) {
 		botimport.FS_FCloseFile(fp);
 		return BLERR_WRONGAASFILEVERSION;
 	}
-*/
-// Tobias END
 	// load the lumps:
 	// bounding boxes
 	offset = LittleLong(header.lumps[AASLUMP_BBOXES].fileofs);

@@ -647,7 +647,7 @@ void BotAddToAvoidReach(bot_movestate_t *ms, int number, float avoidtime) {
 		}
 	}
 }
-// Tobias NOTE: please move those to qcommon!
+
 /*
 =======================================================================================================================================
 DistanceFromLineSquared
@@ -690,7 +690,7 @@ float VectorDistanceSquared(vec3_t p1, vec3_t p2) {
 	VectorSubtract(p2, p1, dir);
 	return VectorLengthSquared(dir);
 }
-// Tobias END!
+
 /*
 =======================================================================================================================================
 BotAvoidSpots
@@ -1105,6 +1105,7 @@ int BotGapDistance(vec3_t origin, vec3_t hordir, int checkdist, int entnum) {
 		VectorCopy(start, end);
 
 		end[2] -= 48 + sv_maxbarrier->value;
+
 		trace = AAS_TraceClientBBox(start, end, PRESENCE_CROUCH, entnum);
 		// if solid is found the bot can't walk any further and fall into a gap
 		if (!trace.startsolid) {
@@ -1118,7 +1119,7 @@ int BotGapDistance(vec3_t origin, vec3_t hordir, int checkdist, int entnum) {
 					break;
 				}
 				// if a gap is found slow down
-				//botimport.Print(PRT_MESSAGE, "BotGapDistance: found gap at %i (checkdist = %i)\n", dist, checkdist);
+				//botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "BotGapDistance: found a gap at %i (checkdist = %i).\n", gapdist, checkdist);
 				return dist;
 			}
 
@@ -1281,7 +1282,7 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 		}
 		// don't enter slime or lava and don't fall from too high
 		if (move.stopevent & (SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE)) {
-			//botimport.Print(PRT_MESSAGE, "client %d: would be hurt ", ms->client);
+			//botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, would be hurt\n", ms->client, move.frames, maxframes);
 			//if (move.stopevent & SE_ENTERSLIME) botimport.Print(PRT_MESSAGE, "slime\n");
 			//if (move.stopevent & SE_ENTERLAVA) botimport.Print(PRT_MESSAGE, "lava\n");
 			//if (move.stopevent & SE_HITGROUNDDAMAGE) botimport.Print(PRT_MESSAGE, "hitground\n");
@@ -1831,10 +1832,6 @@ bot_moveresult_t BotFinishTravel_WaterJump(bot_movestate_t *ms, aas_reachability
 /*
 =======================================================================================================================================
 BotTravel_WalkOffLedge
-
-Tobias TODO: add crouchig over ledges
-             usual wall check
-             Scout Powerups
 =======================================================================================================================================
 */
 bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t *reach) {
@@ -3052,7 +3049,6 @@ bot_moveresult_t BotTravel_BFGJump(bot_movestate_t *ms, aas_reachability_t *reac
 	dist = VectorNormalize(hordir);
 
 	if (dist < 5 && fabs(AngleDifference(result.ideal_viewangles[0], ms->viewangles[0])) < 5 && fabs(AngleDifference(result.ideal_viewangles[1], ms->viewangles[1])) < 5) {
-		//botimport.Print(PRT_MESSAGE, "between jump start and run start point\n");
 		// move straight to the reachability end
 		hordir[0] = reach->end[0] - ms->origin[0];
 		hordir[1] = reach->end[1] - ms->origin[1];
