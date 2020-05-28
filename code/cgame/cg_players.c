@@ -492,6 +492,7 @@ static qboolean CG_RegisterClientSkin(clientInfo_t *ci, const char *teamName, co
 	char filename[MAX_QPATH];
 	/*
 	Com_sprintf(filename, sizeof(filename), "models/players/%s/%slower_%s.skin", modelName, teamName, skinName);
+
 	ci->legsSkin = trap_R_RegisterSkin(filename);
 
 	if (!ci->legsSkin) {
@@ -504,6 +505,7 @@ static qboolean CG_RegisterClientSkin(clientInfo_t *ci, const char *teamName, co
 	}
 
 	Com_sprintf(filename, sizeof(filename), "models/players/%s/%supper_%s.skin", modelName, teamName, skinName);
+
 	ci->torsoSkin = trap_R_RegisterSkin(filename);
 
 	if (!ci->torsoSkin) {
@@ -563,6 +565,7 @@ static qboolean CG_RegisterClientModelname(clientInfo_t *ci, const char *modelNa
 	}
 
 	Com_sprintf(filename, sizeof(filename), "models/players/%s/lower.md3", modelName);
+
 	ci->legsModel = trap_R_RegisterModel(filename);
 
 	if (!ci->legsModel) {
@@ -576,6 +579,7 @@ static qboolean CG_RegisterClientModelname(clientInfo_t *ci, const char *modelNa
 	}
 
 	Com_sprintf(filename, sizeof(filename), "models/players/%s/upper.md3", modelName);
+
 	ci->torsoModel = trap_R_RegisterModel(filename);
 
 	if (!ci->torsoModel) {
@@ -2354,7 +2358,6 @@ void CG_Player(centity_t *cent) {
 			AnglesToAxis(angles, skull.axis);
 			/*
 			dir[2] = 0;
-
 			VectorInverse(dir);
 			VectorCopy(dir, skull.axis[1]);
 			VectorNormalize(skull.axis[1]);

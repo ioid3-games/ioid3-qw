@@ -752,11 +752,9 @@ int SV_WriteDownloadToClient(client_t *cl, msg_t *msg) {
 				Com_Printf("clientDownload: %d : \"%s\" download disabled\n", (int)(cl - svs.clients), cl->downloadName);
 
 				if (sv_pure->integer) {
-					Com_sprintf(errorMessage, sizeof(errorMessage), "Could not download \"%s\" because autodownloading is disabled on the server.\n\n"
-						"You will need to get this file elsewhere before you can connect to this pure server.\n", cl->downloadName);
+					Com_sprintf(errorMessage, sizeof(errorMessage), "Could not download \"%s\" because autodownloading is disabled on the server.\nYou will need to get this file elsewhere before you can connect to this pure server.\n", cl->downloadName);
 				} else {
-					Com_sprintf(errorMessage, sizeof(errorMessage), "Could not download \"%s\" because autodownloading is disabled on the server.\n\n"
-						"The server you are connecting to is not a pure server, set autodownload to No in your settings and you might be able to join the game anyway.\n", cl->downloadName);
+					Com_sprintf(errorMessage, sizeof(errorMessage), "Could not download \"%s\" because autodownloading is disabled on the server.\nThe server you are connecting to is not a pure server, set autodownload to No in your settings and you might be able to join the game anyway.\n", cl->downloadName);
 				}
 			} else {
 				// NOTE TTimo this is NOT supposed to happen unless bug in our filesystem scheme?
