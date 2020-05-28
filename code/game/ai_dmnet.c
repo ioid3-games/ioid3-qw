@@ -1214,7 +1214,7 @@ AIEnter_Intermission
 */
 void AIEnter_Intermission(bot_state_t *bs, char *s) {
 
-	BotRecordNodeSwitch(bs, "intermission", "", s);
+	BotRecordNodeSwitch(bs, "INTERMISION", "", s);
 	// reset the bot state
 	BotResetState(bs);
 	// check for end level chat
@@ -1240,7 +1240,7 @@ int AINode_Intermission(bot_state_t *bs) {
 			bs->stand_time = FloatTime() + 2;
 		}
 
-		AIEnter_Stand(bs, "intermission: chat");
+		AIEnter_Stand(bs, "INTERMISION: chat.");
 	}
 
 	return qtrue;
@@ -1253,7 +1253,7 @@ AIEnter_Observer
 */
 void AIEnter_Observer(bot_state_t *bs, char *s) {
 
-	BotRecordNodeSwitch(bs, "observer", "", s);
+	BotRecordNodeSwitch(bs, "OBSERVER", "", s);
 	// reset the bot state
 	BotResetState(bs);
 
@@ -1269,7 +1269,7 @@ int AINode_Observer(bot_state_t *bs) {
 
 	// if the bot left observer mode
 	if (!BotIsObserver(bs)) {
-		AIEnter_Stand(bs, "observer: left observer");
+		AIEnter_Stand(bs, "OBSERVER: left observer.");
 	}
 
 	return qtrue;
@@ -1282,7 +1282,7 @@ AIEnter_Stand
 */
 void AIEnter_Stand(bot_state_t *bs, char *s) {
 
-	BotRecordNodeSwitch(bs, "stand", "", s);
+	BotRecordNodeSwitch(bs, "STAND", "", s);
 
 	bs->standfindenemy_time = FloatTime() + 1;
 	bs->ainode = AINode_Stand;
@@ -1305,7 +1305,7 @@ int AINode_Stand(bot_state_t *bs) {
 
 	if (bs->standfindenemy_time < FloatTime()) {
 		if (BotFindEnemy(bs, -1)) {
-			AIEnter_Battle_Fight(bs, "stand: found enemy");
+			AIEnter_Battle_Fight(bs, "STAND: found enemy.");
 			return qfalse;
 		}
 
@@ -1316,7 +1316,7 @@ int AINode_Stand(bot_state_t *bs) {
 	// when done standing
 	if (bs->stand_time < FloatTime()) {
 		trap_BotEnterChat(bs->cs, 0, bs->chatto);
-		AIEnter_Seek_LTG(bs, "stand: time out");
+		AIEnter_Seek_LTG(bs, "STAND: time out.");
 		return qfalse;
 	}
 
@@ -1330,7 +1330,7 @@ AIEnter_Respawn
 */
 void AIEnter_Respawn(bot_state_t *bs, char *s) {
 
-	BotRecordNodeSwitch(bs, "respawn", "", s);
+	BotRecordNodeSwitch(bs, "RESPAWN", "", s);
 	// reset some states
 	trap_BotResetMoveState(bs->ms);
 	trap_BotResetGoalState(bs->gs);
@@ -1359,7 +1359,7 @@ int AINode_Respawn(bot_state_t *bs) {
 	// if waiting for the actual respawn
 	if (bs->respawn_wait) {
 		if (!BotIsDead(bs)) {
-			AIEnter_Seek_LTG(bs, "respawn: respawned");
+			AIEnter_Seek_LTG(bs, "RESPAWN: respawned.");
 		} else {
 			trap_EA_Respawn(bs->client);
 		}
@@ -1535,7 +1535,7 @@ AIEnter_Seek_ActivateEntity
 */
 void AIEnter_Seek_ActivateEntity(bot_state_t *bs, char *s) {
 
-	BotRecordNodeSwitch(bs, "activate entity", "", s);
+	BotRecordNodeSwitch(bs, "ACTIVATE ENTITY", "", s);
 	bs->ainode = AINode_Seek_ActivateEntity;
 }
 
@@ -1554,19 +1554,19 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 
 	if (BotIsObserver(bs)) {
 		BotClearActivateGoalStack(bs);
-		AIEnter_Observer(bs, "active entity: observer");
+		AIEnter_Observer(bs, "ACTIVATE ENTITY: joined observer.");
 		return qfalse;
 	}
 	// if in the intermission
 	if (BotIntermission(bs)) {
 		BotClearActivateGoalStack(bs);
-		AIEnter_Intermission(bs, "activate entity: intermission");
+		AIEnter_Intermission(bs, "ACTIVATE ENTITY: joined intermission.");
 		return qfalse;
 	}
 	// respawn if dead
 	if (BotIsDead(bs)) {
 		BotClearActivateGoalStack(bs);
-		AIEnter_Respawn(bs, "activate entity: bot dead");
+		AIEnter_Respawn(bs, "ACTIVATE ENTITY: bot dead.");
 		return qfalse;
 	}
 
@@ -1582,7 +1582,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 	// if the bot has no activate goal
 	if (!bs->activatestack) {
 		BotClearActivateGoalStack(bs);
-		AIEnter_Seek_NBG(bs, "activate entity: no goal");
+		AIEnter_Seek_NBG(bs, "ACTIVATE ENTITY: no goal.");
 		return qfalse;
 	}
 
@@ -1613,7 +1613,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 		// if the entity the bot shoots at moved
 		if (!VectorCompare(bs->activatestack->origin, entinfo.origin)) {
 #ifdef DEBUG
-			BotAI_Print(PRT_MESSAGE, "hit shootable button or trigger\n");
+			BotAI_Print(PRT_MESSAGE, "AINode_Seek_ActivateEntity: hit shootable button or trigger.\n");
 #endif // DEBUG
 			bs->activatestack->time = 0;
 		}
@@ -1626,7 +1626,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 				return qfalse;
 			}
 
-			AIEnter_Seek_NBG(bs, "activate entity: time out");
+			AIEnter_Seek_NBG(bs, "ACTIVATE ENTITY: time out.");
 			return qfalse;
 		}
 
@@ -1640,7 +1640,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 			// if the bot touches the current goal
 			if (trap_BotTouchingGoal(bs->origin, goal)) {
 #ifdef DEBUG
-				BotAI_Print(PRT_MESSAGE, "touched button or trigger\n");
+				BotAI_Print(PRT_MESSAGE, "AINode_Seek_ActivateEntity: touched button or trigger.\n");
 #endif // DEBUG
 				bs->activatestack->time = 0;
 			}
@@ -1654,7 +1654,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 				return qfalse;
 			}
 
-			AIEnter_Seek_NBG(bs, "activate entity: activated");
+			AIEnter_Seek_NBG(bs, "ACTIVATE ENTITY: activated.");
 			return qfalse;
 		}
 		// predict obstacles
@@ -1729,13 +1729,13 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 	if (BotFindEnemy(bs, -1)) {
 		if (BotWantsToRetreat(bs)) {
 			// keep the current long term goal and retreat
-			AIEnter_Battle_NBG(bs, "activate entity: found enemy");
+			AIEnter_Battle_NBG(bs, "ACTIVATE ENTITY: found enemy.");
 		} else {
 			trap_BotResetLastAvoidReach(bs->ms);
 			// empty the goal stack
 			trap_BotEmptyGoalStack(bs->gs);
 			// go fight
-			AIEnter_Battle_Fight(bs, "activate entity: found enemy");
+			AIEnter_Battle_Fight(bs, "ACTIVATE ENTITY: found enemy.");
 		}
 
 		BotClearActivateGoalStack(bs);
@@ -1755,9 +1755,9 @@ void AIEnter_Seek_NBG(bot_state_t *bs, char *s) {
 
 	if (trap_BotGetTopGoal(bs->gs, &goal)) {
 		trap_BotGoalName(goal.number, buf, 144);
-		BotRecordNodeSwitch(bs, "seek NBG", buf, s);
+		BotRecordNodeSwitch(bs, "SEEK NBG", buf, s);
 	} else {
-		BotRecordNodeSwitch(bs, "seek NBG", "no goal", s);
+		BotRecordNodeSwitch(bs, "SEEK NBG", "No goal", s);
 	}
 
 	bs->ainode = AINode_Seek_NBG;
@@ -1774,17 +1774,17 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 	bot_moveresult_t moveresult;
 
 	if (BotIsObserver(bs)) {
-		AIEnter_Observer(bs, "seek nbg: observer");
+		AIEnter_Observer(bs, "SEEK NBG: joined observer.");
 		return qfalse;
 	}
 	// if in the intermission
 	if (BotIntermission(bs)) {
-		AIEnter_Intermission(bs, "seek nbg: intermision");
+		AIEnter_Intermission(bs, "SEEK NBG: joined intermission.");
 		return qfalse;
 	}
 	// respawn if dead
 	if (BotIsDead(bs)) {
-		AIEnter_Respawn(bs, "seek nbg: bot dead");
+		AIEnter_Respawn(bs, "SEEK NBG: bot dead.");
 		return qfalse;
 	}
 
@@ -1817,7 +1817,7 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 		// NOTE: we can NOT reset the check_time to zero because it would create an endless loop of node switches
 		bs->check_time = FloatTime() + 0.05;
 		// go back to seek ltg
-		AIEnter_Seek_LTG(bs, "seek nbg: time out");
+		AIEnter_Seek_LTG(bs, "SEEK NBG: time out.");
 		return qfalse;
 	}
 	// predict obstacles
@@ -1873,13 +1873,13 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 	if (BotFindEnemy(bs, -1)) {
 		if (BotWantsToRetreat(bs)) {
 			// keep the current long term goal and retreat
-			AIEnter_Battle_NBG(bs, "seek nbg: found enemy");
+			AIEnter_Battle_NBG(bs, "SEEK NBG: found enemy.");
 		} else {
 			trap_BotResetLastAvoidReach(bs->ms);
 			// empty the goal stack
 			trap_BotEmptyGoalStack(bs->gs);
 			// go fight
-			AIEnter_Battle_Fight(bs, "seek nbg: found enemy");
+			AIEnter_Battle_Fight(bs, "SEEK NBG: found enemy.");
 		}
 	}
 
@@ -1897,9 +1897,9 @@ void AIEnter_Seek_LTG(bot_state_t *bs, char *s) {
 
 	if (trap_BotGetTopGoal(bs->gs, &goal)) {
 		trap_BotGoalName(goal.number, buf, 144);
-		BotRecordNodeSwitch(bs, "seek LTG", buf, s);
+		BotRecordNodeSwitch(bs, "SEEK LTG", buf, s);
 	} else {
-		BotRecordNodeSwitch(bs, "seek LTG", "no goal", s);
+		BotRecordNodeSwitch(bs, "SEEK LTG", "No goal", s);
 	}
 
 	bs->ainode = AINode_Seek_LTG;
@@ -1919,17 +1919,17 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 	//bot_goal_t tmpgoal;
 
 	if (BotIsObserver(bs)) {
-		AIEnter_Observer(bs, "seek ltg: observer");
+		AIEnter_Observer(bs, "SEEK LTG: joined observer.");
 		return qfalse;
 	}
 	// if in the intermission
 	if (BotIntermission(bs)) {
-		AIEnter_Intermission(bs, "seek ltg: intermission");
+		AIEnter_Intermission(bs, "SEEK LTG: joined intermission.");
 		return qfalse;
 	}
 	// respawn if dead
 	if (BotIsDead(bs)) {
-		AIEnter_Respawn(bs, "seek ltg: bot dead");
+		AIEnter_Respawn(bs, "SEEK LTG: bot dead.");
 		return qfalse;
 	}
 
@@ -1962,14 +1962,14 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 	if (BotFindEnemy(bs, -1)) {
 		if (BotWantsToRetreat(bs)) {
 			// keep the current long term goal and retreat
-			AIEnter_Battle_Retreat(bs, "seek ltg: found enemy");
+			AIEnter_Battle_Retreat(bs, "SEEK LTG: found enemy.");
 			return qfalse;
 		} else {
 			trap_BotResetLastAvoidReach(bs->ms);
 			// empty the goal stack
 			trap_BotEmptyGoalStack(bs->gs);
 			// go fight
-			AIEnter_Battle_Fight(bs, "seek ltg: found enemy");
+			AIEnter_Battle_Fight(bs, "SEEK LTG: found enemy.");
 			return qfalse;
 		}
 	}
@@ -2014,7 +2014,7 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 			//BotAI_Print(PRT_MESSAGE, "new nearby goal %s\n", buf);
 			// time the bot gets to pick up the nearby goal item
 			bs->nbg_time = FloatTime() + 4 + range * 0.01;
-			AIEnter_Seek_NBG(bs, "ltg seek: nbg");
+			AIEnter_Seek_NBG(bs, "SEEK LTG: check for Nbg.");
 			return qfalse;
 		}
 	}
@@ -2079,7 +2079,7 @@ AIEnter_Battle_Fight
 */
 void AIEnter_Battle_Fight(bot_state_t *bs, char *s) {
 
-	BotRecordNodeSwitch(bs, "battle fight", "", s);
+	BotRecordNodeSwitch(bs, "BATTLE FIGHT", "", s);
 	trap_BotResetLastAvoidReach(bs->ms);
 
 	bs->ainode = AINode_Battle_Fight;
@@ -2093,7 +2093,7 @@ AIEnter_Battle_SuicidalFight
 */
 void AIEnter_Battle_SuicidalFight(bot_state_t *bs, char *s) {
 
-	BotRecordNodeSwitch(bs, "battle fight", "", s);
+	BotRecordNodeSwitch(bs, "BATTLE FIGHT", "", s);
 	trap_BotResetLastAvoidReach(bs->ms);
 
 	bs->ainode = AINode_Battle_Fight;
@@ -2112,28 +2112,28 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	bot_moveresult_t moveresult;
 
 	if (BotIsObserver(bs)) {
-		AIEnter_Observer(bs, "battle fight: observer");
+		AIEnter_Observer(bs, "BATTLE FIGHT: joined observer.");
 		return qfalse;
 	}
 	// if in the intermission
 	if (BotIntermission(bs)) {
-		AIEnter_Intermission(bs, "battle fight: intermission");
+		AIEnter_Intermission(bs, "BATTLE FIGHT: joined intermission.");
 		return qfalse;
 	}
 	// respawn if dead
 	if (BotIsDead(bs)) {
-		AIEnter_Respawn(bs, "battle fight: bot dead");
+		AIEnter_Respawn(bs, "BATTLE FIGHT: bot dead.");
 		return qfalse;
 	}
 	// if there is another better enemy
 	if (BotFindEnemy(bs, bs->enemy)) {
 #ifdef DEBUG
-		BotAI_Print(PRT_MESSAGE, "found new better enemy\n");
+		BotAI_Print(PRT_MESSAGE, "AINode_Battle_Fight: found new better enemy.\n");
 #endif
 	}
 	// if no enemy
 	if (bs->enemy < 0) {
-		AIEnter_Seek_LTG(bs, "battle fight: no enemy");
+		AIEnter_Seek_LTG(bs, "BATTLE FIGHT: no enemy.");
 		return qfalse;
 	}
 	// get the entity information
@@ -2149,10 +2149,10 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 
 			if (bs->lastkilledplayer == bs->enemy && BotChat_Kill(bs)) {
 				bs->stand_time = FloatTime() + BotChatTime(bs);
-				AIEnter_Stand(bs, "battle fight: enemy dead");
+				AIEnter_Stand(bs, "BATTLE FIGHT: enemy dead.");
 			} else {
 				bs->ltg_time = 0;
-				AIEnter_Seek_LTG(bs, "battle fight: enemy dead");
+				AIEnter_Seek_LTG(bs, "BATTLE FIGHT: enemy dead.");
 			}
 
 			return qfalse;
@@ -2164,9 +2164,9 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 		}
 	}
 	// if the enemy is invisible and not shooting the bot looses track easily
-	if (EntityIsInvisible(&entinfo)) {
+	if (EntityIsInvisible(&entinfo) && !EntityIsShooting(&entinfo)) {
 		if (random() < 0.2) {
-			AIEnter_Seek_LTG(bs, "battle fight: invisible");
+			AIEnter_Seek_LTG(bs, "BATTLE FIGHT: invisible.");
 			return qfalse;
 		}
 	}
@@ -2207,15 +2207,15 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	// if the enemy is not visible
 	if (!BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->enemy)) {
 		if (bs->enemy == redobelisk.entitynum || bs->enemy == blueobelisk.entitynum) {
-			AIEnter_Battle_Chase(bs, "battle fight: obelisk out of sight");
+			AIEnter_Battle_Chase(bs, "BATTLE FIGHT: obelisk out of sight.");
 			return qfalse;
 		}
 
 		if (BotWantsToChase(bs)) {
-			AIEnter_Battle_Chase(bs, "battle fight: enemy out of sight");
+			AIEnter_Battle_Chase(bs, "BATTLE FIGHT: enemy out of sight.");
 			return qfalse;
 		} else {
-			AIEnter_Seek_LTG(bs, "battle fight: enemy out of sight");
+			AIEnter_Seek_LTG(bs, "BATTLE FIGHT: enemy out of sight.");
 			return qfalse;
 		}
 	}
@@ -2251,7 +2251,7 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	// if the bot wants to retreat
 	if (!(bs->flags & BFL_FIGHTSUICIDAL)) {
 		if (BotWantsToRetreat(bs)) {
-			AIEnter_Battle_Retreat(bs, "battle fight: wants to retreat");
+			AIEnter_Battle_Retreat(bs, "BATTLE FIGHT: wants to retreat.");
 			return qtrue;
 		}
 	}
@@ -2266,7 +2266,7 @@ AIEnter_Battle_Chase
 */
 void AIEnter_Battle_Chase(bot_state_t *bs, char *s) {
 
-	BotRecordNodeSwitch(bs, "battle chase", "", s);
+	BotRecordNodeSwitch(bs, "BATTLE CHASE", "", s);
 	bs->chase_time = FloatTime();
 	bs->ainode = AINode_Battle_Chase;
 }
@@ -2283,37 +2283,37 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 	float range;
 
 	if (BotIsObserver(bs)) {
-		AIEnter_Observer(bs, "battle chase: observer");
+		AIEnter_Observer(bs, "BATTLE CHASE: joined observer.");
 		return qfalse;
 	}
 	// if in the intermission
 	if (BotIntermission(bs)) {
-		AIEnter_Intermission(bs, "battle chase: intermission");
+		AIEnter_Intermission(bs, "BATTLE CHASE: joined intermission.");
 		return qfalse;
 	}
 	// respawn if dead
 	if (BotIsDead(bs)) {
-		AIEnter_Respawn(bs, "battle chase: bot dead");
+		AIEnter_Respawn(bs, "BATTLE CHASE: bot dead.");
 		return qfalse;
 	}
 	// if no enemy
 	if (bs->enemy < 0) {
-		AIEnter_Seek_LTG(bs, "battle chase: no enemy");
+		AIEnter_Seek_LTG(bs, "BATTLE CHASE: no enemy.");
 		return qfalse;
 	}
 	// if the enemy is visible
 	if (BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->enemy)) {
-		AIEnter_Battle_Fight(bs, "battle chase");
+		AIEnter_Battle_Fight(bs, "BATTLE CHASE: enemy visible.");
 		return qfalse;
 	}
 	// if there is another enemy
 	if (BotFindEnemy(bs, -1)) {
-		AIEnter_Battle_Fight(bs, "battle chase: better enemy");
+		AIEnter_Battle_Fight(bs, "BATTLE CHASE: better enemy.");
 		return qfalse;
 	}
 	// there is no last enemy area
 	if (!bs->lastenemyareanum) {
-		AIEnter_Seek_LTG(bs, "battle chase: no enemy area");
+		AIEnter_Seek_LTG(bs, "BATTLE CHASE: no enemy area.");
 		return qfalse;
 	}
 
@@ -2341,7 +2341,7 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 	}
 	// if there's no chase time left
 	if (!bs->chase_time || bs->chase_time < FloatTime() - 10) {
-		AIEnter_Seek_LTG(bs, "battle chase: time out");
+		AIEnter_Seek_LTG(bs, "BATTLE CHASE: time out.");
 		return qfalse;
 	}
 	// check for nearby goals periodicly
@@ -2353,7 +2353,7 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 			trap_BotResetLastAvoidReach(bs->ms);
 			// time the bot gets to pick up the nearby goal item
 			bs->nbg_time = FloatTime() + 0.1 * range + 1;
-			AIEnter_Battle_NBG(bs, "battle chase: nbg");
+			AIEnter_Battle_NBG(bs, "BATTLE CHASE: check for Nbg.");
 			return qfalse;
 		}
 	}
@@ -2399,7 +2399,7 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 	}
 	// if the bot wants to retreat (the bot could have been damage during the chase)
 	if (BotWantsToRetreat(bs)) {
-		AIEnter_Battle_Retreat(bs, "battle chase: wants to retreat");
+		AIEnter_Battle_Retreat(bs, "BATTLE CHASE: wants to retreat.");
 		return qtrue;
 	}
 
@@ -2413,7 +2413,7 @@ AIEnter_Battle_Retreat
 */
 void AIEnter_Battle_Retreat(bot_state_t *bs, char *s) {
 
-	BotRecordNodeSwitch(bs, "battle retreat", "", s);
+	BotRecordNodeSwitch(bs, "BATTLE RETREAT", "", s);
 	bs->ainode = AINode_Battle_Retreat;
 }
 
@@ -2431,35 +2431,35 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 	int areanum;
 
 	if (BotIsObserver(bs)) {
-		AIEnter_Observer(bs, "battle retreat: observer");
+		AIEnter_Observer(bs, "BATTLE RETREAT: joined observer.");
 		return qfalse;
 	}
 	// if in the intermission
 	if (BotIntermission(bs)) {
-		AIEnter_Intermission(bs, "battle retreat: intermission");
+		AIEnter_Intermission(bs, "BATTLE RETREAT: joined intermission.");
 		return qfalse;
 	}
 	// respawn if dead
 	if (BotIsDead(bs)) {
-		AIEnter_Respawn(bs, "battle retreat: bot dead");
+		AIEnter_Respawn(bs, "BATTLE RETREAT: bot dead.");
 		return qfalse;
 	}
 	// if no enemy
 	if (bs->enemy < 0) {
-		AIEnter_Seek_LTG(bs, "battle retreat: no enemy");
+		AIEnter_Seek_LTG(bs, "BATTLE RETREAT: no enemy.");
 		return qfalse;
 	}
 	// get the entity information
 	BotEntityInfo(bs->enemy, &entinfo);
 	// if the entity isn't dead
 	if (EntityIsDead(&entinfo)) {
-		AIEnter_Seek_LTG(bs, "battle retreat: enemy dead");
+		AIEnter_Seek_LTG(bs, "BATTLE RETREAT: enemy dead.");
 		return qfalse;
 	}
 	// if there is another better enemy
 	if (BotFindEnemy(bs, bs->enemy)) {
 #ifdef DEBUG
-		BotAI_Print(PRT_MESSAGE, "found new better enemy\n");
+		BotAI_Print(PRT_MESSAGE, "AINode_Battle_Retreat: found new better enemy.\n");
 #endif
 	}
 
@@ -2477,7 +2477,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 		// empty the goal stack, when chasing, only the enemy is the goal
 		trap_BotEmptyGoalStack(bs->gs);
 		// go chase the enemy
-		AIEnter_Battle_Chase(bs, "battle retreat: wants to chase");
+		AIEnter_Battle_Chase(bs, "BATTLE RETREAT: wants to chase.");
 		return qfalse;
 	}
 	// update the last time the enemy was visible
@@ -2502,13 +2502,13 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 	}
 	// if the enemy is NOT visible for 4 seconds
 	if (bs->enemyvisible_time < FloatTime() - 4) {
-		AIEnter_Seek_LTG(bs, "battle retreat: lost enemy");
+		AIEnter_Seek_LTG(bs, "BATTLE RETREAT: lost enemy.");
 		return qfalse;
 	// else if the enemy is NOT visible
 	} else if (bs->enemyvisible_time < FloatTime()) {
 		// if there is another enemy
 		if (BotFindEnemy(bs, -1)) {
-			AIEnter_Battle_Fight(bs, "battle retreat: another enemy");
+			AIEnter_Battle_Fight(bs, "BATTLE RETREAT: another enemy.");
 			return qfalse;
 		}
 	}
@@ -2518,7 +2518,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 	BotBattleUseItems(bs);
 	// get the current long term goal while retreating
 	if (!BotLongTermGoal(bs, bs->tfl, qtrue, &goal)) {
-		AIEnter_Battle_SuicidalFight(bs, "battle retreat: no way out");
+		AIEnter_Battle_SuicidalFight(bs, "BATTLE RETREAT: no way out.");
 		return qfalse;
 	}
 	// check for nearby goals periodicly
@@ -2545,7 +2545,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 			trap_BotResetLastAvoidReach(bs->ms);
 			// time the bot gets to pick up the nearby goal item
 			bs->nbg_time = FloatTime() + range / 100 + 1;
-			AIEnter_Battle_NBG(bs, "battle retreat: nbg");
+			AIEnter_Battle_NBG(bs, "BATTLE RETREAT: check for Nbg.");
 			return qfalse;
 		}
 	}
@@ -2600,7 +2600,7 @@ AIEnter_Battle_NBG
 */
 void AIEnter_Battle_NBG(bot_state_t *bs, char *s) {
 
-	BotRecordNodeSwitch(bs, "battle NBG", "", s);
+	BotRecordNodeSwitch(bs, "BATTLE NBG", "", s);
 	bs->ainode = AINode_Battle_NBG;
 }
 
@@ -2618,29 +2618,29 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 	vec3_t target, dir;
 
 	if (BotIsObserver(bs)) {
-		AIEnter_Observer(bs, "battle nbg: observer");
+		AIEnter_Observer(bs, "BATTLE NBG: joined observer.");
 		return qfalse;
 	}
 	// if in the intermission
 	if (BotIntermission(bs)) {
-		AIEnter_Intermission(bs, "battle nbg: intermission");
+		AIEnter_Intermission(bs, "BATTLE NBG: joined intermission.");
 		return qfalse;
 	}
 	// respawn if dead
 	if (BotIsDead(bs)) {
-		AIEnter_Respawn(bs, "battle nbg: bot dead");
+		AIEnter_Respawn(bs, "BATTLE NBG: bot dead.");
 		return qfalse;
 	}
 	// if no enemy
 	if (bs->enemy < 0) {
-		AIEnter_Seek_NBG(bs, "battle nbg: no enemy");
+		AIEnter_Seek_NBG(bs, "BATTLE NBG: no enemy.");
 		return qfalse;
 	}
 	// get the entity information
 	BotEntityInfo(bs->enemy, &entinfo);
 	// if the entity isn't dead
 	if (EntityIsDead(&entinfo)) {
-		AIEnter_Seek_NBG(bs, "battle nbg: enemy dead");
+		AIEnter_Seek_NBG(bs, "BATTLE NBG: enemy dead.");
 		return qfalse;
 	}
 
@@ -2688,9 +2688,9 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 		trap_BotPopGoal(bs->gs);
 		// if the bot still has a goal
 		if (trap_BotGetTopGoal(bs->gs, &goal)) {
-			AIEnter_Battle_Retreat(bs, "battle nbg: time out");
+			AIEnter_Battle_Retreat(bs, "BATTLE NBG: time out.");
 		} else {
-			AIEnter_Battle_Fight(bs, "battle nbg: time out");
+			AIEnter_Battle_Fight(bs, "BATTLE NBG: time out.");
 		}
 
 		return qfalse;

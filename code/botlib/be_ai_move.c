@@ -819,7 +819,6 @@ int BotGetReachabilityToGoal(vec3_t origin, int areanum, int lastgoalareanum, in
 
 	// if not in a valid area
 	if (!areanum || !goal->areanum || !AAS_AreaReachability(areanum) || !AAS_AreaReachability(goal->areanum)) {
-		//botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "(SG 3 of 3) !areanum || !goal->areanum || !AAS_AreaReachability: %d %d\n", areanum, goal->areanum);
 		return 0;
 	}
 
@@ -1466,56 +1465,7 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 			EA_Crouch(ms->client);
 		}
 	}
-// Tobias NOTE: These code changes are very map dependant (q3dm6, q3dm7, q3dm12), maybe delete all this gap checking code at all (at least for QW maps, or keep it only for obstacles?)
-/*
-	dist = BotGapDistance(ms->origin, hordir, 100, ms->entitynum);
 
-	if (ms->moveflags & MFL_WALK) {
-		if (dist > 0) {
-			speed = 200 - (180 - dist);
-		} else {
-			speed = 200;
-		}
-	} else {
-		if (dist > 0) {
-			speed = 400 - (360 - 2 * dist);
-		} else {
-			speed = 400;
-		}
-	}
-*/
-/*
-	dist = BotGapDistance(ms->origin, hordir, 200, ms->entitynum);
-
-	if (ms->moveflags & MFL_WALK) {
-		speed = 200;
-	} else {
-		if (dist > 0) {
-			VectorNormalize(hordir);
-			// get the sideward vector
-			CrossProduct(hordir, up, sideward);
-			// start point
-			VectorMA(ms->origin, 100, sideward, start);
-			// if there is NO gap at the right side
-			if (!BotGapDistance(start, hordir, 200, ms->entitynum)) {
-				speed = 400;
-				EA_Move(ms->client, sideward, speed);
-#ifdef DEBUG
-				botimport.Print(PRT_MESSAGE, S_COLOR_GREEN "Found a gap at %f: Moving to the right side (Speed: %f)\n", dist, currentspeed);
-#endif // DEBUG
-			} else {
-				VectorNegate(sideward, sideward);
-				speed = 400;
-				EA_Move(ms->client, sideward, speed);
-#ifdef DEBUG
-				botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "Found a gap at %f: Moving to the left side (Speed: %f)\n", dist, currentspeed);
-#endif // DEBUG
-			}
-		} else {
-			speed = 400;
-		}
-	}
-*/
 	dist = BotGapDistance(ms->origin, hordir, 200, ms->entitynum);
 
 	if (ms->moveflags & MFL_WALK) {
@@ -1535,21 +1485,14 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 		// if there is NO gap at the right side
 		if (!BotGapDistance(ms->origin, sideward, 100, ms->entitynum)) {
 			EA_Move(ms->client, sideward, 400);
-#ifdef DEBUG
-			botimport.Print(PRT_MESSAGE, S_COLOR_GREEN "Found a gap at %f: Moving to the right side (Speed: %f)\n", dist, currentspeed);
-#endif // DEBUG
 		} else {
 			VectorNegate(sideward, sideward);
 			// if there is NO gap at the left side
 			if (!BotGapDistance(ms->origin, sideward, 100, ms->entitynum)) {
 				EA_Move(ms->client, sideward, 400);
-#ifdef DEBUG
-				botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "Found a gap at %f: Moving to the left side (Speed: %f)\n", dist, currentspeed);
-#endif // DEBUG
 			}
 		}
 	}
-// Tobias END
 	// elementary action move in direction
 	EA_Move(ms->client, hordir, speed);
 	// save the movement direction
@@ -1661,10 +1604,6 @@ bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *
 	AAS_PredictClientMovement(&move, ms->entitynum, end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP, 0, qfalse);
 	// reduce the speed if the bot will fall into slime, lava or into a gap
 	if (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP)) {
-		//if (move.stopevent & SE_HITGROUNDDAMAGE) botimport.Print(PRT_MESSAGE, "hitground\n");
-		//if (move.stopevent & SE_ENTERLAVA) botimport.Print(PRT_MESSAGE, "lava\n");
-		//if (move.stopevent & SE_ENTERSLIME) botimport.Print(PRT_MESSAGE, "slime\n");
-		//if (move.stopevent & SE_GAP) botimport.Print(PRT_MESSAGE, "gap\n");
 
 		if (ms->moveflags & MFL_WALK) {
 			speed = 200;
@@ -1877,60 +1816,32 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 			// if there is a jumpad, lava or slime under the current ledge or if the bot is walking
 			if (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_TOUCHJUMPPAD) || ms->moveflags & MFL_WALK) {
 				speed = 200;
-#ifdef DEBUG
-				botimport.Print(PRT_MESSAGE, S_COLOR_CYAN "|_x_  1A: < 20 Predict! rhdist = %1.0f, dist = %1.0f, Gap ? (%i), speed = %1.0f\n", reachhordist, dist, gapdist, DotProduct(ms->velocity, hordir));
-				if (move.stopevent & SE_HITGROUNDDAMAGE) botimport.Print(PRT_MESSAGE, S_COLOR_CYAN "hitground\n");
-				if (move.stopevent & SE_ENTERSLIME) botimport.Print(PRT_MESSAGE, S_COLOR_CYAN "slime\n");
-				if (move.stopevent & SE_ENTERLAVA) botimport.Print(PRT_MESSAGE, S_COLOR_CYAN "lava\n");
-				if (move.stopevent & SE_TOUCHJUMPPAD) botimport.Print(PRT_MESSAGE, S_COLOR_CYAN "jumppad\n");
-#endif
 			// if there is a gap or a ledge behind the current ledge (like a cascade)
 			} else if (gapdist > 0) {
 				if (gapdist < 48) {
-					speed = 400 - (300 - gapdist * 0.75); // was 100
+					speed = 400 - (300 - gapdist * 0.75);
 				} else {
-					speed = 400 - (200 - gapdist * 0.5); // was 100
+					speed = 400 - (200 - gapdist * 0.5);
 				}
-#ifdef DEBUG
-				botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "|_  1B: END GAP FOUND! rhdist = %1.0f, dist = %1.0f, Gap at %i, speed = %1.0f\n", reachhordist, dist, gapdist, DotProduct(ms->velocity, hordir));
-#endif
-			} else { // Tobias NOTE: this is the default case (no gaps anywhere, no jumppads or lava etc.)
-				speed = 400; // NEW
-#ifdef DEBUG
-				botimport.Print(PRT_MESSAGE, S_COLOR_GREEN "|____ 1C: NO PROBLEMS! rhdist = %1.0f, dist = %1.0f, No gap (%i), speed = %1.0f\n", reachhordist, dist, gapdist, DotProduct(ms->velocity, hordir));
-#endif
+			} else {
+				speed = 400;
 			}
-		} else if (!AAS_HorizontalVelocityForJump(0, reach->start, reach->end, &speed)) { // Tobias NOTE: very rare, i.e.: ztn3dm2!
+		} else if (!AAS_HorizontalVelocityForJump(0, reach->start, reach->end, &speed)) {
 			speed = 400;
-#ifdef DEBUG
-			botimport.Print(PRT_MESSAGE, S_COLOR_BLUE "SPECIAL HorizontalVelocityForJump: rhdist = %1.0f, dist = %1.0f, Gap ? (%i), speed = %1.0f\n", reachhordist, dist, gapdist, DotProduct(ms->velocity, hordir));
-#endif
 		// if there is a gap under the current ledge
 		} else {
 			// if there is a gap or a ledge behind the current ledge (like a cascade)
 			if (gapdist > 0) {
 				speed = 400 - (300 - gapdist * 0.75);
-#ifdef DEBUG
-				botimport.Print(PRT_MESSAGE, S_COLOR_RED "| _  2A: LAND + END GAP! rhdist = %1.0f, dist = %1.0f, Gap at %i, speed = %1.0f\n", reachhordist, dist, gapdist, DotProduct(ms->velocity, hordir));
-#endif
 			} else {
 				speed = 400;
-#ifdef DEBUG
-				botimport.Print(PRT_MESSAGE, S_COLOR_MAGENTA "| ___ 2B: LAND GAP FOUND! rhdist = %1.0f, dist = %1.0f, No gap (%i), speed = %1.0f\n", reachhordist, dist, gapdist, DotProduct(ms->velocity, hordir));
-#endif
 			}
 		}
 	} else {
 		if (ms->moveflags & MFL_WALK) {
 			speed = 200;
-#ifdef DEBUG
-			botimport.Print(PRT_MESSAGE, "---| > 64: WALKING! dist = %1.0f, speed = %1.0f\n", dist, DotProduct(ms->velocity, hordir));
-#endif
 		} else {
 			speed = 400;
-#ifdef DEBUG
-			botimport.Print(PRT_MESSAGE, "---| > 64: RUNNING! dist = %1.0f, speed = %1.0f\n", dist, DotProduct(ms->velocity, hordir));
-#endif
 		}
 	}
 	// check if blocked
@@ -2159,42 +2070,12 @@ BotTravel_Jump
 =======================================================================================================================================
 */
 bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) {
-	vec3_t hordir, dir1, dir2, dir3, /*start, end, */runstart;
-	//vec3_t runstart, dir1, dir2, hordir;
-//	int gapdist;
+	vec3_t hordir, dir1, dir2, dir3, runstart;
 	float dist1, dist2, dist3, speed;
-#ifdef DEBUG
-	float currentspeed;
-#endif // DEBUG
+
 	bot_moveresult_t_cleared(result);
 
 	AAS_JumpReachRunStart(reach, runstart);
-/* // Tobias NOTE: I'm pretty sure there are maps where this piece of code would make sense, anyways, this code is NOT correct and it even causes bots to NOT jump although they should (e.g.: q3dm6) (FIXME?)
-	hordir[0] = runstart[0] - reach->start[0];
-	hordir[1] = runstart[1] - reach->start[1];
-	hordir[2] = 0;
-
-	VectorNormalize(hordir);
-	VectorCopy(reach->start, start);
-
-	start[2] += 1;
-
-	VectorMA(reach->start, 80, hordir, runstart);
-	// check for a gap
-	for (gapdist = 0; gapdist < 80; gapdist += 10) {
-		VectorMA(start, gapdist + 10, hordir, end);
-
-		end[2] += 1;
-
-		if (AAS_PointAreaNum(end) != ms->reachareanum) {
-			break;
-		}
-	}
-
-	if (gapdist < 80) {
-		VectorMA(reach->start, gapdist, hordir, runstart);
-	}
-*/
 	VectorSubtract(ms->origin, reach->start, dir1);
 
 	dir1[2] = 0;
@@ -2210,7 +2091,7 @@ bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) 
 	dir3[2] = 0;
 	dist3 = VectorNormalize(dir3);
 	// if just before the reachability start
-	if (dist1 < dist3 + 10 || dist1 + 10 >= dist2 + dist3 || DotProduct(dir1, dir2) < -0.8 || dist2 < 5) { // Tobias NOTE: why did I do: dist3 + 10? Still needed because otherwise we have a -dist2?
+	if (dist1 < dist3 + 10 || dist1 + 10 >= dist2 + dist3 || DotProduct(dir1, dir2) < -0.8 || dist2 < 5) {
 		//botimport.Print(PRT_MESSAGE, "between jump start and run start point\n");
 		// move straight to the reachability end
 		hordir[0] = reach->end[0] - ms->origin[0];
@@ -2218,26 +2099,11 @@ bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) 
 		hordir[2] = 0;
 
 		VectorNormalize(hordir);
-#ifdef DEBUG
-		currentspeed = DotProduct(ms->velocity, hordir);
-
-		if (DotProduct(dir1, dir2) < -0.8) {
-			botimport.Print(PRT_MESSAGE, S_COLOR_CYAN "Between RE and RU: dist1 O to RE = %f, dist2 O to RU = %f, dist3 RU to RE = %f (%f, %f)\n", dist1, dist2, dist3, currentspeed, DotProduct(dir1, dir2));
-		} else {
-			botimport.Print(PRT_MESSAGE, S_COLOR_GREEN "Between RE and RU: dist1 O to RE = %f, dist2 O to RU = %f, dist3 RU to RE = %f (%f, %f)\n", dist1, dist2, dist3, currentspeed, DotProduct(dir1, dir2));
-		}
-#endif // DEBUG
 		// elementary action jump
-		if (dist1 < 22) { // 20 (for Railgun)
+		if (dist1 < 22) {
 			EA_Jump(ms->client);
-#ifdef DEBUG
-			botimport.Print(PRT_MESSAGE, S_COLOR_RED "Jumped! dist1 = %f (%f)\n", dist1, currentspeed);
-#endif // DEBUG
 		} else if (dist1 < 32) {
 			EA_DelayedJump(ms->client);
-#ifdef DEBUG
-			botimport.Print(PRT_MESSAGE, S_COLOR_MAGENTA "Jump Delayed! dist1 = %f (%f)\n", dist1, currentspeed);
-#endif // DEBUG
 		}
 
 		if (ms->moveflags & MFL_WALK && dist2 > dist3) {
@@ -2265,15 +2131,6 @@ bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) 
 
 			speed = 400 - (300 - 3 * dist2);
 		}
-#ifdef DEBUG
-		currentspeed = DotProduct(ms->velocity, hordir);
-
-		if (DotProduct(dir1, dir2) < -0.8) {
-			botimport.Print(PRT_MESSAGE, S_COLOR_BLUE "Going towards RU: dist1 O to RE = %f, dist2 O to RU = %f, dist3 RU to RE = %f (%f, %f)\n", dist1, dist2, dist3, currentspeed, DotProduct(dir1, dir2));
-		} else {
-			botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "Going towards RU: dist1 O to RE = %f, dist2 O to RU = %f, dist3 RU to RE = %f (%f, %f)\n", dist1, dist2, dist3, currentspeed, DotProduct(dir1, dir2));
-		}
-#endif // DEBUG
 		// elementary action move in direction
 		EA_Move(ms->client, hordir, speed);
 	}
@@ -2503,9 +2360,6 @@ bot_moveresult_t BotTravel_Elevator(bot_movestate_t *ms, aas_reachability_t *rea
 		dist = VectorLength(dir);
 
 		if (dist < 64) {
-#ifdef DEBUG_ELEVATOR
-			botimport.Print(PRT_MESSAGE, "bot moving to end\n");
-#endif // DEBUG_ELEVATOR
 			if (dist > 60) {
 				dist = 60;
 			}

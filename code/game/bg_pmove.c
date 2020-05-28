@@ -475,14 +475,14 @@ static qboolean PM_CheckWaterJump(void) {
 	VectorNormalize(flatforward);
 	VectorMA(pm->ps->origin, 30, flatforward, spot);
 
-	spot[2] += 6; // Tobias CHECK: compensate for the new viewheight to get out of water with ease again (but why do other games not need this?), AND I think this fixes the issue with bots hanging around in water (in q3dm12 BFG room).
+	spot[2] += 6;
 	cont = pm->pointcontents(spot, pm->ps->clientNum);
 
 	if (!(cont & CONTENTS_SOLID)) {
 		return qfalse;
 	}
 
-	spot[2] += 24; // Tobias CHECK: compensate for the new viewheight to get out of water with ease again (but why do other games not need this?), AND I think this fixes the issue with bots hanging around in water (in q3dm12 BFG room).
+	spot[2] += 24;
 	cont = pm->pointcontents(spot, pm->ps->clientNum);
 
 	if (cont & (CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BODY)) {
@@ -1233,7 +1233,6 @@ static void PM_CrashLand(void) {
 		} else {
 			PM_AddEvent(PM_FootstepForSurface());
 		}
-	// Tobias NOTE: this simulates the old behavior, assuming old maps use SURF_NODAMAGE if needed
 	} else {
 		if (delta > 60) {
 			// this is a pain grunt, so don't play it if dead
@@ -1254,7 +1253,6 @@ static void PM_CrashLand(void) {
 		} else {
 			PM_AddEvent(PM_FootstepForSurface());
 		}
-	// Tobias END
 	}
 	// when landing from launch ramps don't stop so abruptly
 	if (VectorLength(pm->ps->velocity) > 400) {
@@ -1532,7 +1530,7 @@ static void PM_CheckDuck(void) {
 	} else { // stand up if possible
 		if (pm->ps->pm_flags & PMF_DUCKED) {
 			// try to stand up
-			pm->maxs[2] = 56; // 56 + 24 = 80 (80 * 2.5 = 200)
+			pm->maxs[2] = 56;
 			pm->trace(&trace, pm->ps->origin, pm->mins, pm->maxs, pm->ps->origin, pm->ps->clientNum, pm->tracemask);
 
 			if (!trace.allsolid) {
@@ -1545,7 +1543,7 @@ static void PM_CheckDuck(void) {
 		pm->maxs[2] = 42;
 		pm->ps->viewheight = CROUCH_VIEWHEIGHT;
 	} else {
-		pm->maxs[2] = 56; // 56 + 24 = 80 (80 * 2.5 = 200)
+		pm->maxs[2] = 56;
 		pm->ps->viewheight = DEFAULT_VIEWHEIGHT;
 	}
 }
@@ -1589,8 +1587,8 @@ static void PM_Footsteps(void) {
 	footstep = qfalse;
 	// ducked
 	if (pm->ps->pm_flags & PMF_DUCKED) {
-		bobmove = 0.5; // 0.65f
-		// (auto-)walking
+		bobmove = 0.5;
+
 		if (pm->ps->pm_flags & PMF_BACKWARDS_RUN) {
 			PM_ContinueLegsAnim(LEGS_BACKCR);
 		} else {

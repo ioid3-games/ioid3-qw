@@ -1191,11 +1191,9 @@ void SP_func_button(gentity_t *ent) {
 	float distance;
 	vec3_t size;
 	float lip;
-// Tobias HACK: this is a q3dm7 hack
-	if (ent->spawnflags != 2) {
-		ent->sound1to2 = G_SoundIndex("sound/movers/switches/butn2.wav");
-	}
-// Tobias END
+
+	ent->sound1to2 = G_SoundIndex("sound/movers/switches/butn2.wav");
+
 	if (!ent->speed) {
 		ent->speed = 40;
 	}
