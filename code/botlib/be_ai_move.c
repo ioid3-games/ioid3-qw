@@ -1586,7 +1586,7 @@ bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *
 	hordir[0] = reach->start[0] - ms->origin[0];
 	hordir[1] = reach->start[1] - ms->origin[1];
 	hordir[2] = 0;
-	
+
 	rundist = VectorNormalize(hordir);
 	dist = rundist;
 
@@ -1807,7 +1807,7 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 		// get command movement
 		VectorScale(hordir, 400, cmdmove);
 		VectorCopy(ms->velocity, velocity);
-
+		// movement prediction
 		AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_TOUCHJUMPPAD, 0, qfalse); //qtrue
 		// check for nearby gap behind the current ledge
 		gapdist = BotGapDistance(reach->end, hordir, 400, ms->entitynum);
