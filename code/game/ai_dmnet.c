@@ -2218,14 +2218,13 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 				BotChat_EnemySuicide(bs);
 			}
 
-			if (bs->lastkilledplayer == bs->enemy && BotChat_Kill(bs)) {
-				bs->stand_time = FloatTime() + 2;
-				AIEnter_Stand(bs, "BATTLE FIGHT: enemy dead.");
-			} else {
-				bs->ltg_time = 0;
-				AIEnter_Seek_LTG(bs, "BATTLE FIGHT: enemy dead.");
+			if (bs->lastkilledplayer == bs->enemy) {
+				BotChat_Kill(bs);
 			}
 
+			bs->ltg_time = 0;
+
+			AIEnter_Seek_LTG(bs, "BATTLE FIGHT: enemy dead.");
 			return qfalse;
 		}
 	} else {
@@ -2259,23 +2258,7 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	}
 	// update the attack inventory values
 	BotUpdateBattleInventory(bs, bs->enemy);
-	// if the bot's health decreased
-	if (bs->lastframe_health > bs->inventory[INVENTORY_HEALTH]) {
-		if (BotChat_HitNoDeath(bs)) {
-			bs->stand_time = FloatTime() + 2;
-			AIEnter_Stand(bs, "battle fight: chat health decreased");
-			return qfalse;
-		}
-	}
-	// if the bot hit someone
-	if (bs->cur_ps.persistant[PERS_HITS] > bs->lasthitcount) {
-		if (BotChat_HitNoKill(bs)) {
-			bs->stand_time = FloatTime() + 2;
-			AIEnter_Stand(bs, "battle fight: chat hit someone");
-			return qfalse;
-		}
-	}
-	// if the enemy is not visible
+	// if the enemy is NOT visible
 	if (!BotEntityVisible(&bs->cur_ps, 360, bs->enemy)) {
 		if (bs->enemy == redobelisk.entitynum || bs->enemy == blueobelisk.entitynum) {
 			AIEnter_Battle_Chase(bs, "BATTLE FIGHT: obelisk out of sight.");
@@ -2319,6 +2302,14 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 			AIEnter_Battle_Retreat(bs, "BATTLE FIGHT: wants to retreat.");
 			return qtrue;
 		}
+	}
+	// if the bot's health decreased
+	if (bs->lastframe_health > bs->inventory[INVENTORY_HEALTH]) {
+		BotChat_HitNoDeath(bs);
+	}
+	// if the bot hit someone
+	if (bs->cur_ps.persistant[PERS_HITS] > bs->lasthitcount) {
+		BotChat_HitNoKill(bs);
 	}
 
 	return qtrue;
