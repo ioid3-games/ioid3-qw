@@ -72,19 +72,6 @@ vmCvar_t bot_interbreedwrite;
 vmCvar_t bot_visualrange;
 vmCvar_t bot_checktime;
 
-vmCvar_t bot_equalize;
-vmCvar_t bot_equalizer_aim;
-vmCvar_t bot_equalizer_react;
-vmCvar_t bot_equalizer_fembon;
-vmCvar_t bot_equalizer_teambon;
-vmCvar_t bot_noshoot;
-vmCvar_t bot_nowalk;
-vmCvar_t bot_shownodechanges;
-vmCvar_t bot_teambluestrategy;
-vmCvar_t bot_teamredstrategy;
-vmCvar_t bot_alt_aggressive;
-vmCvar_t bot_alt_attack;
-vmCvar_t bot_alt_pickup;
 void ExitLevel(void);
 
 /*
@@ -627,7 +614,7 @@ void BotInterbreedBots(void) {
 	int i;
 
 	// get rankings for all the bots
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (botstates[i] && botstates[i]->inuse) {
 			ranks[i] = botstates[i]->num_kills * 2 - botstates[i]->num_deaths;
 		} else {
@@ -640,7 +627,7 @@ void BotInterbreedBots(void) {
 		trap_BotMutateGoalFuzzyLogic(botstates[child]->gs, 1);
 	}
 	// reset the kills and deaths
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (botstates[i] && botstates[i]->inuse) {
 			botstates[i]->num_kills = 0;
 			botstates[i]->num_deaths = 0;
@@ -660,7 +647,7 @@ void BotWriteInterbreeded(char *filename) {
 	bestrank = 0;
 	bestbot = -1;
 	// get the best bot
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (botstates[i] && botstates[i]->inuse) {
 			rank = botstates[i]->num_kills * 2 - botstates[i]->num_deaths;
 		} else {
@@ -728,7 +715,7 @@ void BotInterbreeding(void) {
 		return;
 	}
 	// shutdown all the bots
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (botstates[i] && botstates[i]->inuse) {
 			BotAIShutdownClient(botstates[i]->client, qfalse);
 		}
@@ -1074,9 +1061,9 @@ void BotUpdateInput(bot_state_t *bs, int time, int elapsed_time) {
 		bs->viewangles[j] = AngleMod(bs->viewangles[j] + SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
 	}
 	// change the bot view angles
-	BotChangeViewAngles(bs, (float)elapsed_time / 1000);
+	BotChangeViewAngles(bs, (float)elapsed_time * 0.001);
 	// retrieve the bot input
-	trap_EA_GetInput(bs->client, (float)time / 1000, &bi);
+	trap_EA_GetInput(bs->client, (float)time * 0.001, &bi);
 	// respawn hack
 	if (bi.actionflags & ACTION_RESPAWN) {
 		if (bs->lastucmd.buttons & BUTTON_ATTACK) {
@@ -1227,7 +1214,7 @@ void BotScheduleBotThink(void) {
 
 	botnum = 0;
 
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (!botstates[i] || !botstates[i]->inuse) {
 			continue;
 		}
@@ -1520,7 +1507,7 @@ int BotAILoadMap(int restart) {
 		trap_BotLibLoadMap(mapname.string);
 	}
 
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (botstates[i] && botstates[i]->inuse) {
 			BotResetState(botstates[i]);
 			botstates[i]->setupcount = 4;
@@ -1557,6 +1544,7 @@ int BotAIStartFrame(int time) {
 	trap_Cvar_Update(&bot_saveroutingcache);
 	trap_Cvar_Update(&bot_pause);
 	trap_Cvar_Update(&bot_report);
+	trap_Cvar_Update(&bot_visualrange);
 
 	if (bot_report.integer) {
 		//BotTeamplayReport();
@@ -1566,7 +1554,7 @@ int BotAIStartFrame(int time) {
 
 	if (bot_pause.integer) {
 		// execute bot user commands every frame
-		for (i = 0; i < MAX_CLIENTS; i++) {
+		for (i = 0; i < level.maxclients; i++) {
 			if (!botstates[i] || !botstates[i]->inuse) {
 				continue;
 			}
@@ -1620,7 +1608,7 @@ int BotAIStartFrame(int time) {
 	if (botlib_residual >= thinktime) {
 		botlib_residual -= thinktime;
 
-		trap_BotLibStartFrame((float)time / 1000);
+		trap_BotLibStartFrame((float)time * 0.001);
 
 		if (!trap_AAS_Initialized()) {
 			return qfalse;
@@ -1701,7 +1689,7 @@ int BotAIStartFrame(int time) {
 
 	floattime = trap_AAS_Time();
 	// execute scheduled bot AI
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (!botstates[i] || !botstates[i]->inuse) {
 			continue;
 		}
@@ -1716,12 +1704,12 @@ int BotAIStartFrame(int time) {
 			}
 
 			if (g_entities[i].client->pers.connected == CON_CONNECTED) {
-				BotAI(i, (float)thinktime / 1000);
+				BotAI(i, (float)thinktime * 0.001);
 			}
 		}
 	}
 	// execute bot user commands every frame
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (!botstates[i] || !botstates[i]->inuse) {
 			continue;
 		}
@@ -1855,6 +1843,7 @@ int BotAISetup(int restart) {
 	trap_Cvar_Register(&bot_interbreedbots, "bot_interbreedbots", "10", 0);
 	trap_Cvar_Register(&bot_interbreedcycle, "bot_interbreedcycle", "20", 0);
 	trap_Cvar_Register(&bot_interbreedwrite, "bot_interbreedwrite", "", 0);
+	trap_Cvar_Register(&bot_visualrange, "bot_visualrange", "100000", 0);
 	// if the game is restarted for a tournament
 	if (restart) {
 		return qtrue;
@@ -1882,7 +1871,7 @@ int BotAIShutdown(int restart) {
 	// if the game is restarted for a tournament
 	if (restart) {
 		// shutdown all the bots in the botlib
-		for (i = 0; i < MAX_CLIENTS; i++) {
+		for (i = 0; i < level.maxclients; i++) {
 			if (botstates[i] && botstates[i]->inuse) {
 				BotAIShutdownClient(botstates[i]->client, restart);
 			}

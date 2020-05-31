@@ -63,6 +63,19 @@ vmCvar_t bot_nochat;
 vmCvar_t bot_testrchat;
 vmCvar_t bot_challenge;
 vmCvar_t bot_predictobstacles;
+vmCvar_t bot_equalize;
+vmCvar_t bot_equalizer_aim;
+vmCvar_t bot_equalizer_react;
+vmCvar_t bot_equalizer_fembon;
+vmCvar_t bot_equalizer_teambon;
+vmCvar_t bot_nowalk;
+vmCvar_t bot_shownodechanges;
+vmCvar_t bot_teambluestrategy;
+vmCvar_t bot_teamredstrategy;
+vmCvar_t bot_alt_aggressive;
+vmCvar_t bot_alt_attack;
+vmCvar_t bot_alt_pickup;
+
 vmCvar_t g_spSkill;
 
 extern vmCvar_t bot_developer;
@@ -6749,7 +6762,7 @@ Tobias TODO: Re-enable better use of 'bs->aimtarget' again?
 =======================================================================================================================================
 */
 void BotCheckAttack(bot_state_t *bs) {
-	float points, reactiontime, viewType, firethrottle;
+	float points, reactiontime, firethrottle;
 	int attackentity, fov, weaponfov, weaponrange, mask;
 	//float selfpreservation;
 	vec3_t forward, right, start, end, dir, angles;
@@ -6966,32 +6979,13 @@ void BotCheckAttack(bot_state_t *bs) {
 
 	if (VectorLengthSquared(dir) < Square(100)) { // Tobias NOTE: hmm, I still don't see a reason for this (keep it for spin-up weapons)?
 		fov = 120;
-#ifdef DEBUG
-		BotAI_Print(PRT_MESSAGE, S_COLOR_YELLOW "%s: Dist < 100, FOV: %i.\n", netname, fov);
-#endif
+
 	} else {
 		fov = weaponfov;
-#ifdef DEBUG
-		BotAI_Print(PRT_MESSAGE, S_COLOR_GREEN "%s: Dist > 100, FOV: %i.\n", netname, fov);
-#endif
 	}
 
-	viewType = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_VIEW_TYPE, 0, 1);
-
-	if (viewType < 0.4) {
-		if (/*!bs->allowHitWorld && */!InFieldOfVision(bs->viewangles, fov, bs->viewhistory.real_viewangles)) { // Tobias NOTE: bs->allowHitWorld check useful?
-#ifdef DEBUG
-			BotAI_Print(PRT_MESSAGE, S_COLOR_RED "%s: No attack: not in fov!\n", netname);
-#endif
-			return;
-		}
-	} else {
-		if (/*!bs->allowHitWorld && */!InFieldOfVision(bs->viewangles, fov, angles)) { // Tobias NOTE: bs->allowHitWorld check useful?
-#ifdef DEBUG
-			BotAI_Print(PRT_MESSAGE, S_COLOR_RED "%s: No attack: not in fov!\n", netname);
-#endif
-			return;
-		}
+	if (/*!bs->allowHitWorld && */!InFieldOfVision(bs->viewangles, fov, angles)) { // Tobias NOTE: bs->allowHitWorld check useful?
+		return;
 	}
 	// get the start point shooting from
 	VectorCopy(bs->origin, start);
@@ -7040,14 +7034,6 @@ void BotCheckAttack(bot_state_t *bs) {
 			// FIXME: check if a teammate gets radial damage
 		}
 	}
-// Tobias DEBUG
-	if (bot_noshoot.integer) {
-		return;
-	}
-#ifdef DEBUG
-	BotAI_Print(PRT_MESSAGE, S_COLOR_GREEN "%s: Final Reactiontime = %f.\n", netname, reactiontime);
-#endif
-// DEBUG
 	// if fire has to be release to activate weapon
 	if (wi.flags & WFL_FIRERELEASED) {
 		if (bs->flags & BFL_ATTACKED) {

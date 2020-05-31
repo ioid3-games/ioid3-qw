@@ -109,21 +109,6 @@ typedef struct bot_activategoal_s {
 	bot_aienter_t aienter;				// function to call to return to AI node from before going to activate entity
 	struct bot_activategoal_s *next;	// next activate goal on stack
 } bot_activategoal_t;
-// definitions for view history
-#define VIEWHISTORY_SIZE 128
-
-typedef struct viewhistory_s {
-	vec3_t real_viewangles;
-	vec3_t lastviewcommand;
-	vec3_t totalviewdistortion;
-	float lastUpdateTime;
-	int oldestEntry;
-	struct {
-		float time;
-		vec3_t ideal_view;
-		vec3_t viewdistortion;
-	} entryTab[VIEWHISTORY_SIZE];
-} viewhistory_t;
 // bot state
 #define MAX_SUBTEAM_SIZE 32
 
@@ -229,7 +214,6 @@ typedef struct bot_state_s {
 	vec3_t viewangles;						// current view angles
 	vec3_t ideal_viewangles;				// ideal view angles
 	vec3_t viewanglespeed;
-	viewhistory_t viewhistory;
 	int ltgtype;							// long term goal type
 	// team goals
 	int teammate;							// team mate involved in this team goal
@@ -299,50 +283,3 @@ int BotAI_GetClientState(int clientNum, playerState_t *state);
 int BotAI_GetEntityState(int entityNum, entityState_t *state);
 int BotAI_GetSnapshotEntity(int clientNum, int sequence, entityState_t *state);
 int BotTeamLeader(bot_state_t *bs);
-// Tobias DEBUG: new bot test cvars for debugging
-extern vmCvar_t bot_enable;
-extern vmCvar_t bot_developer;
-extern vmCvar_t bot_debug;
-extern vmCvar_t bot_maxdebugpolys;
-extern vmCvar_t bot_groundonly;
-extern vmCvar_t bot_reachability;
-extern vmCvar_t bot_visualizejumppads;
-extern vmCvar_t bot_forceclustering;
-extern vmCvar_t bot_forcereachability;
-extern vmCvar_t bot_forcewrite;
-extern vmCvar_t bot_aasoptimize;
-extern vmCvar_t bot_saveroutingcache;
-extern vmCvar_t bot_thinktime;
-extern vmCvar_t bot_reloadcharacters;
-extern vmCvar_t bot_testichat;
-extern vmCvar_t bot_testrchat;
-extern vmCvar_t bot_testsolid;
-extern vmCvar_t bot_testclusters;
-extern vmCvar_t bot_fastchat;
-extern vmCvar_t bot_nochat;
-extern vmCvar_t bot_pause;
-extern vmCvar_t bot_report;
-extern vmCvar_t bot_rocketjump;
-extern vmCvar_t bot_challenge;
-extern vmCvar_t bot_interbreedchar;
-extern vmCvar_t bot_interbreedbots;
-extern vmCvar_t bot_interbreedcycle;
-extern vmCvar_t bot_interbreedwrite;
-extern vmCvar_t bot_memorydump;
-extern vmCvar_t bot_visualrange;
-extern vmCvar_t bot_checktime;
-extern vmCvar_t bot_predictobstacles;
-extern vmCvar_t bot_equalize;
-extern vmCvar_t bot_equalizer_aim;
-extern vmCvar_t bot_equalizer_react;
-extern vmCvar_t bot_equalizer_fembon;
-extern vmCvar_t bot_equalizer_teambon;
-extern vmCvar_t bot_noshoot;
-extern vmCvar_t bot_nowalk;
-extern vmCvar_t bot_shownodechanges;
-extern vmCvar_t bot_teambluestrategy;
-extern vmCvar_t bot_teamredstrategy;
-extern vmCvar_t bot_alt_aggressive;
-extern vmCvar_t bot_alt_attack;
-extern vmCvar_t bot_alt_pickup;
-// Tobias END

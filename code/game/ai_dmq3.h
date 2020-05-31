@@ -190,6 +190,25 @@ void BotMapScripts(bot_state_t *bs);
 extern int gametype;	// game type
 extern int maxclients;	// maximum number of clients
 
+extern vmCvar_t bot_rocketjump;
+extern vmCvar_t bot_fastchat;
+extern vmCvar_t bot_nochat;
+extern vmCvar_t bot_testrchat;
+extern vmCvar_t bot_challenge;
+extern vmCvar_t bot_equalize;
+extern vmCvar_t bot_equalizer_aim;
+extern vmCvar_t bot_equalizer_react;
+extern vmCvar_t bot_equalizer_fembon;
+extern vmCvar_t bot_equalizer_teambon;
+extern vmCvar_t bot_noshoot;
+extern vmCvar_t bot_nowalk;
+extern vmCvar_t bot_shownodechanges;
+extern vmCvar_t bot_teambluestrategy;
+extern vmCvar_t bot_teamredstrategy;
+extern vmCvar_t bot_alt_aggressive;
+extern vmCvar_t bot_alt_attack;
+extern vmCvar_t bot_alt_pickup;
+extern vmCvar_t bot_visualrange;
 extern bot_goal_t ctf_redflag;
 extern bot_goal_t ctf_blueflag;
 extern bot_goal_t ctf_neutralflag;
