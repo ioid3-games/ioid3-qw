@@ -48,7 +48,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 //#define DEBUG_AI_MOVE
 //#define DEBUG_ELEVATOR
 // movement state
-// NOTE: the moveflags MFL_ONGROUND, MFL_WATERJUMP and MFL_TELEPORTED must be set outside the movement code
+// NOTE: the moveflags MFL_ONGROUND, MFL_WATERJUMP, MFL_SCOUT and MFL_TELEPORTED must be set outside the movement code
 typedef struct bot_movestate_s {
 	// input vars (all set outside the movement code)
 	vec3_t origin;								// origin of the bot
@@ -191,6 +191,12 @@ void BotInitMoveState(int handle, bot_initmove_t *initmove) {
 
 	if (initmove->or_moveflags & MFL_WATERJUMP) {
 		ms->moveflags |= MFL_WATERJUMP;
+	}
+
+	ms->moveflags &= ~MFL_SCOUT;
+
+	if (initmove->or_moveflags & MFL_SCOUT) {
+		ms->moveflags |= MFL_SCOUT;
 	}
 
 	ms->moveflags &= ~MFL_WALK;
