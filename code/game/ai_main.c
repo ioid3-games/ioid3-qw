@@ -70,7 +70,6 @@ vmCvar_t bot_interbreedbots;
 vmCvar_t bot_interbreedcycle;
 vmCvar_t bot_interbreedwrite;
 vmCvar_t bot_visualrange;
-vmCvar_t bot_checktime;
 
 void ExitLevel(void);
 

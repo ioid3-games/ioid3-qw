@@ -374,7 +374,7 @@ int BotNextConsoleMessage(int chatstate, bot_consolemessage_t *cm) {
 		return 0;
 	}
 
-	if ((firstmsg = cs->firstmessage) != NULL) { // Tobias CHECK (ec)
+	if ((firstmsg = cs->firstmessage) != NULL) {
 		cm->handle = firstmsg->handle;
 		cm->time = firstmsg->time;
 		cm->type = firstmsg->type;

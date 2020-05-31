@@ -315,7 +315,7 @@ int BotGetItemLongTermGoal(bot_state_t *bs, int tfl, bot_goal_t *goal) {
 			bs->ltg_time = FloatTime() + 20;
 		} else { // the bot gets sorta stuck with all the avoid timings, shouldn't happen though
 #ifdef DEBUG
-			char netname[MAX_NETNAME];
+			char netname[128];
 
 			BotAI_Print(PRT_MESSAGE, "%s: no valid ltg (probably stuck)\n", ClientName(bs->client, netname, sizeof(netname)));
 #endif
@@ -1549,7 +1549,6 @@ void BotClearPath(bot_state_t *bs, bot_moveresult_t *moveresult) {
 		}
 
 		if (bestmine != -1) {
-			//state->team == TEAM_RED || state->team == TEAM_BLUE
 			// deactivate prox mines in the bot's path by shooting rockets or plasma cells etc. at them
 			BotAI_GetEntityState(bs->proxmines[bestmine], &state);
 			VectorCopy(state.pos.trBase, target);
@@ -1676,9 +1675,6 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 		// if the entity information is valid
 		if (!entinfo.valid) {
 			AIEnter_Seek_LTG(bs, "ACTIVATE ENTITY: entity invalid.");
-#ifdef DEBUG
-			BotAI_Print(PRT_MESSAGE, "AINode_Seek_ActivateEntity: entity invalid enter seek ltg.\n");
-#endif
 			return qfalse;
 		}
 		// if the entity the bot shoots at moved
@@ -2211,9 +2207,7 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	BotEntityInfo(bs->enemy, &entinfo);
 	// if there is another better enemy
 	if (BotFindEnemy(bs, bs->enemy)) {
-#ifdef DEBUG
-		BotAI_Print(PRT_MESSAGE, "AINode_Battle_Fight: found new better enemy.\n");
-#endif
+
 	}
 	// if the enemy is dead
 	if (bs->enemydeath_time) {

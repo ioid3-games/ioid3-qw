@@ -1690,7 +1690,6 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					} else {
 						BotAI_BotInitialChat(bs, "cmd_accompany", name, carriername, NULL);
 						BotSayVoiceTeamOrder(bs, other, VOICECHAT_FOLLOWFLAGCARRIER);
-						//BotAI_Print(PRT_MESSAGE, S_COLOR_MAGENTA "(%s): No flag carrier! (Bot1FCTFOrders_TeamHasFlag, case 3: passive)\n", ClientName(other, name, sizeof(name))); // Tobias DEBUG
 					}
 
 					BotSayTeamOrder(bs, other);
@@ -1752,7 +1751,6 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 							BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
 							BotSayTeamOrder(bs, teammates[numteammates - i - 1]);
 							BotSayVoiceTeamOrder(bs, teammates[numteammates - i - 1], VOICECHAT_GETFLAG);
-							//BotAI_Print(PRT_MESSAGE, S_COLOR_MAGENTA "(%s): No flag carrier! (Bot1FCTFOrders_TeamHasFlag, case default: passive)\n", ClientName(teammates[numteammates - i - 1], name, sizeof(name))); // Tobias DEBUG
 						}
 					}
 
@@ -1819,7 +1817,6 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					} else {
 						BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
 						BotSayVoiceTeamOrder(bs, other, VOICECHAT_GETFLAG);
-						//BotAI_Print(PRT_MESSAGE, S_COLOR_MAGENTA "(%s): No flag carrier! (Bot1FCTFOrders_TeamHasFlag, case 3: aggressive)\n", ClientName(other, name, sizeof(name))); // Tobias DEBUG
 					}
 
 					BotSayTeamOrder(bs, other);
@@ -1881,7 +1878,6 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 							BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
 							BotSayTeamOrder(bs, teammates[numteammates - i - 1]);
 							BotSayVoiceTeamOrder(bs, teammates[numteammates - i - 1], VOICECHAT_GETFLAG);
-							//BotAI_Print(PRT_MESSAGE, S_COLOR_MAGENTA "(%s): No flag carrier! (Bot1FCTFOrders_TeamHasFlag, case default: aggressive)\n", ClientName(teammates[numteammates - i - 1], name, sizeof(name))); // Tobias DEBUG
 						}
 					}
 
@@ -2765,7 +2761,6 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					} else {
 						BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
 						BotSayVoiceTeamOrder(bs, other, VOICECHAT_GETFLAG);
-						//BotAI_Print(PRT_MESSAGE, S_COLOR_MAGENTA "(%s): No flag carrier! (BotCTFOrders_BothFlagsNotAtBase, case 3: passive)\n", ClientName(other, name, sizeof(name))); // Tobias DEBUG
 					}
 
 					BotSayTeamOrder(bs, other);
@@ -2777,7 +2772,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					}
 
 					ClientName(other, name, sizeof(name));
-					BotAI_BotInitialChat(bs, "cmd_returnflag", name, NULL); // Tobias CHECK: was "cmd_getflag" (but VOICECHAT_RETURNFLAG)!
+					BotAI_BotInitialChat(bs, "cmd_returnflag", name, NULL);
 					BotSayTeamOrder(bs, other);
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_RETURNFLAG);
 					break;
@@ -2827,7 +2822,6 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 							BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
 							BotSayTeamOrder(bs, teammates[i]);
 							BotSayVoiceTeamOrder(bs, teammates[i], VOICECHAT_GETFLAG);
-							//BotAI_Print(PRT_MESSAGE, S_COLOR_MAGENTA "(%s): No flag carrier! (BotCTFOrders_BothFlagsNotAtBase, case default: passive)\n", ClientName(teammates[i], name, sizeof(name))); // Tobias DEBUG
 						}
 					}
 
@@ -2839,7 +2833,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 						ClientName(teammates[numteammates - i - 1], name, sizeof(name));
 						BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
 						BotSayTeamOrder(bs, teammates[numteammates - i - 1]);
-						BotSayVoiceTeamOrder(bs, teammates[numteammates - i - 1], VOICECHAT_GETFLAG); // Tobias CHECK: was VOICECHAT_RETURNFLAG (but "cmd_getflag")!
+						BotSayVoiceTeamOrder(bs, teammates[numteammates - i - 1], VOICECHAT_GETFLAG);
 					}
 
 					break;
@@ -2965,7 +2959,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 						ClientName(teammates[numteammates - i - 1], name, sizeof(name));
 						BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
 						BotSayTeamOrder(bs, teammates[numteammates - i - 1]);
-						BotSayVoiceTeamOrder(bs, teammates[numteammates - i - 1], VOICECHAT_GETFLAG); // Tobias CHECK: was VOICECHAT_RETURNFLAG (but "cmd_getflag")!
+						BotSayVoiceTeamOrder(bs, teammates[numteammates - i - 1], VOICECHAT_GETFLAG);
 					}
 
 					break;
@@ -3531,7 +3525,6 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 							BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
 							BotSayTeamOrder(bs, teammates[numteammates - i - 1]);
 							BotSayVoiceTeamOrder(bs, teammates[numteammates - i - 1], VOICECHAT_GETFLAG);
-							//BotAI_Print(PRT_MESSAGE, S_COLOR_MAGENTA "(%s): No flag carrier! (BotCTFOrders_EnemyFlagNotAtBase, case default: passive)\n", ClientName(teammates[numteammates - i - 1], name, sizeof(name))); // Tobias DEBUG
 						}
 					}
 
@@ -4347,15 +4340,6 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 3) {
 				BotCTFOrders(bs);
-// Tobias DEBUG
-/*
-				if (BotTeam(bs) == TEAM_BLUE) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
-				} else if (BotTeam(bs) == TEAM_RED) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
-				}
-*/
-// Tobias END
 				bs->teamgiveorders_time = 0;
 			}
 
@@ -4382,15 +4366,6 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 2) {
 				Bot1FCTFOrders(bs);
-// Tobias DEBUG
-/*
-				if (BotTeam(bs) == TEAM_BLUE) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
-				} else if (BotTeam(bs) == TEAM_RED) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
-				}
-*/
-// Tobias END
 				bs->teamgiveorders_time = 0;
 			}
 
@@ -4407,15 +4382,6 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotObeliskOrders(bs);
-// Tobias DEBUG
-/*
-				if (BotTeam(bs) == TEAM_BLUE) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
-				} else if (BotTeam(bs) == TEAM_RED) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
-				}
-*/
-// Tobias END
 				// give orders again after 30 seconds
 				bs->teamgiveorders_time = FloatTime() + 30;
 			}
@@ -4433,15 +4399,6 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotHarvesterOrders(bs);
-// Tobias DEBUG
-/*
-				if (BotTeam(bs) == TEAM_BLUE) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
-				} else if (BotTeam(bs) == TEAM_RED) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
-				}
-*/
-// Tobias END
 				// give orders again after 30 seconds
 				bs->teamgiveorders_time = FloatTime() + 30;
 			}

@@ -264,7 +264,7 @@ void Q3_BSPBrushToMapBrush(q3_dbrush_t *bspbrush, entity_t *mapent)
 				side->surf |= SURF_HINT;
 			} //end if
 
-			if ( cfg.rs_allowladders && strstr( q3_dshaders[bspbrushside->shaderNum].shader, "common/ladder" ) ) { // Tobias FIXME
+			if ( cfg.rs_allowladders && strstr( q3_dshaders[bspbrushside->shaderNum].shader, "common/ladder" ) ) {
 				Log_Print("found ladder side\n");
 				side->contents |= CONTENTS_LADDER;
 				foundLadder = qtrue;

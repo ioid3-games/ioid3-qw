@@ -413,7 +413,7 @@ void Q3_FindVisibleBrushSides(void)
 				qprintf("\r%6d", numsides++);
 				brushside = &q3_dbrushsides[brush->firstSide + j];
 				//
-				if ( q3_dshaders[q3_dbrushsides[i].shaderNum].surfaceFlags & SURF_NODRAW ) { // Tobias FIXME
+				if ( q3_dshaders[q3_dbrushsides[i].shaderNum].surfaceFlags & SURF_NODRAW ) {
 					continue;
 				} //end if
 				//

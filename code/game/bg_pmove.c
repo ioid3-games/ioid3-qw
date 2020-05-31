@@ -1194,7 +1194,7 @@ static void PM_CrashLand(void) {
 	// SURF_NODAMAGE is used for bounce pads where you don't want to take full damage or play a crunch sound
 	if (!(pml.groundTrace.surfaceFlags & SURF_NODAMAGE)) {
 		// create a local entity event to play the sound
-		if (delta > 84) { // Tobias NOTE: a delta of 84 = max_fallheight of 516 units for bots, and 529 units for humans (why can humans fall higher than bots?)
+		if (delta > 84) {
 			PM_AddEvent(EV_FALL_DIE);
 			stunTime = 1000;
 		} else if (delta > 70) {

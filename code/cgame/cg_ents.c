@@ -150,7 +150,7 @@ void CG_AddLightstyle(centity_t *cent) {
 			cent->dl_oldframe = (cent->dl_oldframe)% stringlength;
 
 			if (cent->dl_oldframe < 3 && cent->dl_sound) { // < 3 so if an alarm comes back into the pvs it will only start a sound if it's going to be closely synced with the light, otherwise wait till the next cycle
-				trap_S_StartSound(NULL, cent->currentState.number, CHAN_AUTO, cgs.gameSounds[cent->dl_sound], 64); // Tobias FIXME: from ET -> CG_GetGameSound(cent->dl_sound)
+				trap_S_StartSound(NULL, cent->currentState.number, CHAN_AUTO, cgs.gameSounds[cent->dl_sound], 64);
 			}
 		}
 

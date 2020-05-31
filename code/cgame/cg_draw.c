@@ -1561,7 +1561,7 @@ static int CG_DrawRealTimeClock(int y) {
 
 	w = CG_Text_Width(s, 0.2f, 0);
 
-	CG_Text_Paint(635 - w, y + BIGCHAR_HEIGHT, 0.2f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWED); // Tobias NOTE: this is not correct because it's out of 16:9 control atm
+	CG_Text_Paint(635 - w, y + BIGCHAR_HEIGHT, 0.2f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWED);
 
 	return y;
 }
