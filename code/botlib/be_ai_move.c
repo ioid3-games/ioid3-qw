@@ -1790,7 +1790,7 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 	VectorSubtract(reach->start, ms->origin, dir);
 	VectorNormalize(dir);
 	// check if blocked
-	BotCheckBlocked(ms, dir, qtrue, &result); // Tobias NOTE: checking for blocked movement without doing a move?
+	BotCheckBlocked(ms, dir, qtrue, &result);
 	// if the reachability start and end are practically above each other
 	VectorSubtract(reach->end, reach->start, dir);
 
@@ -2117,7 +2117,7 @@ bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) 
 		} else {
 			speed = 600;
 		}
-
+		// elementary action move in direction
 		EA_Move(ms->client, hordir, speed);
 
 		ms->jumpreach = ms->lastreachnum;

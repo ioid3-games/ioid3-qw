@@ -446,7 +446,6 @@ static qboolean AAS_ClipToBBox(aas_trace_t *trace, const vec3_t start, const vec
 
 	for (i = 0; i < 3; i++) {
 		if (fabsf(dir[i]) < 0.001f) { // this may cause denormalization or division by zero
-			//botimport.Print(PRT_MESSAGE, S_COLOR_BLUE "AAS_ClipToBBox: division by zero fix!\n");
 			continue;
 		}
 		// get plane to test collision with for the current axis direction
