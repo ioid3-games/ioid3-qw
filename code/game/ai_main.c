@@ -138,6 +138,11 @@ BotAI_GetClientState
 */
 int BotAI_GetClientState(int clientNum, playerState_t *state) {
 	gentity_t *ent;
+	playerState_t *ps;
+
+	if (clientNum < 0 || clientNum >= level.num_entities) {
+		return qfalse;
+	}
 
 	ent = &g_entities[clientNum];
 
@@ -145,11 +150,21 @@ int BotAI_GetClientState(int clientNum, playerState_t *state) {
 		return qfalse;
 	}
 
-	if (!ent->client) {
+	if (!ent->r.linked) {
 		return qfalse;
 	}
 
-	memcpy(state, &ent->client->ps, sizeof(playerState_t));
+	if (ent->client->pers.connected != CON_CONNECTED) {
+		return qfalse;
+	}
+
+	ps = G_GetEntityPlayerState(ent);
+
+	if (!ps) {
+		return qfalse;
+	}
+
+	memcpy(state, ps, sizeof(playerState_t));
 	return qtrue;
 }
 
@@ -1123,6 +1138,28 @@ int BotAI(int client, float thinktime) {
 		BotAI_Print(PRT_FATAL, "BotAI: failed to get player state for player %d\n", client);
 		return qfalse;
 	}
+	// add the delta angles to the bot's current view angles
+	for (j = 0; j < 3; j++) {
+		bs->viewangles[j] = AngleMod(bs->viewangles[j] + SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
+	}
+	// increase the local time of the bot
+	bs->thinktime = thinktime;
+	// origin of the bot
+	VectorCopy(bs->cur_ps.origin, bs->origin);
+	// eye coordinates of the bot
+	VectorCopy(bs->cur_ps.origin, bs->eye);
+
+	bs->eye[2] += bs->cur_ps.viewheight;
+	// get the area the bot is in
+	bs->areanum = BotPointAreaNum(bs->origin);
+	// the real AI
+	BotDeathmatchAI(bs, thinktime);
+	// set the weapon selection every AI frame
+	trap_EA_SelectWeapon(bs->client, bs->weaponnum);
+	// subtract the delta angles
+	for (j = 0; j < 3; j++) {
+		bs->viewangles[j] = AngleMod(bs->viewangles[j] - SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
+	}
 	// retrieve any waiting server commands
 	while (trap_BotGetServerCommand(client, buf, sizeof(buf))) {
 		// have buf point to the command and args to the command arguments
@@ -1136,11 +1173,7 @@ int BotAI(int client, float thinktime) {
 		// remove color espace sequences from the arguments
 		RemoveColorEscapeSequences(args);
 
-		if (!Q_stricmp(buf, "cp ")) {
-			/*CenterPrintf*/
-		} else if (!Q_stricmp(buf, "cs")) {
-			/*ConfigStringModified*/
-		} else if (!Q_stricmp(buf, "print")) {
+		if (!Q_stricmp(buf, "print")) {
 			// remove first and last quote from the chat message
 			memmove(args, args + 1, strlen(args));
 			args[strlen(args) - 1] = '\0';
@@ -1161,34 +1194,9 @@ int BotAI(int client, float thinktime) {
 			BotVoiceChatCommand(bs, SAY_TEAM, args);
 		} else if (!Q_stricmp(buf, "vtell")) {
 			BotVoiceChatCommand(bs, SAY_TELL, args);
-		} else if (!Q_stricmp(buf, "scores")) {
-			/*FIXME: parse scores?*/
-		} else if (!Q_stricmp(buf, "clientLevelShot")) {
+		} else {
 			/*ignore*/
 		}
-	}
-	// add the delta angles to the bot's current view angles
-	for (j = 0; j < 3; j++) {
-		bs->viewangles[j] = AngleMod(bs->viewangles[j] + SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
-	}
-	// increase the local time of the bot
-	bs->ltime += thinktime;
-	bs->thinktime = thinktime;
-	// origin of the bot
-	VectorCopy(bs->cur_ps.origin, bs->origin);
-	// eye coordinates of the bot
-	VectorCopy(bs->cur_ps.origin, bs->eye);
-
-	bs->eye[2] += bs->cur_ps.viewheight;
-	// get the area the bot is in
-	bs->areanum = BotPointAreaNum(bs->origin);
-	// the real AI
-	BotDeathmatchAI(bs, thinktime);
-	// set the weapon selection every AI frame
-	trap_EA_SelectWeapon(bs->client, bs->weaponnum);
-	// subtract the delta angles
-	for (j = 0; j < 3; j++) {
-		bs->viewangles[j] = AngleMod(bs->viewangles[j] - SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
 	}
 	// everything was ok
 	return qtrue;
@@ -1345,6 +1353,7 @@ int BotAISetupClient(int client, struct bot_settings_s *settings, qboolean resta
 	bs->entergame_time = FloatTime();
 	bs->ms = trap_BotAllocMoveState();
 	bs->walker = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_WALKER, 0, 1);
+	bs->revenge_enemy = -1;
 
 	numbots++;
 
@@ -1807,24 +1816,6 @@ int BotInitLibrary(void) {
 	}
 
 	trap_BotLibVarSet("bot_reloadcharacters", buf);
-	// base directory
-	trap_Cvar_VariableStringBuffer("fs_basepath", buf, sizeof(buf));
-
-	if (strlen(buf)) {
-		trap_BotLibVarSet("basedir", buf);
-	}
-	// game directory
-	trap_Cvar_VariableStringBuffer("fs_game", buf, sizeof(buf));
-
-	if (strlen(buf)) {
-		trap_BotLibVarSet("gamedir", buf);
-	}
-	// home directory
-	trap_Cvar_VariableStringBuffer("fs_homepath", buf, sizeof(buf));
-
-	if (strlen(buf)) {
-		trap_BotLibVarSet("homedir", buf);
-	}
 	// setup the bot library
 	return trap_BotLibSetup();
 }

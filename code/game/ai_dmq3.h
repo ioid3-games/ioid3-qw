@@ -70,6 +70,8 @@ char *ClientSkin(int client, char *skin, int size);
 int BotSynonymContext(bot_state_t *bs);
 // set last ordered task
 int BotSetLastOrderedTask(bot_state_t *bs);
+// check the team scores
+void BotCheckTeamScores(bot_state_t *bs);
 // selection of goals for teamplay
 void BotTeamGoals(bot_state_t *bs, int retreat);
 // returns the aggression of the bot in the range [0, 100]
@@ -94,6 +96,8 @@ bot_moveresult_t BotAttackMove(bot_state_t *bs, int tfl);
 int BotSameTeam(bot_state_t *bs, int entnum);
 // returns true if teamplay is on
 int TeamPlayIsOn(void);
+// returns true if the bot can camp
+qboolean BotCanCamp(bot_state_t *bs);
 // returns the client number of the team mate flag carrier (-1 if none)
 int BotTeamFlagCarrier(bot_state_t *bs);
 // returns visible team mate flag carrier if available
