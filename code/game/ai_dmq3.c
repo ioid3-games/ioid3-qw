@@ -3492,10 +3492,11 @@ BotAimAtEnemy
 void BotAimAtEnemy(bot_state_t *bs) {
 	int i, enemyvisible;
 	float dist, f, aim_skill, aim_accuracy, speed, reactiontime;
-	vec3_t dir, bestorigin, end, start, groundtarget, cmdmove, enemyvelocity;
+	vec3_t origin, dir, bestorigin, end, start, groundtarget, cmdmove, enemyvelocity;
 	vec3_t mins = {-4, -4, -4}, maxs = {4, 4, 4};
 	weaponinfo_t wi;
 	aas_entityinfo_t entinfo;
+	aas_clientmove_t move;
 	bot_goal_t goal;
 	bsp_trace_t trace;
 	vec3_t target;
@@ -3521,8 +3522,6 @@ void BotAimAtEnemy(bot_state_t *bs) {
 		VectorCopy(target, bs->aimtarget);
 		return;
 	}
-
-	//BotAI_Print(PRT_MESSAGE, "client %d: aiming at client %d\n", bs->entitynum, bs->enemy);
 
 	aim_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_SKILL, 0, 1);
 	aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY, 0, 1);
@@ -3627,9 +3626,6 @@ void BotAimAtEnemy(bot_state_t *bs) {
 			if (!(dist > 100 && VectorLengthSquared(dir) < Square(32))) {
 				// if skilled enough and if the weapon is ready to fire, do exact prediction
 				if (aim_skill > 0.8 && bs->cur_ps.weaponstate == WEAPON_READY) {
-					aas_clientmove_t move;
-					vec3_t origin;
-
 					VectorSubtract(entinfo.origin, bs->origin, dir);
 					// distance towards the enemy
 					dist = VectorLength(dir);
@@ -3641,11 +3637,9 @@ void BotAimAtEnemy(bot_state_t *bs) {
 					origin[2] += 1;
 
 					VectorClear(cmdmove);
-					//AAS_ClearShownDebugLines();
 					// movement prediction
 					trap_AAS_PredictClientMovement(&move, bs->enemy, origin, PRESENCE_CROUCH, qfalse, dir, cmdmove, 0, dist * 10 / wi.speed, 0.1f, 0, 0, qfalse);
 					VectorCopy(move.endpos, bestorigin);
-					//BotAI_Print(PRT_MESSAGE, "%1.1f predicted speed = %f, frames = %f\n", FloatTime(), VectorLength(dir), dist * 10 / wi.speed);
 				// if not that skilled do linear prediction
 				} else if (aim_skill > 0.4) {
 					// direction towards the enemy
@@ -3657,7 +3651,6 @@ void BotAimAtEnemy(bot_state_t *bs) {
 
 					dir[2] = 0;
 					speed = VectorNormalize(dir) / entinfo.update_time;
-					//botimport.Print(PRT_MESSAGE, "speed = %f, wi->speed = %f\n", speed, wi->speed);
 					// best spot to aim at
 					VectorMA(entinfo.origin, (dist / wi.speed) * speed, dir, bestorigin);
 				}
@@ -4791,12 +4784,8 @@ Before the bot ends in this part of the AI it should predict which doors to open
 =======================================================================================================================================
 */
 void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
-#ifdef OBSTACLEDEBUG
-	char netname[MAX_NETNAME];
-#endif
 	int movetype, bspent;
 	vec3_t hordir, sideward, angles, up = {0, 0, 1};
-	//vec3_t start, end, mins, maxs;
 	aas_entityinfo_t entinfo;
 	bot_activategoal_t activategoal;
 
@@ -4813,10 +4802,6 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 	}
 	// get info for the entity that is blocking the bot
 	BotEntityInfo(moveresult->blockentity, &entinfo);
-#ifdef OBSTACLEDEBUG
-	ClientName(bs->client, netname, sizeof(netname));
-	BotAI_Print(PRT_MESSAGE, "%s: I'm blocked by model %d\n", netname, entinfo.modelindex);
-#endif // OBSTACLEDEBUG
 	// if blocked by a bsp model and the bot wants to activate it
 	if (activate && entinfo.modelindex > 0 && entinfo.modelindex <= max_bspmodelindex) {
 		// find the bsp entity which should be activated in order to get the blocking entity out of the way
@@ -4849,32 +4834,20 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 		AngleVectors(angles, hordir, NULL, NULL);
 	}
 
-	//if (moveresult->flags & MOVERESULT_ONTOPOF_OBSTACLE) movetype = MOVE_JUMP;
-	//else
 	movetype = MOVE_WALK;
-	// if there's an obstacle at the bot's feet and head then the bot might be able to crouch through
-	//VectorCopy(bs->origin, start);
-	//start[2] += 18;
-	//VectorMA(start, 5, hordir, end);
-	//VectorSet(mins, -16, -16, -24);
-	//VectorSet(maxs, 16, 16, 4);
-
-	//bsptrace = AAS_Trace(start, mins, maxs, end, bs->entitynum, MASK_PLAYERSOLID);
-	//if (bsptrace.fraction >= 1) movetype = MOVE_CROUCH;
-	// get the sideward vector
+	// get the (right) sideward vector
 	CrossProduct(hordir, up, sideward);
 	// flip the direction
 	if (bs->flags & BFL_AVOIDRIGHT) {
 		VectorNegate(sideward, sideward);
 	}
-	// try to crouch straight forward?
+	// try to crouch or jump over barrier
 	if (movetype != MOVE_CROUCH || !trap_BotMoveInDirection(bs->ms, hordir, 400, movetype)) {
-		// perform the movement
+		// move sidwards
 		if (!trap_BotMoveInDirection(bs->ms, sideward, 400, movetype)) {
 			// flip the avoid direction flag
 			bs->flags ^= BFL_AVOIDRIGHT;
 			// flip the direction
-			//VectorNegate(sideward, sideward);
 			VectorMA(sideward, -1, hordir, sideward);
 			// move in the other direction
 			trap_BotMoveInDirection(bs->ms, sideward, 400, movetype);
@@ -4937,7 +4910,6 @@ int BotAIPredictObstacles(bot_state_t *bs, bot_goal_t *goal) {
 						}
 						// if not already trying to activate this entity
 						if (!BotIsGoingToActivateEntity(bs, activategoal.goal.entitynum)) {
-							//BotAI_Print(PRT_MESSAGE, "blocked by mover model %d, entity %d ?\n", modelnum, entitynum);
 							BotGoForActivateGoal(bs, &activategoal);
 							return qtrue;
 						} else {

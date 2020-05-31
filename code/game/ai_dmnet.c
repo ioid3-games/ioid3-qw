@@ -187,9 +187,9 @@ int BotNearbyGoal(bot_state_t *bs, int tfl, bot_goal_t *ltg, float range) {
 	if (BotGoForAir(bs, tfl, ltg, range)) {
 		return qtrue;
 	}
-	// if the bot is carrying a flag or cubes
+	// if doing something important the bot shouldn't be distracted too much
 	if (BotCTFCarryingFlag(bs) || Bot1FCTFCarryingFlag(bs) || BotHarvesterCarryingCubes(bs)) {
-		// if the bot is just a few secs away from the base
+		// if the bot is just a few secs away from team goal area number
 		if (trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin, bs->teamgoal.areanum, TFL_DEFAULT) < 300) {
 			// make the range really small
 			range = 50;
@@ -1488,7 +1488,6 @@ void BotClearPath(bot_state_t *bs, bot_moveresult_t *moveresult) {
 		}
 
 		if (bestmine != -1) {
-			//state->generic1 == TEAM_RED || state->generic1 == TEAM_BLUE
 			// deactivate prox mines in the bot's path by shooting rockets or plasma cells etc. at them
 			BotAI_GetEntityState(bs->proxmines[bestmine], &state);
 			VectorCopy(state.pos.trBase, target);
