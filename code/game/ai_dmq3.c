@@ -63,7 +63,6 @@ vmCvar_t bot_nochat;
 vmCvar_t bot_testrchat;
 vmCvar_t bot_challenge;
 vmCvar_t bot_predictobstacles;
-vmCvar_t bot_checktime;
 vmCvar_t bot_equalize;
 vmCvar_t bot_equalizer_aim;
 vmCvar_t bot_equalizer_react;
@@ -1713,22 +1712,6 @@ int BotSynonymContext(bot_state_t *bs) {
 
 /*
 =======================================================================================================================================
-BotUsesLongRangeInstantHitWeapon
-=======================================================================================================================================
-*/
-/*
-static const qboolean BotUsesLongRangeInstantHitWeapon(bot_state_t *bs) {
-
-	switch (bs->weaponnum) {
-		case WP_RAILGUN:
-			return qtrue;
-		default:
-			return qfalse;
-	}
-}
-*/
-/*
-=======================================================================================================================================
 BotUsesMidRangeWeapon
 =======================================================================================================================================
 */
@@ -1970,15 +1953,11 @@ void BotCheckItemPickup(bot_state_t *bs, int *oldinventory) {
 				if (BotTeamLeader(bs)) {
 					// tell the leader we want to be on offence
 					BotVoiceChat(bs, leader, VOICECHAT_WANTONOFFENSE);
-					//BotAI_BotInitialChat(bs, "wantoffence", NULL);
-					//trap_BotEnterChat(bs->cs, leader, CHAT_TELL);
 				} else if (g_spSkill.integer <= 3) {
 					if (bs->ltgtype != LTG_GETFLAG && bs->ltgtype != LTG_ATTACKENEMYBASE && bs->ltgtype != LTG_HARVEST) {
 						if ((gametype != GT_CTF || (bs->redflagstatus == 0 && bs->blueflagstatus == 0)) && (gametype != GT_1FCTF || bs->neutralflagstatus == 0)) {
 							// tell the leader we want to be on offence
 							BotVoiceChat(bs, leader, VOICECHAT_WANTONOFFENSE);
-							//BotAI_BotInitialChat(bs, "wantoffence", NULL);
-							//trap_BotEnterChat(bs->cs, leader, CHAT_TELL);
 						}
 					}
 				}
@@ -1993,15 +1972,11 @@ void BotCheckItemPickup(bot_state_t *bs, int *oldinventory) {
 				if (BotTeamLeader(bs)) {
 					// tell the leader we want to be on defense
 					BotVoiceChat(bs, -1, VOICECHAT_WANTONDEFENSE);
-					//BotAI_BotInitialChat(bs, "wantdefence", NULL);
-					//trap_BotEnterChat(bs->cs, leader, CHAT_TELL);
 				} else if (g_spSkill.integer <= 3) {
 					if (bs->ltgtype != LTG_DEFENDKEYAREA) {
 						if ((gametype != GT_CTF || (bs->redflagstatus == 0 && bs->blueflagstatus == 0)) && (gametype != GT_1FCTF || bs->neutralflagstatus == 0)) {
 							// tell the leader we want to be on defense
 							BotVoiceChat(bs, -1, VOICECHAT_WANTONDEFENSE);
-							//BotAI_BotInitialChat(bs, "wantdefence", NULL);
-							//trap_BotEnterChat(bs->cs, leader, CHAT_TELL);
 						}
 					}
 				}
@@ -2072,11 +2047,11 @@ void BotUpdateInventory(bot_state_t *bs) {
 	bs->inventory[INVENTORY_NEUTRALFLAG] = bs->cur_ps.powerups[PW_NEUTRALFLAG] != 0;
 
 	if (BotTeam(bs) == TEAM_RED) {
-		bs->inventory[INVENTORY_REDCUBE] = bs->cur_ps.tokens; // Tobias CHECK: aren't they reversed, everywhere?
+		bs->inventory[INVENTORY_REDCUBE] = bs->cur_ps.tokens;
 		bs->inventory[INVENTORY_BLUECUBE] = 0;
 	} else {
 		bs->inventory[INVENTORY_REDCUBE] = 0;
-		bs->inventory[INVENTORY_BLUECUBE] = bs->cur_ps.tokens; // Tobias CHECK: aren't they reversed, everywhere?
+		bs->inventory[INVENTORY_BLUECUBE] = bs->cur_ps.tokens;
 	}
 
 	bs->inventory[BOT_IS_IN_HURRY] = BotOnlyPickupImportantItems(bs);
@@ -2475,7 +2450,6 @@ bot_waypoint_t *BotCreateWayPoint(char *name, vec3_t origin, int areanum) {
 	wp = botai_freewaypoints;
 
 	if (!wp) {
-		BotAI_Print(PRT_WARNING, "BotCreateWayPoint: Out of waypoints\n");
 		return NULL;
 	}
 
@@ -2816,213 +2790,6 @@ float BotFeelingBad(bot_state_t *bs) {
 
 /*
 =======================================================================================================================================
-BotTeammateNeedsNBG
-
-NOTE: This function takes information into account a human player can't derive from his display. I justify this by assuming that an
-endangered player screams for help and tells the needed information.
-=======================================================================================================================================
-*/
-static qboolean BotTeammateNeedsNBG(const playerState_t *ps) {
-
-	// a team mate carrying a flag should be preferred
-	if (ps->powerups[PW_REDFLAG] || ps->powerups[PW_BLUEFLAG] || ps->powerups[PW_NEUTRALFLAG]) { // Tobias NOTE: add skulls!
-		return qtrue;
-	}
-	// if the team mate has the chaingun with some ammo
-	if ((ps->stats[STAT_WEAPONS] & (1 << WP_CHAINGUN)) && ps->ammo[WP_CHAINGUN] >= 50) {
-		return qfalse;
-	}
-	// if the team mate has the nailgun with some ammo
-	if ((ps->stats[STAT_WEAPONS] & (1 << WP_NAILGUN)) && ps->ammo[WP_NAILGUN] >= 5) {
-		return qfalse;
-	}
-	// if the team mate has the rocketlauncher with some ammo
-	if ((ps->stats[STAT_WEAPONS] & (1 << WP_ROCKETLAUNCHER)) && ps->ammo[WP_ROCKETLAUNCHER] >= 5) {
-		return qfalse;
-	}
-	// if the team mate has the railgun with some ammo
-	if ((ps->stats[STAT_WEAPONS] & (1 << WP_RAILGUN)) && ps->ammo[WP_RAILGUN] >= 5) {
-		return qfalse;
-	}
-	// if the team mate has the plasmagun with some ammo
-	if ((ps->stats[STAT_WEAPONS] & (1 << WP_PLASMAGUN)) && ps->ammo[WP_PLASMAGUN] >= 15) {
-		return qfalse;
-	}
-	// if the team mate has the bfg with some ammo
-	if ((ps->stats[STAT_WEAPONS] & (1 << WP_BFG)) && ps->ammo[WP_BFG] >= 5) {
-		return qfalse;
-	}
-
-	return qtrue;
-}
-
-/*
-=======================================================================================================================================
-BotAvoidItemPickup
-
-The bot leaves the item to someone else.
-=======================================================================================================================================
-*/
-static qboolean BotAvoidItemPickup(bot_state_t *bs, bot_goal_t *goal) {
-	float obtrusiveness;
-	int i;
-	gentity_t *ent;
-	playerState_t ps;
-	vec3_t dir, angles, v1;
-	aas_entityinfo_t entinfo;
-
-	if (gametype < GT_TEAM) {
-		return qfalse;
-	}
-	// always pick up items if using the gauntlet
-	if (bs->weaponnum == WP_GAUNTLET) {
-		return qfalse;
-	}
-	// always pick up items if carrying a flag or skulls
-	if (BotCTFCarryingFlag(bs) || Bot1FCTFCarryingFlag(bs) || BotHarvesterCarryingCubes(bs)) {
-		return qfalse;
-	}
-	// always pick up team items
-	if (g_entities[goal->entitynum].item->giType == IT_TEAM) {
-		return qfalse;
-	}
-
-	obtrusiveness = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_OBTRUSIVENESS, 0, 1);
-
-	for (i = 0; i < level.maxclients; i++) {
-		if (i == bs->client) {
-			continue;
-		}
-		// if on the same team
-		if (!BotSameTeam(bs, i)) {
-			continue;
-		}
-		// get the entity information
-		BotEntityInfo(i, &entinfo);
-		// if the entity information is valid
-		if (!entinfo.valid) {
-			continue;
-		}
-		// if the entity isn't the bot self
-		if (entinfo.number == bs->entitynum) {
-			continue;
-		}
-		// if the entity isn't dead
-		if (EntityIsDead(&entinfo)) {
-			continue;
-		}
-
-		ent = &g_entities[i];
-		// ignore non-moving teammates
-		if (VectorLengthSquared(ent->client->ps.velocity) <= 0) {
-			continue;
-		}
-
-		VectorSubtract(bs->origin, entinfo.origin, dir);
-		VectorToAngles(dir, angles);
-		// humans are prefered
-		if (!(ent->r.svFlags & SVF_BOT)) {
-			// ignore distant teammates
-			if (VectorLength(dir) > 650 - (500 * obtrusiveness)) {
-				continue;
-			}
-			// if the bot isn't in the fov of the teammate, ignore the teammate
-			if (!InFieldOfVision(entinfo.angles, 180, angles)) {
-				continue;
-			}
-		} else {
-			// always pick up items if using the machinegun
-			if (bs->weaponnum == WP_MACHINEGUN) { // Tobias NOTE: move this up (outside 'for')
-				continue;
-			}
-			// always pick up items if using the proxylauncher
-			if (bs->weaponnum == WP_PROXLAUNCHER) {
-				continue;
-			}
-			// ignore distant teammates
-			if (VectorLength(dir) > 500 - (400 * obtrusiveness)) {
-				continue;
-			}
-			// if the bot isn't in the fov of the teammate, ignore the teammate
-			if (!InFieldOfVision(entinfo.angles, 120, angles)) {
-				continue;
-			}
-		}
-		// always pick up health if the health is lower than the one from the team mate
-		if (g_entities[goal->entitynum].item->giType == IT_HEALTH && ent->client->ps.stats[STAT_HEALTH] > bs->inventory[INVENTORY_HEALTH]) {
-			continue;
-		}
-		// always pick up armor if the armor is lower than the one from the team mate
-		if (g_entities[goal->entitynum].item->giType == IT_ARMOR && ent->client->ps.stats[STAT_ARMOR] > bs->inventory[INVENTORY_ARMOR]) {
-			continue;
-		}
-		// always pick up holdable items if the team mate already has one
-		if (g_entities[goal->entitynum].item->giType == IT_HOLDABLE && ent->client->ps.stats[STAT_HOLDABLE_ITEM] > 0) {
-			continue;
-		}
-		// always pick up persistant powerups if the team mate already has one
-		if (g_entities[goal->entitynum].item->giType == IT_PERSISTANT_POWERUP && ent->client->ps.stats[STAT_PERSISTANT_POWERUP] > 0) {
-			continue;
-		}
-
-		if (!BotEntityVisible(&bs->cur_ps, 90, i)) {
-			if (VectorLength(dir) > 200) {
-				continue;
-			}
-		} else {
-			VectorNormalize2(ent->client->ps.velocity, v1);
-
-			if (DotProduct(v1, dir) < 0.0) {
-				continue;
-			}
-		}
-		// if the teammate is in danger
-		if (BotAI_GetClientState(i, &ps) && BotTeammateNeedsNBG(&ps)) {
-			return qtrue;
-		}
-	}
-
-	return qfalse;
-}
-
-/*
-=======================================================================================================================================
-BotAIWaiting
-=======================================================================================================================================
-*/
-qboolean BotAIWaiting(bot_state_t *bs, bot_goal_t *goal, bot_aienter_t activatedonefunc) {
-
-	// never wait if there is an enemy
-	if (bs->enemy >= 0) {
-		return qfalse;
-	}
-	// never wait when the health is decreasing
-	if (level.clients[bs->client].lasthurt_time > level.time - 1000) {
-		return qfalse;
-	}
-	// never wait when standing in lava or slime
-	if (BotInLavaOrSlime(bs)) {
-		return qfalse;
-	}
-	// never wait if the bot is in water
-	if (trap_AAS_PointContents(bs->eye) & CONTENTS_WATER) {
-		return qfalse;
-	}
-	// if the bot is waiting for a teammate to pick up items
-	if (BotAvoidItemPickup(bs, goal)) {
-		// pop the current goal from the stack
-		trap_BotPopGoal(bs->gs); // Tobias NOTE: without this we get an "goal heap overflow" error, why?
-		// reset the avoid goals and the avoid reach
-		trap_BotResetAvoidGoals(bs->gs); // Tobias NOTE: is this really needed?
-		trap_BotResetAvoidReach(bs->ms); // Tobias NOTE: is this really needed?
-		return qtrue;
-	}
-
-	return qfalse;
-}
-
-/*
-=======================================================================================================================================
 BotHasEmergencyGoal
 
 The bot is in hurry sometimes, he shouldn't pick up every single item on it's way.
@@ -3079,228 +2846,6 @@ static qboolean BotHasEmergencyGoal(bot_state_t *bs) {
 	}
 
 	return qfalse;
-}
-
-/*
-=======================================================================================================================================
-BotNearbyGoalPickupRange_NoLTG
-
-Used to determine the range for how far the bot should check for picking up items.
-Used for AI node 'BATTLE FIGHT' and AI node 'BATTLE CHASE'.
-=======================================================================================================================================
-*/
-const int BotNearbyGoalPickupRange_NoLTG(bot_state_t *bs) {
-	float selfpreservation, nbg_multiplier;
-	int range;
-	aas_entityinfo_t entinfo;
-	vec3_t dir, angles;
-
-	selfpreservation = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_SELFPRESERVATION, 0, 1);
-	nbg_multiplier = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_GOAL_MULTIPLIER, 0, 100);
-	// default range
-	range = 100;
-	// current enemy
-	if (bs->enemy >= 0) {
-		// get the entity information
-		BotEntityInfo(bs->enemy, &entinfo);
-		// if the entity information is valid
-		if (entinfo.valid) {
-			// if the bot is using the gauntlet
-			if (bs->weaponnum == WP_GAUNTLET) {
-				// if the enemy is near enough, check if we can attack the enemy from behind
-				if (bs->inventory[ENEMY_HORIZONTAL_DIST] < 200) {
-					VectorSubtract(bs->origin, entinfo.origin, dir);
-					VectorToAngles(dir, angles);
-					// if not in the enemy's field of vision, attack!
-					if (!InFieldOfVision(entinfo.angles, 180, angles)) {
-						return 10;
-					}
-				}
-			}
-			// if the bot is out for revenge
-			if (bs->enemy == bs->revenge_enemy && bs->revenge_kills > 0) {
-				range -= 20;
-			}
-		}
-	}
-	// if the bot is using the gauntlet
-	if (bs->weaponnum == WP_GAUNTLET) {
-		return 300;
-	}
-	// if the bot has the quad damage powerup
-	if (bs->inventory[INVENTORY_QUAD]) {
-		range -= 50;
-	}
-	// if the bot has the invisibility powerup
-	if (bs->inventory[INVENTORY_INVISIBILITY]) {
-		range -= 50;
-	}
-	// if the bot has the doubler powerup
-	if (bs->inventory[INVENTORY_DOUBLER]) {
-		range -= 50;
-	}
-	// if the bot has the scout powerup
-	if (bs->inventory[INVENTORY_SCOUT]) {
-		range += 50;
-	}
-	// if the bot can use the machine gun
-	if (bs->inventory[INVENTORY_MACHINEGUN] > 0 && bs->inventory[INVENTORY_BULLETS] > 40) {
-		range -= 10;
-	}
-	// if the bot can use the chain gun
-	if (bs->inventory[INVENTORY_CHAINGUN] > 0 && bs->inventory[INVENTORY_BELT] > 50) {
-		range -= 50;
-	}
-		// if the bot can use the shot gun
-	if (bs->inventory[INVENTORY_SHOTGUN] > 0 && bs->inventory[INVENTORY_SHELLS] > 5) {
-		range -= 10;
-	}
-	// if the bot can use the nail gun
-	if (bs->inventory[INVENTORY_NAILGUN] > 0 && bs->inventory[INVENTORY_NAILS] > 5) {
-		range -= 10;
-	}
-	// if the bot can use the rocket launcher
-	if (bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 5) {
-		range -= 10;
-	}
-	// if the bot can use the beam gun
-	if (bs->inventory[INVENTORY_BEAMGUN] > 0 && bs->inventory[INVENTORY_BEAMGUN_AMMO] > 50) {
-		range -= 10;
-	}
-	// if the bot can use the railgun
-	if (bs->inventory[INVENTORY_RAILGUN] > 0 && bs->inventory[INVENTORY_SLUGS] > 3) {
-		range -= 50;
-	}
-	// if the bot can use the plasma gun
-	if (bs->inventory[INVENTORY_PLASMAGUN] > 0 && bs->inventory[INVENTORY_CELLS] > 40) {
-		range -= 10;
-	}
-	// if the bot can use the bfg
-	if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFG_AMMO] > 5) {
-		range -= 10;
-	}
-	// if the bot is low on health
-	if (selfpreservation < 0.9) {
-		range -= bs->inventory[INVENTORY_HEALTH];
-	}
-	// if the bot accompanies someone
-	if (bs->ltgtype == LTG_TEAMACCOMPANY && !BotTeamFlagCarrierVisible(bs)) {
-		range *= 4;
-		// if the team mate isn't visible for quite some time
-		if (bs->teammatevisible_time < FloatTime() - 5) {
-			range *= 0.25;
-		}
-	}
-
-	range *= nbg_multiplier;
-	// just for safety sake
-	if (range < 10) {
-		range = 10;
-	}
-
-	return (int)range;
-}
-
-/*
-=======================================================================================================================================
-BotNearbyGoalPickupRange_LTG
-
-Used to determine the range for how far the bot should check for picking up items.
-Used for AI node 'SEEK LTG' and AI node 'BATTLE RETREAT'.
-=======================================================================================================================================
-*/
-const int BotNearbyGoalPickupRange_LTG(bot_state_t *bs) {
-	float selfpreservation, nbg_multiplier;
-	int range;
-
-	selfpreservation = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_SELFPRESERVATION, 0, 1);
-	nbg_multiplier = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_GOAL_MULTIPLIER, 0, 100);
-	// Tobias NOTE: this represents the old behaviour (FIXME: remove this?)
-	// if the bot is carrying a flag or cubes and should rush to base as fast as possible
-	if (BotHasEmergencyGoal(bs)) {
-		return 50;
-	} else if (bs->ltgtype == LTG_DEFENDKEYAREA) {
-		return 400;
-	} else {
-		range = 200;
-	}
-	// Tobias END
-	// if the bot is using the gauntlet
-	if (bs->weaponnum == WP_GAUNTLET) {
-		return 300;
-	}
-	// if the bot has the quad damage powerup
-	if (bs->inventory[INVENTORY_QUAD]) {
-		range -= 50;
-	}
-	// if the bot has the invisibility powerup
-	if (bs->inventory[INVENTORY_INVISIBILITY]) {
-		range -= 50;
-	}
-	// if the bot has the doubler powerup
-	if (bs->inventory[INVENTORY_DOUBLER]) {
-		range -= 50;
-	}
-	// if the bot has the scout powerup
-	if (bs->inventory[INVENTORY_SCOUT]) {
-		range += 50;
-	}
-	// if the bot can use the machine gun
-	if (bs->inventory[INVENTORY_MACHINEGUN] > 0 && bs->inventory[INVENTORY_BULLETS] > 40) {
-		range -= 10;
-	}
-	// if the bot can use the chain gun
-	if (bs->inventory[INVENTORY_CHAINGUN] > 0 && bs->inventory[INVENTORY_BELT] > 50) {
-		range -= 50;
-	}
-		// if the bot can use the shot gun
-	if (bs->inventory[INVENTORY_SHOTGUN] > 0 && bs->inventory[INVENTORY_SHELLS] > 5) {
-		range -= 10;
-	}
-	// if the bot can use the nail gun
-	if (bs->inventory[INVENTORY_NAILGUN] > 0 && bs->inventory[INVENTORY_NAILS] > 5) {
-		range -= 10;
-	}
-	// if the bot can use the rocket launcher
-	if (bs->inventory[INVENTORY_ROCKETLAUNCHER] > 0 && bs->inventory[INVENTORY_ROCKETS] > 5) {
-		range -= 10;
-	}
-	// if the bot can use the beam gun
-	if (bs->inventory[INVENTORY_BEAMGUN] > 0 && bs->inventory[INVENTORY_BEAMGUN_AMMO] > 50) {
-		range -= 10;
-	}
-	// if the bot can use the railgun
-	if (bs->inventory[INVENTORY_RAILGUN] > 0 && bs->inventory[INVENTORY_SLUGS] > 3) {
-		range -= 50;
-	}
-	// if the bot can use the plasma gun
-	if (bs->inventory[INVENTORY_PLASMAGUN] > 0 && bs->inventory[INVENTORY_CELLS] > 40) {
-		range -= 10;
-	}
-	// if the bot can use the bfg
-	if (bs->inventory[INVENTORY_BFG10K] > 0 && bs->inventory[INVENTORY_BFG_AMMO] > 5) {
-		range -= 10;
-	}
-	// if the bot is low on health
-	if (selfpreservation < 0.9) {
-		range -= bs->inventory[INVENTORY_HEALTH];
-	}
-	// if the bot accompanies someone
-	if (bs->ltgtype == LTG_TEAMACCOMPANY && !BotTeamFlagCarrierVisible(bs)) {
-		range *= 2;
-		// if the team mate isn't visible for quite some time
-		if (bs->teammatevisible_time < FloatTime() - 5) {
-			range *= 0.5;
-		}
-	}
-
-	range *= nbg_multiplier;
-	// just for safety sake
-	if (range < 10) {
-		range = 10;
-	}
-
-	return (int)range;
 }
 
 /*
@@ -4486,7 +4031,7 @@ const int BotFindEnemy(bot_state_t *bs, int curenemy) {
 			// if the bot already has an enemy, compare both enemies
 			if (curenemy >= 0) {
 				// if this enemy is not too far away, is carrying no flags or skulls, and the bot has a precise weapon
-				if (enemypreference > 0.6 && squaredist < Square(700) && BotUsesMidRangeWeapon(bs) && !BotCTFCarryingFlag(bs) && !BotHarvesterCarryingCubes(bs)/* && bs->lasthealth - 40 > g_entities[curenemy].health*/) { // Tobias NOTE: care must be taken -> BEAMGUN range!
+				if (enemypreference > 0.6 && squaredist < Square(700) && BotUsesMidRangeWeapon(bs) && !BotCTFCarryingFlag(bs) && !BotHarvesterCarryingCubes(bs)) {
 					// if the current enemy is lower on health than this one
 					if (g_entities[i].health > g_entities[curenemy].health + 20) {
 						continue;
@@ -7772,7 +7317,6 @@ void BotSetupDeathmatchAI(void) {
 	trap_Cvar_Register(&bot_challenge, "bot_challenge", "0", 0);
 	trap_Cvar_Register(&bot_predictobstacles, "bot_predictobstacles", "1", 0);
 	trap_Cvar_Register(&bot_visualrange, "bot_visualrange", "100000", 0);
-	trap_Cvar_Register(&bot_checktime, "bot_checktime", "0.00001", 0);
 	trap_Cvar_Register(&bot_equalize, "bot_equalize", "1", 0);
 	trap_Cvar_Register(&bot_equalizer_aim, "bot_equalizer_aim", "0.75", 0);
 	trap_Cvar_Register(&bot_equalizer_react, "bot_equalizer_react", "0.55", 0);

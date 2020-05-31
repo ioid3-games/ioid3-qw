@@ -189,7 +189,7 @@ int BotNearbyGoal(bot_state_t *bs, int tfl, bot_goal_t *ltg, float range) {
 		return qtrue;
 	}
 	// if doing something important the bot shouldn't be distracted too much
-	if (BotCTFCarryingFlag(bs) || Bot1FCTFCarryingFlag(bs) || BotHarvesterCarryingCubes(bs)) {
+	if (BotOnlyPickupImportantItems(bs)) {
 		// if the bot is just a few secs away from team goal area number
 		if (trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin, bs->teamgoal.areanum, TFL_DEFAULT) < 300) {
 			// make the range really small
