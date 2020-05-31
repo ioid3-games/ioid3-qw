@@ -38,8 +38,9 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define MFL_WATERJUMP		0x00000004 // bot is waterjumping
 #define MFL_SWIMMING		0x00000008 // bot is swimming
 #define MFL_AGAINSTLADDER	0x00000010 // bot is against a ladder
-#define MFL_WALK			0x00000020 // bot should walk slowly
-#define MFL_TELEPORTED		0x00000040 // bot is being teleported
+#define MFL_SCOUT			0x00000020 // bot is using the scout powerup
+#define MFL_WALK			0x00000040 // bot should walk slowly
+#define MFL_TELEPORTED		0x00000080 // bot is being teleported
 // move result flags
 #define MOVERESULT_MOVEMENTVIEW			0x00000001 // bot uses view for movement
 #define MOVERESULT_MOVEMENTVIEWSET		0x00000002 // bot has set the view in movement code
@@ -50,6 +51,9 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define MOVERESULT_ONTOPOF_OBSTACLE		0x00000040 // bot is ontop of obstacle
 #define MOVERESULT_ONTOPOF_FUNCBOB		0x00000080 // bot is ontop of a func_bobbing
 #define MOVERESULT_ONTOPOF_ELEVATOR		0x00000100 // bot is ontop of an elevator (func_plat)
+#define MOVERESULT_BARRIER_JUMP			0x00000200
+#define MOVERESULT_BARRIER_CROUCH		0x00000400
+#define MOVERESULT_FUTUREVIEW			0x00000800 // if we want to look ahead of time, this is a good direction
 
 #define MAX_AVOIDREACH 1
 #define MAX_AVOIDSPOTS 32
@@ -62,7 +66,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define RESULTTYPE_WAITFORFUNCBOBBING	0x00000002 // waiting for func_bobbing to arrive
 #define RESULTTYPE_INSOLIDAREA			0x00000004 // stuck in solid area, this is bad
 // structure used to initialize the movement state
-// the or_moveflags MFL_ONGROUND, MFL_WATERJUMP and MFL_TELEPORTED come from the playerstate
+// the or_moveflags MFL_ONGROUND, MFL_WATERJUMP, MFL_SCOUT and MFL_TELEPORTED come from the playerstate
 typedef struct bot_initmove_s {
 	vec3_t origin;		// origin of the bot
 	vec3_t velocity;	// velocity of the bot

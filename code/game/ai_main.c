@@ -69,7 +69,22 @@ vmCvar_t bot_interbreedchar;
 vmCvar_t bot_interbreedbots;
 vmCvar_t bot_interbreedcycle;
 vmCvar_t bot_interbreedwrite;
+vmCvar_t bot_visualrange;
+vmCvar_t bot_checktime;
 
+vmCvar_t bot_equalize;
+vmCvar_t bot_equalizer_aim;
+vmCvar_t bot_equalizer_react;
+vmCvar_t bot_equalizer_fembon;
+vmCvar_t bot_equalizer_teambon;
+vmCvar_t bot_noshoot;
+vmCvar_t bot_nowalk;
+vmCvar_t bot_shownodechanges;
+vmCvar_t bot_teambluestrategy;
+vmCvar_t bot_teamredstrategy;
+vmCvar_t bot_alt_aggressive;
+vmCvar_t bot_alt_attack;
+vmCvar_t bot_alt_pickup;
 void ExitLevel(void);
 
 /*

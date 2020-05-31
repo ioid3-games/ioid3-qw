@@ -40,6 +40,10 @@ void BotUpdateInventory(bot_state_t *bs);
 void BotUpdateBattleInventory(bot_state_t *bs, int enemy);
 // use holdable items during battle
 void BotBattleUseItems(bot_state_t *bs);
+// get the range for picking up items when the bot is involved in fighting
+const int BotNearbyGoalPickupRange_NoLTG(bot_state_t *bs);
+// get the range for picking up items when the bot is going for his long term goal
+const int BotNearbyGoalPickupRange_LTG(bot_state_t *bs);
 // return true if the bot is dead
 qboolean BotIsDead(bot_state_t *bs);
 // returns true if the bot is in observer mode
@@ -64,8 +68,6 @@ void BotSetTeamStatus(bot_state_t *bs);
 char *ClientName(int client, char *name, int size);
 // returns a simplified client name
 char *EasyClientName(int client, char *name, int size);
-// returns the skin used by the client
-char *ClientSkin(int client, char *skin, int size);
 // returns the appropriate synonym context for the current game type and situation
 int BotSynonymContext(bot_state_t *bs);
 // set last ordered task
@@ -75,17 +77,23 @@ void BotCheckTeamScores(bot_state_t *bs);
 // selection of goals for teamplay
 void BotTeamGoals(bot_state_t *bs, int retreat);
 // returns the aggression of the bot in the range [0, 100]
-float BotAggression(bot_state_t *bs);
+const int BotAggression(bot_state_t *bs);
 // returns how bad the bot feels
 float BotFeelingBad(bot_state_t *bs);
+// the bot should NOT walk further, he should wait for a specific period of time
+qboolean BotAIWaiting(bot_state_t *bs, bot_goal_t *goal, bot_aienter_t activatedonefunc);
+// returns true if the bot is in hurry and should only pick up useful items
+qboolean BotOnlyPickupImportantItems(bot_state_t *bs);
 // returns true if the bot wants to retreat
-int BotWantsToRetreat(bot_state_t *bs);
+const int BotWantsToRetreat(bot_state_t *bs);
 // returns true if the bot wants to chase
-int BotWantsToChase(bot_state_t *bs);
+const int BotWantsToChase(bot_state_t *bs);
 // returns true if the bot wants to help
 int BotWantsToHelp(bot_state_t *bs);
 // returns true if the bot can and wants to rocketjump
 int BotCanAndWantsToRocketJump(bot_state_t *bs);
+// returns true if the bot has the scout powerup
+int BotHasScout(bot_state_t *bs);
 // returns true if the bot has a persistant powerup and a weapon
 int BotHasPersistantPowerupAndWeapon(bot_state_t *bs);
 // returns true if the bot wants to and goes camping
@@ -104,24 +112,29 @@ int BotTeamFlagCarrier(bot_state_t *bs);
 int BotTeamFlagCarrierVisible(bot_state_t *bs);
 // returns visible enemy flag carrier if available
 int BotEnemyFlagCarrierVisible(bot_state_t *bs);
+// get the number of all teammates inside a specific range, regardless if they are visible or not
+int BotCountAllTeamMates(bot_state_t *bs, float range);
 // get the number of visible teammates and enemies
-void BotVisibleTeamMatesAndEnemies(bot_state_t *bs, int *teammates, int *enemies, float range);
+void BotCountVisibleTeamMatesAndEnemies(bot_state_t *bs, int *teammates, int *enemies, float range);
+// get the number of visible enemies
+void BotCountVisibleEnemies(bot_state_t *bs, int *enemies, float range);
 // returns true if within the field of vision for the given angles
-qboolean InFieldOfVision(vec3_t viewangles, float fov, vec3_t angles);
+qboolean InFieldOfVision(vec3_t viewangles, int fov, vec3_t angles);
 // returns true and sets the .enemy field when an enemy is found
-int BotFindEnemy(bot_state_t *bs, int curenemy);
+const int BotFindEnemy(bot_state_t *bs, int curenemy);
 // returns a roam goal
 void BotRoamGoal(bot_state_t *bs, vec3_t goal);
 // returns entity visibility in the range [0, 1]
-float BotEntityVisible(int viewer, vec3_t eye, vec3_t viewangles, float fov, int ent);
+qboolean BotEntityVisible(playerState_t *ps, float fov, int ent);
 // the bot will aim at the current enemy
 void BotAimAtEnemy(bot_state_t *bs);
+void BotAimAtEnemy_Alt(bot_state_t *bs); // Tobias DEBUG
 // check if the bot should attack
 void BotCheckAttack(bot_state_t *bs);
 // AI when the bot is blocked
-void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate);
+void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, bot_aienter_t activatedonefunc);
 // AI to predict obstacles
-int BotAIPredictObstacles(bot_state_t *bs, bot_goal_t *goal);
+int BotAIPredictObstacles(bot_state_t *bs, bot_goal_t *goal, bot_aienter_t activatedonefunc);
 // enable or disable the areas the blocking entity is in
 void BotEnableActivateGoalAreas(bot_activategoal_t *activategoal, int enable);
 // pop an activate goal from the stack
@@ -176,12 +189,6 @@ void BotMapScripts(bot_state_t *bs);
 
 extern int gametype;	// game type
 extern int maxclients;	// maximum number of clients
-
-extern vmCvar_t bot_rocketjump;
-extern vmCvar_t bot_fastchat;
-extern vmCvar_t bot_nochat;
-extern vmCvar_t bot_testrchat;
-extern vmCvar_t bot_challenge;
 
 extern bot_goal_t ctf_redflag;
 extern bot_goal_t ctf_blueflag;
