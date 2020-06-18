@@ -1,4 +1,3 @@
-// hud menu defs
 {
 	loadMenu { "ui/min_hud.menu"}
 	loadMenu { "ui/score.menu"}

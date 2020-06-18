@@ -130,15 +130,14 @@ Temporary marks will not be stored or randomly oriented, but immediately passed 
 =======================================================================================================================================
 */
 void CG_ImpactMark(qhandle_t markShader, const vec3_t origin, const vec3_t dir, float orientation, float red, float green, float blue, float alpha, qboolean alphaFade, float markRadius, qboolean temporary) {
-	vec3_t axis[3];
-	float texCoordScale;
-	vec3_t originalPoints[4];
-	byte colors[4];
-	int i, j;
-	int numFragments;
+	vec3_t axis[3], originalPoints[4], markPoints[MAX_MARK_POINTS], projection, delta;
 	markFragment_t markFragments[MAX_MARK_FRAGMENTS], *mf;
-	vec3_t markPoints[MAX_MARK_POINTS];
-	vec3_t projection;
+	markPoly_t *mark;
+	polyVert_t verts[MAX_VERTS_ON_POLY];
+	polyVert_t *v;
+	float texCoordScale;
+	byte colors[4];
+	int i, j, numFragments;
 
 	if (!cg_addMarks.integer) {
 		return;
@@ -176,11 +175,6 @@ void CG_ImpactMark(qhandle_t markShader, const vec3_t origin, const vec3_t dir, 
 	colors[3] = alpha * 255;
 
 	for (i = 0, mf = markFragments; i < numFragments; i++, mf++) {
-		polyVert_t *v;
-		polyVert_t verts[MAX_VERTS_ON_POLY];
-		markPoly_t *mark;
-		vec3_t delta;
-
 		// we have an upper limit on the complexity of polygons that we store persistantly
 		if (mf->numPoints > MAX_VERTS_ON_POLY) {
 			mf->numPoints = MAX_VERTS_ON_POLY;
@@ -222,10 +216,8 @@ CG_AddMarks
 =======================================================================================================================================
 */
 void CG_AddMarks(void) {
-	int j;
+	int j, t, fade;
 	markPoly_t *mp, *next;
-	int t;
-	int fade;
 
 	if (!cg_addMarks.integer) {
 		return;

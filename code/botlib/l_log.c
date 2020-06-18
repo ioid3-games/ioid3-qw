@@ -77,6 +77,7 @@ void Log_Open(char *filename) {
 	}
 
 	Q_strncpyz(logfile.filename, filename, MAX_LOGFILENAMESIZE);
+
 	botimport.Print(PRT_MESSAGE, "Opened log %s\n", logfile.filename);
 }
 

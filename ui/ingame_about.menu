@@ -202,7 +202,11 @@
 			style 0
 			text "Capture Limit:"
 			cvarTest "G_GAMETYPE"
-			hideCvar {"0"; "1"; "2"; "3"}
+
+			hideCvar {
+				"0"; "1"; "2"; "3"
+			}
+
 			maxPaintChars 12
 			cvar capturelimit
 			textalign ITEM_ALIGN_RIGHT
@@ -221,7 +225,11 @@
 			style 0
 			text "Frag Limit:"
 			cvarTest "G_GAMETYPE"
-			showCvar {"0"; "1"; "2"; "3"}
+
+			showCvar {
+				"0"; "1"; "2"; "3"
+			}
+
 			maxPaintChars 12
 			cvar fraglimit
 			textalign ITEM_ALIGN_RIGHT
@@ -389,7 +397,7 @@
 			type 4
 			style 0
 			text "Version:"
-			cvar version 
+			cvar version
 			maxPaintChars 32
 			textalign ITEM_ALIGN_LEFT
 			textalignx 128

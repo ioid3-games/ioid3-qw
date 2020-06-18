@@ -225,7 +225,6 @@
 			type ITEM_TYPE_EDITFIELD
 			text "GL Driver:"
 			cvar "r_gldriver"
-			//cvarFloatList {}
 			rect 0 70 256 20
 			textalign ITEM_ALIGN_RIGHT
 			textalignx 133
@@ -591,7 +590,6 @@
 			type ITEM_TYPE_SLIDER
 			text "Screen Size:"
 			cvarfloat "cg_viewsize" 100 30 100
-			//cvarFloatList {}
 			rect 0 85 256 20
 			textalign ITEM_ALIGN_RIGHT
 			textalignx 128

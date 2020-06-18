@@ -344,7 +344,9 @@
 			cvar "ui_dedicated"
 
 			cvarFloatList {
-				"No" 0 "LAN" 1 "Internet" 2
+				"No" 0
+				"LAN" 1
+				"Internet" 2
 			}
 
 			rect 260 128 128 12

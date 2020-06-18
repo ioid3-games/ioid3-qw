@@ -37,7 +37,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define SB_INTER_HEIGHT 16 // interleaved height
 #define SB_MAXCLIENTS_NORMAL ((SB_STATUSBAR - SB_TOP) / SB_NORMAL_HEIGHT)
 #define SB_MAXCLIENTS_INTER ((SB_STATUSBAR - SB_TOP) / SB_INTER_HEIGHT - 1)
-// Used when interleaved
+// used when interleaved
 #define SB_LEFT_BOTICON_X (SCOREBOARD_X + 0)
 #define SB_LEFT_HEAD_X (SCOREBOARD_X + 32)
 #define SB_RIGHT_BOTICON_X (SCOREBOARD_X + 64)
@@ -134,6 +134,7 @@ static void CG_DrawClientScore(int y, score_t *score, float *color, float fade, 
 	}
 	// draw the face
 	VectorClear(headAngles);
+
 	headAngles[YAW] = 180;
 
 	if (largeFormat) {
@@ -339,7 +340,7 @@ qboolean CG_DrawOldScoreboard(void) {
 	CG_DrawPic(SB_NAME_X - (SB_RATING_WIDTH / 2), y, 64, 32, cgs.media.scoreboardName);
 
 	y = SB_TOP;
-	// If there are more than SB_MAXCLIENTS_NORMAL, use the interleaved scores
+	// if there are more than SB_MAXCLIENTS_NORMAL, use the interleaved scores
 	if (cg.numScores > SB_MAXCLIENTS_NORMAL) {
 		maxClients = SB_MAXCLIENTS_INTER;
 		lineHeight = SB_INTER_HEIGHT;

@@ -2192,7 +2192,6 @@ static void UI_BuildPlayerList(void) {
 
 	uiInfo.playerNumber = cs.clientNum;
 	uiInfo.teamLeader = atoi(Info_ValueForKey(info, "tl"));
-
 	team = atoi(Info_ValueForKey(info, "t"));
 
 	trap_GetConfigString(CS_SERVERINFO, info, sizeof(info));
