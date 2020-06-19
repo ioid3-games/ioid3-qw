@@ -196,6 +196,7 @@ int AAS_OnGround(vec3_t origin, int presencetype, int passent) {
 	aas_trace_t trace;
 	vec3_t end, up = {0, 0, 1};
 	aas_plane_t *plane;
+	float phys_maxsteepness;
 
 	VectorCopy(origin, end);
 
@@ -216,8 +217,9 @@ int AAS_OnGround(vec3_t origin, int presencetype, int passent) {
 	}
 	// check if the plane isn't too steep
 	plane = AAS_PlaneFromNum(trace.planenum);
+	phys_maxsteepness = aassettings.phys_maxsteepness;
 
-	if (DotProduct(plane->normal, up) < aassettings.phys_maxsteepness) {
+	if (DotProduct(plane->normal, up) < phys_maxsteepness) {
 		return qfalse;
 	}
 	// the bot is on the ground
@@ -243,27 +245,6 @@ int AAS_Swimming(vec3_t origin) {
 	}
 
 	return qfalse;
-}
-
-static vec3_t VEC_UP = {0, -1, 0};
-static vec3_t MOVEDIR_UP = {0, 0, 1};
-static vec3_t VEC_DOWN = {0, -2, 0};
-static vec3_t MOVEDIR_DOWN = {0, 0, -1};
-
-/*
-=======================================================================================================================================
-AAS_SetMovedir
-=======================================================================================================================================
-*/
-void AAS_SetMovedir(vec3_t angles, vec3_t movedir) {
-
-	if (VectorCompare(angles, VEC_UP)) {
-		VectorCopy(MOVEDIR_UP, movedir);
-	} else if (VectorCompare(angles, VEC_DOWN)) {
-		VectorCopy(MOVEDIR_DOWN, movedir);
-	} else {
-		AngleVectors(angles, movedir, NULL, NULL);
-	}
 }
 
 /*
@@ -304,7 +285,7 @@ Returns the Z velocity when rocket jumping at the origin.
 */
 float AAS_WeaponJumpZVelocity(vec3_t origin, float radiusdamage) {
 	vec3_t kvel, v, start, end, forward, right, viewangles, dir;
-	float mass, knockback, points;
+	float mass, knockback, points, phys_jumpvel;
 	vec3_t rocketoffset = {8, 8, -8};
 	vec3_t botmins = {-16, -16, -24};
 	vec3_t botmaxs = {16, 16, 32};
@@ -338,8 +319,6 @@ float AAS_WeaponJumpZVelocity(vec3_t origin, float radiusdamage) {
 	if (points < 0) {
 		points = 0;
 	}
-	// the owner of the rocket gets half the damage
-	points *= 0.5;
 	// mass of the bot (g_client.c: PutClientInServer)
 	mass = 200;
 	// knockback is the same as the damage points
@@ -350,7 +329,8 @@ float AAS_WeaponJumpZVelocity(vec3_t origin, float radiusdamage) {
 	// damage velocity
 	VectorScale(dir, 1600.0 * (float)knockback / mass, kvel); // the rocket jump hack...
 	// rocket impact velocity + jump velocity
-	return kvel[2] + aassettings.phys_jumpvel;
+	phys_jumpvel = aassettings.phys_jumpvel;
+	return kvel[2] + phys_jumpvel;
 }
 
 /*
@@ -538,7 +518,7 @@ int AAS_ClientMovementPrediction(struct aas_clientmove_s *move, int entnum, vec3
 	float phys_watergravity;
 	float phys_walkaccelerate, phys_airaccelerate, phys_swimaccelerate;
 	float phys_maxwalkvelocity, phys_maxcrouchvelocity, phys_maxswimvelocity;
-	float phys_maxstep, phys_maxsteepness, phys_jumpvel, friction;
+	float phys_maxstep, phys_maxsteepness, phys_maxbarrier, phys_jumpvel, friction;
 	float gravity, delta, maxvel, wishspeed, accelerate;
 	//float velchange, newvel;
 	//int ax;
@@ -569,6 +549,7 @@ int AAS_ClientMovementPrediction(struct aas_clientmove_s *move, int entnum, vec3
 	phys_swimaccelerate = aassettings.phys_swimaccelerate;
 	phys_maxstep = aassettings.phys_maxstep;
 	phys_maxsteepness = aassettings.phys_maxsteepness;
+	phys_maxbarrier = aassettings.phys_maxbarrier;
 	phys_jumpvel = aassettings.phys_jumpvel * frametime;
 
 	Com_Memset(move, 0, sizeof(aas_clientmove_t));
@@ -987,7 +968,7 @@ int AAS_ClientMovementPrediction(struct aas_clientmove_s *move, int entnum, vec3
 			VectorCopy(org, start);
 			VectorCopy(start, end);
 
-			end[2] -= 48 + aassettings.phys_maxbarrier;
+			end[2] -= 48 + phys_maxbarrier;
 			gaptrace = AAS_TraceClientBBox(start, end, PRESENCE_CROUCH, -1);
 			// if solid is found the bot cannot walk any further and will not fall into a gap
 			if (!gaptrace.startsolid) {

@@ -372,6 +372,10 @@ int BotVisibleEnemies(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
+		// if on the same team
+		if (BotSameTeam(bs, i)) {
+			continue;
+		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if the entity information is valid
@@ -384,10 +388,6 @@ int BotVisibleEnemies(bot_state_t *bs) {
 		}
 		// if the enemy is invisible and not shooting
 		if (EntityIsInvisible(&entinfo) && !EntityIsShooting(&entinfo)) {
-			continue;
-		}
-		// if on the same team
-		if (BotSameTeam(bs, i)) {
 			continue;
 		}
 		// check if the enemy is visible

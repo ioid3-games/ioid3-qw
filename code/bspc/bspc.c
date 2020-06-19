@@ -734,7 +734,6 @@ int main (int argc, char **argv)
 			"   forcesidesvisible                    = force all sides to be visible\n"
 			"   grapplereach                         = calculate grapple reachabilities\n"
 #endif
-
 /*			"   noweld     = disables weld\n"
 			"   noshare    = disables sharing\n"
 			"   notjunc    = disables juncs\n"

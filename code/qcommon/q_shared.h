@@ -49,7 +49,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define LEGACY_MASTER_GAMENAME		"Quake3Arena"
 #define LEGACY_HEARTBEAT_FOR_MASTER	"QuakeArena-1"
 #ifndef PRODUCT_VERSION
-#define PRODUCT_VERSION				"1.00"
+#define PRODUCT_VERSION				"0.01"
 #endif
 #ifndef PRODUCT_DATE
 #define PRODUCT_DATE __DATE__
@@ -642,6 +642,7 @@ void VectorToAngles(const vec3_t value1, vec3_t angles);
 void AnglesToAxis(const vec3_t angles, vec3_t axis[3]);
 void AxisClear(vec3_t axis[3]);
 void AxisCopy(vec3_t in[3], vec3_t out[3]);
+void SetMovedir(vec3_t angles, vec3_t movedir);
 void SetPlaneSignbits(struct cplane_s *out);
 int BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, struct cplane_s *plane);
 qboolean BoundsIntersect(const vec3_t mins, const vec3_t maxs, const vec3_t mins2, const vec3_t maxs2);
@@ -649,6 +650,7 @@ qboolean BoundsIntersectSphere(const vec3_t mins, const vec3_t maxs, const vec3_
 qboolean BoundsIntersectPoint(const vec3_t mins, const vec3_t maxs, const vec3_t origin);
 float AngleMod(float a);
 float LerpAngle(float from, float to, float frac);
+float AngleDifference(float ang1, float ang2);
 float AngleSubtract(float a1, float a2);
 void AnglesSubtract(vec3_t v1, vec3_t v2, vec3_t v3);
 float AngleNormalize360(float angle);
@@ -1060,7 +1062,7 @@ typedef struct usercmd_s {
 	signed char forwardmove, rightmove, upmove;
 } usercmd_t;
 
-#define SCOUT_SPEED_SCALE 1.5
+#define SCOUT_SPEED_SCALE 1.5f
 // if entityState->solid == SOLID_BMODEL, modelindex is an inline model number
 #define SOLID_BMODEL 0xffffff
 

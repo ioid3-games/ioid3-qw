@@ -443,6 +443,10 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 						}
 					}
 				}
+				// don't crouch when swimming
+				if (trap_AAS_Swimming(bs->origin)) {
+					bs->crouch_time = FloatTime() - 1;
+				}
 				// check if the bot wants to crouch, don't crouch if crouched less than 5 seconds ago
 				if (bs->crouch_time < FloatTime() - 5) {
 					croucher = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CROUCHER, 0, 1);
@@ -450,10 +454,6 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 					if (random() < bs->thinktime * croucher) {
 						bs->crouch_time = FloatTime() + 5 + croucher * 15;
 					}
-				}
-				// don't crouch when swimming
-				if (trap_AAS_Swimming(bs->origin)) {
-					bs->crouch_time = FloatTime() - 1;
 				}
 				// if not arrived yet or arived some time ago
 				if (bs->arrive_time < FloatTime() - 2) {
@@ -669,6 +669,10 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				VectorToAngles(dir, bs->ideal_viewangles);
 				bs->ideal_viewangles[2] *= 0.5;
 			}
+			// don't crouch when swimming
+			if (trap_AAS_Swimming(bs->origin)) {
+				bs->crouch_time = FloatTime() - 1;
+			}
 			// check if the bot wants to crouch, don't crouch if crouched less than 5 seconds ago
 			if (bs->crouch_time < FloatTime() - 5) {
 				croucher = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CROUCHER, 0, 1);
@@ -680,10 +684,6 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			// if the bot wants to crouch
 			if (bs->crouch_time > FloatTime()) {
 				trap_EA_Crouch(bs->client);
-			}
-			// don't crouch when swimming
-			if (trap_AAS_Swimming(bs->origin)) {
-				bs->crouch_time = FloatTime() - 1;
 			}
 			// make sure the bot is not gonna drown
 			if (trap_PointContents(bs->eye, bs->entitynum) & (CONTENTS_WATER|CONTENTS_SLIME|CONTENTS_LAVA)) {
@@ -2125,9 +2125,7 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	}
 	// if there is another better enemy
 	if (BotFindEnemy(bs, bs->enemy)) {
-#ifdef DEBUG
-		BotAI_Print(PRT_MESSAGE, "AINode_Battle_Fight: found new better enemy.\n");
-#endif
+
 	}
 	// if no enemy
 	if (bs->enemy < 0) {
@@ -2202,7 +2200,7 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 			return qfalse;
 		}
 	}
-	// if the enemy is not visible
+	// if the enemy is NOT visible
 	if (!BotEntityVisible(bs->entitynum, bs->eye, bs->viewangles, 360, bs->enemy)) {
 		if (bs->enemy == redobelisk.entitynum || bs->enemy == blueobelisk.entitynum) {
 			AIEnter_Battle_Chase(bs, "BATTLE FIGHT: obelisk out of sight.");

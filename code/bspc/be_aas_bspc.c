@@ -102,9 +102,10 @@ void AAS_ClearShownDebugLines(void)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-qboolean BotImport_GetEntityToken( int *offset, char *buffer, int size ) {
-	return CM_GetEntityToken( offset, buffer, size );
-} //end of the function BotImport_GetEntityToken
+char *BotImport_BSPEntityData(void)
+{
+	return CM_EntityString();
+} //end of the function AAS_GetEntityData
 //===========================================================================
 //
 // Parameter:				-
@@ -113,7 +114,7 @@ qboolean BotImport_GetEntityToken( int *offset, char *buffer, int size ) {
 //===========================================================================
 void BotImport_Trace(bsp_trace_t *bsptrace, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask)
 {
-	CM_BoxTrace(bsptrace, start, end, mins, maxs, worldmodel, contentmask, capsule_collision ? TT_CAPSULE : TT_AABB);
+	CM_BoxTrace(bsptrace, start, end, mins, maxs, worldmodel, contentmask, qfalse);
 } //end of the function BotImport_Trace
 //===========================================================================
 //
@@ -213,7 +214,7 @@ void AAS_InitBotImport(void)
 	botimport.EntityTrace = NULL;
 	botimport.PointContents = BotImport_PointContents;
 	botimport.inPVS = NULL;
-	botimport.GetEntityToken = BotImport_GetEntityToken;
+	botimport.BSPEntityData = BotImport_BSPEntityData;
 	botimport.BSPModelMinsMaxsOrigin = BotImport_BSPModelMinsMaxsOrigin;
 	botimport.BotClientCommand = NULL;
 	botimport.GetMemory = BotImport_GetMemory;

@@ -257,7 +257,7 @@ static void CG_Obituary(entityState_t *ent) {
 				break;
 			case MOD_CHAINGUN:
 				message = "got lead poisoning from";
-				message2 = "'s Chaingun";
+				message2 = "'s chain gun";
 				break;
 			case MOD_SHOTGUN:
 				message = "was gunned down by";
@@ -267,7 +267,7 @@ static void CG_Obituary(entityState_t *ent) {
 				break;
 			case MOD_PROXIMITY_MINE:
 				message = "was too close to";
-				message2 = "'s Prox Mine";
+				message2 = "'s prox mine";
 				break;
 			case MOD_GRENADE:
 				message = "ate";
@@ -286,18 +286,15 @@ static void CG_Obituary(entityState_t *ent) {
 				message2 = "'s rocket";
 				break;
 			case MOD_BEAMGUN:
-				message = "was electrocuted by";
+				message = "was lacerated by";
 				break;
 			case MOD_RAILGUN:
 				message = "was railed by";
 				break;
 			case MOD_PLASMA:
-				message = "was melted by";
-				message2 = "'s plasmagun";
-				break;
 			case MOD_PLASMA_SPLASH:
 				message = "was melted by";
-				message2 = "'s plasmagun";
+				message2 = "'s plasma gun";
 				break;
 			case MOD_BFG:
 			case MOD_BFG_SPLASH:
@@ -459,20 +456,20 @@ void CG_PainEvent(centity_t *cent, int health) {
 	}
 	// default pain sounds
 	if (health < 25) {
-		snd = "*pain25_1.wav";
+		snd = "*pd4.wav";
 	} else if (health < 50) {
-		snd = "*pain50_1.wav";
+		snd = "*pd3.wav";
 	} else if (health < 75) {
-		snd = "*pain75_1.wav";
+		snd = "*pd2.wav";
 	} else {
-		snd = "*pain100_1.wav";
+		snd = "*pd1.wav";
 	}
 	// play a gurp sound instead of a normal pain sound
 	if (CG_WaterLevel(cent) == 3) {
 		if (rand()&1) {
-			trap_S_StartSound(NULL, cent->currentState.number, CHAN_VOICE, CG_CustomSound(cent->currentState.number, "sound/player/gurp1.wav"));
+			trap_S_StartSound(NULL, cent->currentState.number, CHAN_VOICE, CG_CustomSound(cent->currentState.number, "snd/c/gu1.wav"));
 		} else {
-			trap_S_StartSound(NULL, cent->currentState.number, CHAN_VOICE, CG_CustomSound(cent->currentState.number, "sound/player/gurp2.wav"));
+			trap_S_StartSound(NULL, cent->currentState.number, CHAN_VOICE, CG_CustomSound(cent->currentState.number, "snd/c/gu2.wav"));
 		}
 	} else {
 		trap_S_StartSound(NULL, cent->currentState.number, CHAN_VOICE, CG_CustomSound(cent->currentState.number, snd));
@@ -756,9 +753,9 @@ void CG_EntityEvent(centity_t *cent, vec3_t position) {
 			DEBUGNAME("EV_DEATHx");
 
 			if (CG_WaterLevel(cent) == 3) {
-				trap_S_StartSound(NULL, es->number, CHAN_VOICE, CG_CustomSound(es->number, "*drown.wav"));
+				trap_S_StartSound(NULL, es->number, CHAN_VOICE, CG_CustomSound(es->number, "*dr1.wav"));
 			} else {
-				trap_S_StartSound(NULL, es->number, CHAN_VOICE, CG_CustomSound(es->number, va("*death%i.wav", event - EV_DEATH1 + 1)));
+				trap_S_StartSound(NULL, es->number, CHAN_VOICE, CG_CustomSound(es->number, va("*dd%i.wav", event - EV_DEATH1 + 1)));
 			}
 
 			break;
@@ -814,7 +811,7 @@ void CG_EntityEvent(centity_t *cent, vec3_t position) {
 			break;
 		case EV_JUMP:
 			DEBUGNAME("EV_JUMP");
-			trap_S_StartSound(NULL, es->number, CHAN_VOICE, CG_CustomSound(es->number, "*jump1.wav"));
+			trap_S_StartSound(NULL, es->number, CHAN_VOICE, CG_CustomSound(es->number, "*jd1.wav"));
 			break;
 		case EV_JUMP_PAD:
 			DEBUGNAME("EV_JUMP_PAD");
@@ -826,7 +823,7 @@ void CG_EntityEvent(centity_t *cent, vec3_t position) {
 			}
 			// boing sound at origin, jump sound on player
 			trap_S_StartSound(cent->lerpOrigin, -1, CHAN_VOICE, cgs.media.jumpPadSound);
-			trap_S_StartSound(NULL, es->number, CHAN_VOICE, CG_CustomSound(es->number, "*jump1.wav"));
+			trap_S_StartSound(NULL, es->number, CHAN_VOICE, CG_CustomSound(es->number, "*jd1.wav"));
 			break;
 		case EV_PLAYER_TELEPORT_IN:
 			DEBUGNAME("EV_PLAYER_TELEPORT_IN");
@@ -907,11 +904,11 @@ void CG_EntityEvent(centity_t *cent, vec3_t position) {
 			break;
 		case EV_WATER_CLEAR:
 			DEBUGNAME("EV_WATER_CLEAR");
-			trap_S_StartSound(NULL, es->number, CHAN_AUTO, CG_CustomSound(es->number, "*gasp.wav"));
+			trap_S_StartSound(NULL, es->number, CHAN_AUTO, CG_CustomSound(es->number, "*gp1.wav"));
 			break;
 		case EV_TAUNT:
 			DEBUGNAME("EV_TAUNT");
-			trap_S_StartSound(NULL, es->number, CHAN_VOICE, CG_CustomSound(es->number, "*taunt.wav"));
+			trap_S_StartSound(NULL, es->number, CHAN_VOICE, CG_CustomSound(es->number, "*ta1.wav"));
 			break;
 		case EV_TAUNT_YES:
 			DEBUGNAME("EV_TAUNT_YES");

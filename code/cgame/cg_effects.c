@@ -452,7 +452,8 @@ Generated a bunch of gibs launching out from the bodies location.
 void CG_GibPlayer(vec3_t playerOrigin) {
 	vec3_t origin, velocity;
 
-	if (!cg_blood.integer) {
+	// allow gibs to be turned off for speed
+	if (!cg_blood.integer || !cg_gibs.integer) {
 		return;
 	}
 
@@ -465,10 +466,6 @@ void CG_GibPlayer(vec3_t playerOrigin) {
 		CG_LaunchGib(origin, velocity, cgs.media.gibSkull);
 	} else {
 		CG_LaunchGib(origin, velocity, cgs.media.gibBrain);
-	}
-	// allow gibs to be turned off for speed
-	if (!cg_gibs.integer) {
-		return;
 	}
 
 	VectorCopy(playerOrigin, origin);

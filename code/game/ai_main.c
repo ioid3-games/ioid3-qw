@@ -764,29 +764,6 @@ int BotTeamLeader(bot_state_t *bs) {
 
 /*
 =======================================================================================================================================
-AngleDifference
-=======================================================================================================================================
-*/
-float AngleDifference(float ang1, float ang2) {
-	float diff;
-
-	diff = ang1 - ang2;
-
-	if (ang1 > ang2) {
-		if (diff > 180.0) {
-			diff -= 360.0;
-		}
-	} else {
-		if (diff < -180.0) {
-			diff += 360.0;
-		}
-	}
-
-	return diff;
-}
-
-/*
-=======================================================================================================================================
 BotChangeViewAngle
 =======================================================================================================================================
 */
@@ -1155,6 +1132,29 @@ int BotAI(int client, float thinktime) {
 		BotAI_Print(PRT_FATAL, "BotAI: failed to get player state for player %d\n", client);
 		return qfalse;
 	}
+	// add the delta angles to the bot's current view angles
+	for (j = 0; j < 3; j++) {
+		bs->viewangles[j] = AngleMod(bs->viewangles[j] + SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
+	}
+	// increase the local time of the bot
+	bs->ltime += thinktime;
+	bs->thinktime = thinktime;
+	// origin of the bot
+	VectorCopy(bs->cur_ps.origin, bs->origin);
+	// eye coordinates of the bot
+	VectorCopy(bs->cur_ps.origin, bs->eye);
+
+	bs->eye[2] += bs->cur_ps.viewheight;
+	// get the area the bot is in
+	bs->areanum = BotPointAreaNum(bs->origin);
+	// the real AI
+	BotDeathmatchAI(bs, thinktime);
+	// set the weapon selection every AI frame
+	trap_EA_SelectWeapon(bs->client, bs->weaponnum);
+	// subtract the delta angles
+	for (j = 0; j < 3; j++) {
+		bs->viewangles[j] = AngleMod(bs->viewangles[j] - SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
+	}
 	// retrieve any waiting server commands
 	while (trap_BotGetServerCommand(client, buf, sizeof(buf))) {
 		// have buf point to the command and args to the command arguments
@@ -1198,29 +1198,6 @@ int BotAI(int client, float thinktime) {
 		} else if (!Q_stricmp(buf, "clientLevelShot")) {
 			/*ignore*/
 		}
-	}
-	// add the delta angles to the bot's current view angles
-	for (j = 0; j < 3; j++) {
-		bs->viewangles[j] = AngleMod(bs->viewangles[j] + SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
-	}
-	// increase the local time of the bot
-	bs->ltime += thinktime;
-	bs->thinktime = thinktime;
-	// origin of the bot
-	VectorCopy(bs->cur_ps.origin, bs->origin);
-	// eye coordinates of the bot
-	VectorCopy(bs->cur_ps.origin, bs->eye);
-
-	bs->eye[2] += bs->cur_ps.viewheight;
-	// get the area the bot is in
-	bs->areanum = BotPointAreaNum(bs->origin);
-	// the real AI
-	BotDeathmatchAI(bs, thinktime);
-	// set the weapon selection every AI frame
-	trap_EA_SelectWeapon(bs->client, bs->weaponnum);
-	// subtract the delta angles
-	for (j = 0; j < 3; j++) {
-		bs->viewangles[j] = AngleMod(bs->viewangles[j] - SHORT2ANGLE(bs->cur_ps.delta_angles[j]));
 	}
 	// everything was ok
 	return qtrue;
@@ -1685,7 +1662,6 @@ int BotAIStartFrame(int time) {
 				VectorCopy(ent->r.currentAngles, state.angles);
 			}
 
-			VectorCopy(ent->s.origin2, state.old_origin);
 			VectorCopy(ent->r.mins, state.mins);
 			VectorCopy(ent->r.maxs, state.maxs);
 

@@ -65,7 +65,6 @@ void CG_PositionRotatedEntityOnTag(refEntity_t *entity, const refEntity_t *paren
 	orientation_t lerped;
 	vec3_t tempAxis[3];
 
-	//AxisClear(entity->axis);
 	// lerp the tag
 	trap_R_LerpTag(&lerped, parentModel, parent->oldframe, parent->frame, 1.0 - parent->backlerp, tagName);
 	// FIXME: allow origin offsets along tag?

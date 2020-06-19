@@ -76,7 +76,6 @@ int AAS_UpdateEntity(int entnum, bot_entitystate_t *state) {
 	ent->i.ltime = AAS_Time();
 
 	VectorCopy(ent->i.origin, ent->i.lastvisorigin);
-	VectorCopy(state->old_origin, ent->i.old_origin);
 	// link everything the first frame
 	if (aasworld.numframes == 1) {
 		relink = qtrue;

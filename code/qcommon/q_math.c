@@ -702,6 +702,29 @@ float LerpAngle(float from, float to, float frac) {
 
 /*
 =======================================================================================================================================
+AngleDifference
+=======================================================================================================================================
+*/
+float AngleDifference(float ang1, float ang2) {
+	float diff;
+
+	diff = ang1 - ang2;
+
+	if (ang1 > ang2) {
+		if (diff > 180.0) {
+			diff -= 360.0;
+		}
+	} else {
+		if (diff < -180.0) {
+			diff += 360.0;
+		}
+	}
+
+	return diff;
+}
+
+/*
+=======================================================================================================================================
 AngleSubtract
 
 Always returns a value from -180 to 180.
@@ -784,6 +807,26 @@ Returns the normalized delta from angle1 to angle2.
 */
 float AngleDelta(float angle1, float angle2) {
 	return AngleNormalize180(angle1 - angle2);
+}
+
+/*
+=======================================================================================================================================
+SetMovedir
+=======================================================================================================================================
+*/
+void SetMovedir(vec3_t angles, vec3_t movedir) {
+	static const vec3_t VEC_UP = {0, -1, 0};
+	static const vec3_t MOVEDIR_UP = {0, 0, 1};
+	static const vec3_t VEC_DOWN = {0, -2, 0};
+	static const vec3_t MOVEDIR_DOWN = {0, 0, -1};
+
+	if (VectorCompare(angles, VEC_UP)) {
+		VectorCopy(MOVEDIR_UP, movedir);
+	} else if (VectorCompare(angles, VEC_DOWN)) {
+		VectorCopy(MOVEDIR_DOWN, movedir);
+	} else {
+		AngleVectorsForward(angles, movedir);
+	}
 }
 
 /*

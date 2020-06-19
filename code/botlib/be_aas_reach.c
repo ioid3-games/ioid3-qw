@@ -3781,7 +3781,7 @@ void AAS_Reachability_JumpPad(void) {
 		}
 
 //		AAS_VectorForBSPEpairKey(ent, "angles", angles);
-//		AAS_SetMovedir(angles, velocity);
+//		SetMovedir(angles, velocity);
 //		VectorScale(velocity, speed, velocity);
 		VectorClear(angles);
 		// get the mins, maxs and origin of the model
@@ -4232,12 +4232,6 @@ int AAS_Reachability_WeaponJump(int area1num, int area2num) {
 				// get command movement
 				VectorScale(dir, speed, cmdmove);
 				VectorSet(velocity, 0, 0, zvel);
-				/*
-				// get command movement
-				VectorScale(dir, speed, velocity);
-				velocity[2] = zvel;
-				VectorSet(cmdmove, 0, 0, 0);
-				*/
 				// movement prediction
 				AAS_PredictClientMovement(&move, -1, areastart, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 30, 30, 0.1f, SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE|SE_TOUCHJUMPPAD|SE_HITGROUND|SE_HITGROUNDAREA, area2num, visualize);
 				// if prediction time wasn't enough to fully predict the movement, don't enter slime or lava and don't fall from too high
@@ -4525,21 +4519,21 @@ AAS_ContinueInitReachability
 
  TRAVEL_WALK			100% equal floor height + steps
  TRAVEL_CROUCH			100%
- TRAVEL_BARRIERJUMP		100%
  TRAVEL_JUMP			 80%
- TRAVEL_LADDER			100% + fall down from ladder + jump up to ladder
+ TRAVEL_BARRIERJUMP		100%
  TRAVEL_WALKOFFLEDGE	 90% walk off very steep walls?
  TRAVEL_SWIM			100%
  TRAVEL_WATERJUMP		100%
+ TRAVEL_ROCKETJUMP		100% (currently limited towards areas with items)
+ TRAVEL_BFGJUMP			  0% (currently disabled)
  TRAVEL_TELEPORT		100%
+ TRAVEL_JUMPPAD			100%
+ TRAVEL_FUNCBOB			100%
  TRAVEL_ELEVATOR		100%
+ TRAVEL_LADDER			100% + fall down from ladder + jump up to ladder
  TRAVEL_DOUBLEJUMP		  0%
  TRAVEL_RAMPJUMP		  0%
  TRAVEL_STRAFEJUMP		  0%
- TRAVEL_ROCKETJUMP		100% (currently limited towards areas with items)
- TRAVEL_BFGJUMP			  0% (currently disabled)
- TRAVEL_JUMPPAD			100%
- TRAVEL_FUNCBOB			100%
 
 Returns: true if NOT finished.
 =======================================================================================================================================
@@ -4588,24 +4582,24 @@ int AAS_ContinueInitReachability(float time) {
 			if (AAS_ReachabilityExists(i, j)) {
 				continue;
 			}
-			// check for a swim reachability
-			if (AAS_Reachability_Swim(i, j)) {
-				continue;
-			}
 			// check for a simple walk on equal floor height reachability
 			if (AAS_Reachability_EqualFloorHeight(i, j)) {
+				continue;
+			}
+			// check for a jump reachability
+			if (AAS_Reachability_Jump(i, j)) {
 				continue;
 			}
 			// check for step, barrier, waterjump and walk off ledge reachabilities
 			if (AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(i, j)) {
 				continue;
 			}
-			// check for ladder reachabilities
-			if (AAS_Reachability_Ladder(i, j)) {
+			// check for a swim reachability
+			if (AAS_Reachability_Swim(i, j)) {
 				continue;
 			}
-			// check for a jump reachability
-			if (AAS_Reachability_Jump(i, j)) {
+			// check for ladder reachabilities
+			if (AAS_Reachability_Ladder(i, j)) {
 				continue;
 			}
 		}
@@ -4650,14 +4644,14 @@ int AAS_ContinueInitReachability(float time) {
 
 			AAS_Reachability_WalkOffLedge(i);
 		}
-		// create jump pad reachabilities
-		AAS_Reachability_JumpPad();
 		// create teleporter reachabilities
 		AAS_Reachability_Teleport();
-		// create elevator (func_plat) reachabilities
-		AAS_Reachability_Elevator();
+		// create jump pad reachabilities
+		AAS_Reachability_JumpPad();
 		// create func_bobbing reachabilities
 		AAS_Reachability_FuncBobbing();
+		// create elevator (func_plat) reachabilities
+		AAS_Reachability_Elevator();
 #ifdef DEBUG
 		botimport.Print(PRT_MESSAGE, "%6d reach swim\n", reach_swim);
 		botimport.Print(PRT_MESSAGE, "%6d reach equal floor\n", reach_equalfloor);

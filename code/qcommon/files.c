@@ -151,7 +151,6 @@ When building a pak file, make sure a config.cfg isn't present in it, or configs
 
 // every time a new pk3 file is built, this checksum must be updated.
 // the easiest way to get it is to just run the game and see what it spits out
-#ifndef STANDALONE
 static const unsigned int pak_checksums[] = {
 	1566731103u,
 	298122907u,
@@ -163,7 +162,6 @@ static const unsigned int pak_checksums[] = {
 	908855077u,
 	977125798u
 };
-#endif
 // if this is defined, the executable positively won't work with any paks other
 // than the demo pak, even if productid is present. This is only used for our
 // last demo release to prevent the mac and linux users from using the demo
@@ -3322,18 +3320,9 @@ static void FS_CheckPak0(void) {
 		if (!Q_stricmpn(curpack->pakGamename, BASEGAME, MAX_OSPATH) && strlen(pakBasename) == 4 && !Q_stricmpn(pakBasename, "pak", 3) && pakBasename[3] >= '0' && pakBasename[3] <= '0' + NUM_QW_PAKS - 1) {
 			if (curpack->checksum != pak_checksums[pakBasename[3] - '0']) {
 				if (pakBasename[3] == '0') {
-					Com_Printf("\n\n"
-							"**************************************************\n"
-							"WARNING: "BASEGAME"/pak0.pk3 is present but its checksum (%u)\n"
-							"is not correct. Please re-copy pak0.pk3 from your\n"
-							"legitimate Q3 CDROM.\n"
-							"**************************************************\n\n\n", curpack->checksum);
+					Com_Printf("\n\n**************************************************\nWARNING: "BASEGAME"/pak0.pk3 is present but its checksum (%u) is not correct. Please re-copy pak0.pk3 from your\nlegitimate Q3 CDROM.\n**************************************************\n\n\n", curpack->checksum);
 				} else {
-					Com_Printf("\n\n"
-							"**************************************************\n"
-							"WARNING: "BASEGAME"/pak%d.pk3 is present but its checksum (%u)\n"
-							"is not correct. Please re-install the point release\n"
-							"**************************************************\n\n\n", pakBasename[3] - '0', curpack->checksum);
+					Com_Printf("\n\n**************************************************\nWARNING: "BASEGAME"/pak%d.pk3 is present but its checksum (%u) is not correct. Please re-install the point release.\n**************************************************\n\n\n", pakBasename[3] - '0', curpack->checksum);
 				}
 			}
 
@@ -3344,12 +3333,7 @@ static void FS_CheckPak0(void) {
 			// finally check whether this pak's checksum is listed because the user tried to trick us by renaming the file, and set foundPak's highest bit to indicate this case
 			for (index = 0; index < ARRAY_LEN(pak_checksums); index++) {
 				if (curpack->checksum == pak_checksums[index]) {
-					Com_Printf("\n\n"
-							"**************************************************\n"
-							"WARNING: %s is renamed pak file %s%cpak%d.pk3\n"
-							"Running in standalone mode won't work\n"
-							"Please rename, or remove this file\n"
-							"**************************************************\n\n\n", curpack->pakFilename, BASEGAME, PATH_SEP, index);
+					Com_Printf("\n\n**************************************************\nWARNING: %s is renamed pak file %s%cpak%d.pk3. Running in standalone mode won't work. Please rename, or remove this file.\n**************************************************\n\n\n", curpack->pakFilename, BASEGAME, PATH_SEP, index);
 					foundPak |= 0x80000000;
 				}
 			}

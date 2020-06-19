@@ -83,7 +83,6 @@ typedef struct aas_entityinfo_s {
 	float update_time;		// time between last and current update
 	float ltime;			// local time
 	vec3_t origin;			// origin of the entity
-	vec3_t old_origin;		// for lerping
 	vec3_t lastvisorigin;	// last visible origin
 	int solid;				// solid type
 	vec3_t angles;			// angles of the model

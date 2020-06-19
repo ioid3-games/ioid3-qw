@@ -100,31 +100,31 @@ tryagain:
 			MAKERGB(pi->flashDlightColor, 1.0f, 1.0f, 1.0f);
 			break;
 		case WP_MACHINEGUN:
-			MAKERGB(pi->flashDlightColor, 1.0f, 0.75f, 0);
+			MAKERGB(pi->flashDlightColor, 0.85f, 0.6f, 0.2f);
 			break;
 		case WP_CHAINGUN:
-			MAKERGB(pi->flashDlightColor, 1.0f, 0.8f, 0.2f);
+			MAKERGB(pi->flashDlightColor, 0.7f, 0.6f, 0.3f);
 			break;
 		case WP_SHOTGUN:
-			MAKERGB(pi->flashDlightColor, 1.0f, 0.7f, 0);
+			MAKERGB(pi->flashDlightColor, 0.85f, 0.6f, 0);
 			break;
 		case WP_NAILGUN:
-			MAKERGB(pi->flashDlightColor, 1, 0.7f, 0);
+			MAKERGB(pi->flashDlightColor, 1, 0.75f, 0);
 			break;
 		case WP_ROCKETLAUNCHER:
-			MAKERGB(pi->flashDlightColor, 1.0f, 0.75f, 0);
+			MAKERGB(pi->flashDlightColor, 1, 0.7f, 0.4f);
 			break;
 		case WP_BEAMGUN:
-			MAKERGB(pi->flashDlightColor, 0.45f, 0.7f, 1.0f);
+			MAKERGB(pi->flashDlightColor, 1.0f, 0.85f, 1.0f);
 			break;
 		case WP_RAILGUN:
-			MAKERGB(pi->flashDlightColor, 1.0f, 0, 0.7f);
+			MAKERGB(pi->flashDlightColor, 1, 0.5f, 0);
 			break;
 		case WP_PLASMAGUN:
-			MAKERGB(pi->flashDlightColor, 0.7f, 0.8f, 1.0f);
+			MAKERGB(pi->flashDlightColor, 0.6f, 1.0f, 1.0f);
 			break;
 		case WP_BFG:
-			MAKERGB(pi->flashDlightColor, 0.65f, 1.0f, 0.7f);
+			MAKERGB(pi->flashDlightColor, 0.7f, 1.0f, 0.7f);
 			break;
 		default:
 			MAKERGB(pi->flashDlightColor, 0, 0, 0);

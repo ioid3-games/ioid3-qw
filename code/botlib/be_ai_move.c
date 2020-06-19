@@ -51,7 +51,6 @@ typedef struct bot_movestate_s {
 	vec3_t origin;								// origin of the bot
 	vec3_t lastorigin;							// origin previous cycle
 	vec3_t velocity;							// velocity of the bot
-	vec3_t viewoffset;							// view offset
 	int entitynum;								// entity number of the bot
 	int client;									// client number of the bot
 	float thinktime;							// time the bot thinks
@@ -171,7 +170,6 @@ void BotInitMoveState(int handle, bot_initmove_t *initmove) {
 
 	VectorCopy(initmove->origin, ms->origin);
 	VectorCopy(initmove->velocity, ms->velocity);
-	VectorCopy(initmove->viewoffset, ms->viewoffset);
 
 	ms->entitynum = initmove->entitynum;
 	ms->client = initmove->client;
@@ -186,16 +184,16 @@ void BotInitMoveState(int handle, bot_initmove_t *initmove) {
 		ms->moveflags |= MFL_ONGROUND;
 	}
 
-	ms->moveflags &= ~MFL_WATERJUMP;
-
-	if (initmove->or_moveflags & MFL_WATERJUMP) {
-		ms->moveflags |= MFL_WATERJUMP;
-	}
-
 	ms->moveflags &= ~MFL_WALK;
 
 	if (initmove->or_moveflags & MFL_WALK) {
 		ms->moveflags |= MFL_WALK;
+	}
+
+	ms->moveflags &= ~MFL_WATERJUMP;
+
+	if (initmove->or_moveflags & MFL_WATERJUMP) {
+		ms->moveflags |= MFL_WATERJUMP;
 	}
 
 	ms->moveflags &= ~MFL_TELEPORTED;
@@ -203,29 +201,6 @@ void BotInitMoveState(int handle, bot_initmove_t *initmove) {
 	if (initmove->or_moveflags & MFL_TELEPORTED) {
 		ms->moveflags |= MFL_TELEPORTED;
 	}
-}
-
-/*
-=======================================================================================================================================
-AngleDiff
-=======================================================================================================================================
-*/
-float AngleDiff(float ang1, float ang2) {
-	float diff;
-
-	diff = ang1 - ang2;
-
-	if (ang1 > ang2) {
-		if (diff > 180.0) {
-			diff -= 360.0;
-		}
-	} else {
-		if (diff < -180.0) {
-			diff += 360.0;
-		}
-	}
-
-	return diff;
 }
 
 /*
@@ -2014,9 +1989,8 @@ BotTravel_Jump
 */
 bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) {
 	vec3_t hordir, dir1, dir2, start, end, runstart;
-	//vec3_t runstart, dir1, dir2, hordir;
-	int gapdist;
 	float dist1, dist2, speed;
+	int gapdist;
 	bot_moveresult_t_cleared(result);
 
 	AAS_JumpReachRunStart(reach, runstart);
@@ -2784,7 +2758,7 @@ bot_moveresult_t BotTravel_RocketJump(bot_movestate_t *ms, aas_reachability_t *r
 	// look straight down
 	result.ideal_viewangles[PITCH] = 90;
 
-	if (dist < 5 && fabs(AngleDiff(result.ideal_viewangles[0], ms->viewangles[0])) < 5 && fabs(AngleDiff(result.ideal_viewangles[1], ms->viewangles[1])) < 5) {
+	if (dist < 5 && fabs(AngleDifference(result.ideal_viewangles[0], ms->viewangles[0])) < 5 && fabs(AngleDifference(result.ideal_viewangles[1], ms->viewangles[1])) < 5) {
 		// move straight to the reachability end
 		hordir[0] = reach->end[0] - ms->origin[0];
 		hordir[1] = reach->end[1] - ms->origin[1];
@@ -2806,13 +2780,13 @@ bot_moveresult_t BotTravel_RocketJump(bot_movestate_t *ms, aas_reachability_t *r
 		// elementary action move in direction
 		EA_Move(ms->client, hordir, speed);
 	}
-	// look in the movement direction
+	// set the ideal view angles (look in the movement direction)
 	VectorToAngles(hordir, result.ideal_viewangles);
 	// look straight down
 	result.ideal_viewangles[PITCH] = 90;
 	// set the view angles directly
 	EA_View(ms->client, result.ideal_viewangles);
-	// view is important for the movement
+	// set the movement view flag (view is important for the movement)
 	result.flags |= MOVERESULT_MOVEMENTVIEWSET;
 	// select the rocket launcher
 	EA_SelectWeapon(ms->client, (int)weapindex_rocketlauncher->value);
@@ -2820,7 +2794,7 @@ bot_moveresult_t BotTravel_RocketJump(bot_movestate_t *ms, aas_reachability_t *r
 	result.weapon = (int)weapindex_rocketlauncher->value;
 	// set the movement view flag
 	result.flags |= MOVERESULT_MOVEMENTWEAPON;
-
+	// save the movement direction
 	VectorCopy(hordir, result.movedir);
 	return result;
 }
@@ -2842,7 +2816,7 @@ bot_moveresult_t BotTravel_BFGJump(bot_movestate_t *ms, aas_reachability_t *reac
 
 	dist = VectorNormalize(hordir);
 
-	if (dist < 5 && fabs(AngleDiff(result.ideal_viewangles[0], ms->viewangles[0])) < 5 && fabs(AngleDiff(result.ideal_viewangles[1], ms->viewangles[1])) < 5) {
+	if (dist < 5 && fabs(AngleDifference(result.ideal_viewangles[0], ms->viewangles[0])) < 5 && fabs(AngleDifference(result.ideal_viewangles[1], ms->viewangles[1])) < 5) {
 		// move straight to the reachability end
 		hordir[0] = reach->end[0] - ms->origin[0];
 		hordir[1] = reach->end[1] - ms->origin[1];
@@ -2864,13 +2838,13 @@ bot_moveresult_t BotTravel_BFGJump(bot_movestate_t *ms, aas_reachability_t *reac
 		// elementary action move in direction
 		EA_Move(ms->client, hordir, speed);
 	}
-	// look in the movement direction
+	// set the ideal view angles (look in the movement direction)
 	VectorToAngles(hordir, result.ideal_viewangles);
 	// look straight down
 	result.ideal_viewangles[PITCH] = 90;
 	// set the view angles directly
 	EA_View(ms->client, result.ideal_viewangles);
-	// view is important for the movement
+	// set the movement view flag (view is important for the movement)
 	result.flags |= MOVERESULT_MOVEMENTVIEWSET;
 	// select the rocket launcher
 	EA_SelectWeapon(ms->client, (int)weapindex_bfg10k->value);
@@ -2878,7 +2852,7 @@ bot_moveresult_t BotTravel_BFGJump(bot_movestate_t *ms, aas_reachability_t *reac
 	result.weapon = (int)weapindex_bfg10k->value;
 	// set the movement view flag
 	result.flags |= MOVERESULT_MOVEMENTWEAPON;
-
+	// save the movement direction
 	VectorCopy(hordir, result.movedir);
 	return result;
 }

@@ -433,14 +433,8 @@ void BotSetTeamStatus(bot_state_t *bs) {
 			teamtask = TEAMTASK_CAMP;
 			break;
 		case LTG_PATROL:
-			teamtask = TEAMTASK_PATROL;
-			break;
 		case LTG_GETITEM:
-			teamtask = TEAMTASK_PATROL;
-			break;
 		case LTG_KILL:
-			teamtask = TEAMTASK_PATROL;
-			break;
 		default:
 			teamtask = TEAMTASK_PATROL;
 			break;
@@ -1672,27 +1666,23 @@ void BotSetupForMovement(bot_state_t *bs) {
 	initmove.entitynum = bs->entitynum;
 	initmove.client = bs->client;
 	initmove.thinktime = bs->thinktime;
-
-	VectorClear(initmove.viewoffset);
 	// set presence type
 	if (bs->cur_ps.pm_flags & PMF_DUCKED) {
 		initmove.presencetype = PRESENCE_CROUCH;
 	} else {
 		initmove.presencetype = PRESENCE_NORMAL;
 	}
-
-	initmove.viewoffset[2] += bs->cur_ps.viewheight;
 	// set the onground flag
 	if (bs->cur_ps.groundEntityNum != ENTITYNUM_NONE) {
 		initmove.or_moveflags |= MFL_ONGROUND;
 	}
-	// set the waterjump flag
-	if ((bs->cur_ps.pm_flags & PMF_TIME_WATERJUMP) && (bs->cur_ps.pm_time > 0)) {
-		initmove.or_moveflags |= MFL_WATERJUMP;
-	}
 	// set the walk flag
 	if (bs->walker > 0.5) {
 		initmove.or_moveflags |= MFL_WALK;
+	}
+	// set the waterjump flag
+	if ((bs->cur_ps.pm_flags & PMF_TIME_WATERJUMP) && (bs->cur_ps.pm_time > 0)) {
+		initmove.or_moveflags |= MFL_WATERJUMP;
 	}
 	// set the teleported flag
 	if ((bs->cur_ps.pm_flags & PMF_TIME_KNOCKBACK) && (bs->cur_ps.pm_time > 0)) {
@@ -3129,6 +3119,10 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 		if (g_entities[i].flags & FL_NOTARGET) {
 			continue;
 		}
+		// if on the same team
+		if (BotSameTeam(bs, i)) {
+			continue;
+		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if the entity information is valid
@@ -3168,10 +3162,6 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 		}
 		// if the bot has no
 		if (squaredist > Square(900.0 + alertness * 4000.0)) {
-			continue;
-		}
-		// ignore enemies
-		if (BotSameTeam(bs, i)) {
 			continue;
 		}
 		// if the bot's health decreased or the enemy is shooting
@@ -3233,6 +3223,10 @@ int BotTeamFlagCarrierVisible(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
+		// if the flag carrier is not on the same team
+		if (!BotSameTeam(bs, i)) {
+			continue;
+		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if the entity information is valid
@@ -3241,10 +3235,6 @@ int BotTeamFlagCarrierVisible(bot_state_t *bs) {
 		}
 		// if this player is carrying a flag
 		if (!EntityCarriesFlag(&entinfo)) {
-			continue;
-		}
-		// if the flag carrier is not on the same team
-		if (!BotSameTeam(bs, i)) {
 			continue;
 		}
 		// if the flag carrier is not visible
@@ -3273,6 +3263,10 @@ int BotTeamFlagCarrier(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
+		// if the flag carrier is not on the same team
+		if (!BotSameTeam(bs, i)) {
+			continue;
+		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if the entity information is valid
@@ -3281,10 +3275,6 @@ int BotTeamFlagCarrier(bot_state_t *bs) {
 		}
 		// if this player is carrying a flag
 		if (!EntityCarriesFlag(&entinfo)) {
-			continue;
-		}
-		// if the flag carrier is not on the same team
-		if (!BotSameTeam(bs, i)) {
 			continue;
 		}
 
@@ -3308,6 +3298,10 @@ int BotEnemyFlagCarrierVisible(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
+		// if the flag carrier is on the same team
+		if (BotSameTeam(bs, i)) {
+			continue;
+		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if the entity information is valid
@@ -3316,10 +3310,6 @@ int BotEnemyFlagCarrierVisible(bot_state_t *bs) {
 		}
 		// if this player is carrying a flag
 		if (!EntityCarriesFlag(&entinfo)) {
-			continue;
-		}
-		// if the flag carrier is on the same team
-		if (BotSameTeam(bs, i)) {
 			continue;
 		}
 		// if the flag carrier is not visible
@@ -3407,6 +3397,10 @@ int BotTeamCubeCarrierVisible(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
+		// if the cube carrier is not on the same team
+		if (!BotSameTeam(bs, i)) {
+			continue;
+		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if the entity information is valid
@@ -3415,10 +3409,6 @@ int BotTeamCubeCarrierVisible(bot_state_t *bs) {
 		}
 		// if this player is carrying cubes
 		if (!EntityCarriesCubes(&entinfo)) {
-			continue;
-		}
-		// if the cube carrier is not on the same team
-		if (!BotSameTeam(bs, i)) {
 			continue;
 		}
 		// if the cube carrier is not visible
@@ -3448,6 +3438,10 @@ int BotEnemyCubeCarrierVisible(bot_state_t *bs) {
 		if (i == bs->client) {
 			continue;
 		}
+		// if the cube carrier is on the same team
+		if (BotSameTeam(bs, i)) {
+			continue;
+		}
 		// get the entity information
 		BotEntityInfo(i, &entinfo);
 		// if the entity information is valid
@@ -3456,10 +3450,6 @@ int BotEnemyCubeCarrierVisible(bot_state_t *bs) {
 		}
 		// if this player is carrying cubes
 		if (!EntityCarriesCubes(&entinfo)) {
-			continue;
-		}
-		// if the cube carrier is on the same team
-		if (BotSameTeam(bs, i)) {
 			continue;
 		}
 		// if the cube carrier is not visible
@@ -4002,26 +3992,6 @@ void BotMapScripts(bot_state_t *bs) {
 	}
 }
 
-static vec3_t VEC_UP = {0, -1, 0};
-static vec3_t MOVEDIR_UP = {0, 0, 1};
-static vec3_t VEC_DOWN = {0, -2, 0};
-static vec3_t MOVEDIR_DOWN = {0, 0, -1};
-/*
-=======================================================================================================================================
-BotSetMovedir
-=======================================================================================================================================
-*/
-void BotSetMovedir(vec3_t angles, vec3_t movedir) {
-
-	if (VectorCompare(angles, VEC_UP)) {
-		VectorCopy(MOVEDIR_UP, movedir);
-	} else if (VectorCompare(angles, VEC_DOWN)) {
-		VectorCopy(MOVEDIR_DOWN, movedir);
-	} else {
-		AngleVectors(angles, movedir, NULL, NULL);
-	}
-}
-
 /*
 =======================================================================================================================================
 BotModelMinsMaxs
@@ -4112,7 +4082,7 @@ int BotFuncButtonActivateGoal(bot_state_t *bs, int bspent, bot_activategoal_t *a
 	// get the move direction from the angle
 	trap_AAS_FloatForBSPEpairKey(bspent, "angle", &angle);
 	VectorSet(angles, 0, angle, 0);
-	BotSetMovedir(angles, movedir);
+	SetMovedir(angles, movedir);
 	// button size
 	VectorSubtract(maxs, mins, size);
 	// button origin
@@ -5000,7 +4970,6 @@ void BotCheckConsoleMessages(bot_state_t *bs) {
 							trap_BotRemoveConsoleMessage(bs->cs, handle);
 							bs->stand_time = FloatTime() + BotChatTime(bs);
 							AIEnter_Stand(bs, "BotCheckConsoleMessages: reply chat");
-							//EA_Say(bs->client, bs->cs.chatmessage);
 							break;
 						}
 					}
@@ -5111,7 +5080,7 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 				// check out the sound
 				trap_GetConfigstring(CS_SOUNDS + state->eventParm, buf, sizeof(buf));
 				// if falling into a death pit
-				if (!strcmp(buf, "*falling1.wav")) {
+				if (!strcmp(buf, "*fv1.wav")) {
 					// if the bot has a kamikaze
 					if (bs->inventory[INVENTORY_KAMIKAZE] > 0) {
 						// use the holdable item
@@ -5130,21 +5099,11 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 			}
 
 			trap_GetConfigstring(CS_SOUNDS + state->eventParm, buf, sizeof(buf));
-			/*
-			if (!strcmp(buf, "sound/teamplay/flagret_red.wav")) {
-				// red flag is returned
-				bs->redflagstatus = 0;
-				bs->flagstatuschanged = qtrue;
-			} else if (!strcmp(buf, "sound/teamplay/flagret_blu.wav")) {
-				// blue flag is returned
-				bs->blueflagstatus = 0;
-				bs->flagstatuschanged = qtrue;
-			} else
-			*/
-			if (!strcmp(buf, "sound/items/kamikazerespawn.wav")) {
+
+			if (!strcmp(buf, "snd/i/kam_sp.wav")) {
 				// the kamikaze respawned so don't avoid it
 				BotDontAvoid(bs, "Kamikaze");
-			} else if (!strcmp(buf, "sound/items/poweruprespawn.wav")) {
+			} else if (!strcmp(buf, "snd/i/psp.wav")) {
 				// powerup respawned... go get it
 				BotGoForPowerups(bs);
 			}

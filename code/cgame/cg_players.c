@@ -29,19 +29,33 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #include "cg_local.h"
 
 char *cg_customSoundNames[MAX_CUSTOM_SOUNDS] = {
-	"*death1.wav",
-	"*death2.wav",
-	"*death3.wav",
-	"*jump1.wav",
-	"*pain25_1.wav",
-	"*pain50_1.wav",
-	"*pain75_1.wav",
-	"*pain100_1.wav",
-	"*falling1.wav",
-	"*gasp.wav",
-	"*drown.wav",
-	"*fall1.wav",
-	"*taunt.wav"
+	// default death
+	"*dd1.wav",
+	"*dd2.wav",
+	"*dd3.wav",
+	// drown
+	"*dr1.wav",
+	// fall death
+	"*df1.wav",
+	// falling far
+	"*ff1.wav",
+	"*ff2.wav",
+	"*ff3.wav",
+	"*ff4.wav",
+	"*ff5.wav",
+	// fall into void
+	"*fv1.wav",
+	// gasp
+	"*gp1.wav",
+	// default jump
+	"*jd1.wav",
+	// default pain
+	"*pd1.wav",
+	"*pd2.wav",
+	"*pd3.wav",
+	"*pd4.wav",
+	// taunt
+	"*ta1.wav"
 };
 
 /*
@@ -761,11 +775,11 @@ static void CG_LoadClientInfo(int clientNum, clientInfo_t *ci) {
 		ci->sounds[i] = 0;
 		// if the model didn't load use the sounds of the default model
 		if (modelloaded) {
-			ci->sounds[i] = trap_S_RegisterSound(va("sound/player/%s/%s", dir, s + 1), qfalse);
+			ci->sounds[i] = trap_S_RegisterSound(va("snd/c/%s/%s", dir, s + 1), qfalse);
 		}
 
 		if (!ci->sounds[i]) {
-			ci->sounds[i] = trap_S_RegisterSound(va("sound/player/%s/%s", fallback, s + 1), qfalse);
+			ci->sounds[i] = trap_S_RegisterSound(va("snd/c/%s/%s", fallback, s + 1), qfalse);
 		}
 	}
 

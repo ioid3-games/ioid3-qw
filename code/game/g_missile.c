@@ -460,7 +460,7 @@ gentity_t *fire_prox(gentity_t *self, vec3_t start, vec3_t dir) {
 	VectorNormalize(dir);
 
 	bolt = G_Spawn();
-	bolt->classname = "proxmine";
+	bolt->classname = "prox mine";
 	bolt->nextthink = level.time + 3000;
 	bolt->think = G_ExplodeMissile;
 	bolt->s.eType = ET_MISSILE;

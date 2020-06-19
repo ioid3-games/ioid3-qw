@@ -324,7 +324,7 @@ qboolean G_MoverPush(gentity_t *pusher, vec3_t move, vec3_t amove, gentity_t **o
 
 		if (check->s.eType == ET_MISSILE) {
 			// if it is a prox mine
-			if (!strcmp(check->classname, "proxmine")) {
+			if (!strcmp(check->classname, "prox mine")) {
 				// if this prox mine is attached to this mover try to move it with the pusher
 				if (check->enemy == pusher) {
 					if (!G_TryPushingProxMine(check, pusher, move, amove)) {

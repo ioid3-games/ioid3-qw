@@ -907,7 +907,7 @@ static void PM_CrashLand(void) {
 		return;
 	}
 	// create a local entity event to play the sound
-	// SURF_NODAMAGE is used for bounce pads where you don't ever want to take damage or play a crunch sound
+	// SURF_NODAMAGE is used for bounce pads where you don't want to take full damage or play a crunch sound
 	if (!(pml.groundTrace.surfaceFlags & SURF_NODAMAGE)) {
 		if (delta > 60) {
 			PM_AddEvent(EV_FALL_FAR);
@@ -1241,7 +1241,7 @@ static void PM_Footsteps(void) {
 	footstep = qfalse;
 	// ducked
 	if (pm->ps->pm_flags & PMF_DUCKED) {
-		bobmove = 0.5; // ducked characters bob much faster
+		bobmove = 0.5;
 
 		if (pm->ps->pm_flags & PMF_BACKWARDS_RUN) {
 			PM_ContinueLegsAnim(LEGS_BACKCR);
