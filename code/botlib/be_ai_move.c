@@ -187,6 +187,12 @@ void BotInitMoveState(int handle, bot_initmove_t *initmove) {
 		ms->moveflags |= MFL_ONGROUND;
 	}
 
+	ms->moveflags &= ~MFL_WALK;
+
+	if (initmove->or_moveflags & MFL_WALK) {
+		ms->moveflags |= MFL_WALK;
+	}
+
 	ms->moveflags &= ~MFL_WATERJUMP;
 
 	if (initmove->or_moveflags & MFL_WATERJUMP) {
@@ -197,12 +203,6 @@ void BotInitMoveState(int handle, bot_initmove_t *initmove) {
 
 	if (initmove->or_moveflags & MFL_SCOUT) {
 		ms->moveflags |= MFL_SCOUT;
-	}
-
-	ms->moveflags &= ~MFL_WALK;
-
-	if (initmove->or_moveflags & MFL_WALK) {
-		ms->moveflags |= MFL_WALK;
 	}
 
 	ms->moveflags &= ~MFL_TELEPORTED;
