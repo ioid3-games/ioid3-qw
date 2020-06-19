@@ -713,16 +713,13 @@ int BotAvoidSpots(vec3_t origin, aas_reachability_t *reach, bot_avoidspot_t *avo
 		case TRAVEL_CROUCH:
 			checkbetween = qtrue;
 			break;
+		case TRAVEL_JUMP:
+			checkbetween = qfalse;
+			break;
 		case TRAVEL_BARRIERJUMP:
 			checkbetween = qtrue;
 			break;
-		case TRAVEL_LADDER:
-			checkbetween = qtrue;
-			break;
 		case TRAVEL_WALKOFFLEDGE:
-			checkbetween = qfalse;
-			break;
-		case TRAVEL_JUMP:
 			checkbetween = qfalse;
 			break;
 		case TRAVEL_SWIM:
@@ -731,16 +728,13 @@ int BotAvoidSpots(vec3_t origin, aas_reachability_t *reach, bot_avoidspot_t *avo
 		case TRAVEL_WATERJUMP:
 			checkbetween = qtrue;
 			break;
-		case TRAVEL_TELEPORT:
-			checkbetween = qfalse;
-			break;
-		case TRAVEL_ELEVATOR:
-			checkbetween = qfalse;
-			break;
 		case TRAVEL_ROCKETJUMP:
 			checkbetween = qfalse;
 			break;
 		case TRAVEL_BFGJUMP:
+			checkbetween = qfalse;
+			break;
+		case TRAVEL_TELEPORT:
 			checkbetween = qfalse;
 			break;
 		case TRAVEL_JUMPPAD:
@@ -748,6 +742,12 @@ int BotAvoidSpots(vec3_t origin, aas_reachability_t *reach, bot_avoidspot_t *avo
 			break;
 		case TRAVEL_FUNCBOB:
 			checkbetween = qfalse;
+			break;
+		case TRAVEL_ELEVATOR:
+			checkbetween = qfalse;
+			break;
+		case TRAVEL_LADDER:
+			checkbetween = qtrue;
 			break;
 		default:
 			checkbetween = qtrue;
@@ -1266,11 +1266,11 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			cmdmove[2] = 400;
 			maxframes = PREDICTIONTIME_JUMP / 0.1;
 			cmdframes = 1;
-			stopevent = SE_HITGROUND|SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA;
+			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERLAVA|SE_ENTERSLIME|SE_HITGROUND;
 		} else {
 			maxframes = 2;
 			cmdframes = 2;
-			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA;
+			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERLAVA|SE_ENTERSLIME;
 		}
 
 		//AAS_ClearShownDebugLines();
@@ -1285,8 +1285,8 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			//botimport.Print(PRT_MESSAGE, "client %d: max prediction frames\n", ms->client);
 			return qfalse;
 		}
-		// don't enter slime or lava and don't fall from too high
-		if (move.stopevent & (SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE)) {
+		// don't fall from too high, don't enter slime or lava and don't fall in gaps
+		if (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME)) {
 			//botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, would be hurt\n", ms->client, move.frames, maxframes);
 			//if (move.stopevent & SE_ENTERSLIME) botimport.Print(PRT_MESSAGE, "slime\n");
 			//if (move.stopevent & SE_ENTERLAVA) botimport.Print(PRT_MESSAGE, "lava\n");
@@ -1814,13 +1814,13 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 		VectorScale(hordir, 400, cmdmove);
 		VectorCopy(ms->velocity, velocity);
 		// movement prediction
-		AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_TOUCHJUMPPAD, 0, qfalse); //qtrue
+		AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_TOUCHJUMPPAD|SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME, 0, qfalse); //qtrue
 		// check for nearby gap behind the current ledge
 		gapdist = BotGapDistance(reach->end, hordir, 400, ms->entitynum);
 		// if there is no gap under the current ledge
 		if (reachhordist < 20) {
 			// if there is a jumpad, lava or slime under the current ledge or if the bot is walking
-			if (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_TOUCHJUMPPAD) || ms->moveflags & MFL_WALK) {
+			if (move.stopevent & (SE_TOUCHJUMPPAD|SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME) || ms->moveflags & MFL_WALK) {
 				speed = 200;
 			// if there is a gap or a ledge behind the current ledge (like a cascade)
 			} else if (gapdist > 0) {
@@ -3050,35 +3050,32 @@ int BotReachabilityTime(aas_reachability_t *reach) {
 			return 5;
 		case TRAVEL_CROUCH:
 			return 5;
+		case TRAVEL_JUMP:
+			return 5;
 		case TRAVEL_BARRIERJUMP:
 			return 5;
-		case TRAVEL_LADDER:
-			return 6;
 		case TRAVEL_WALKOFFLEDGE:
-			return 5;
-		case TRAVEL_JUMP:
 			return 5;
 		case TRAVEL_SWIM:
 			return 5;
 		case TRAVEL_WATERJUMP:
 			return 5;
-		case TRAVEL_TELEPORT:
-			return 5;
-		case TRAVEL_ELEVATOR:
-			return 10;
 		case TRAVEL_ROCKETJUMP:
 			return 6;
 		case TRAVEL_BFGJUMP:
 			return 6;
+		case TRAVEL_TELEPORT:
+			return 5;
 		case TRAVEL_JUMPPAD:
 			return 10;
 		case TRAVEL_FUNCBOB:
 			return 10;
+		case TRAVEL_ELEVATOR:
+			return 10;
+		case TRAVEL_LADDER:
+			return 6;
 		default:
-		{
-			botimport.Print(PRT_ERROR, "travel type %d not implemented yet\n", reach->traveltype);
 			return 8;
-		}
 	}
 }
 
@@ -3383,6 +3380,7 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 		if (reachnum) {
 			// get the reachability from the number
 			AAS_ReachabilityFromNum(reachnum, &reach);
+
 			result->traveltype = reach.traveltype;
 #ifdef DEBUG_AI_MOVE
 			AAS_ClearShownDebugLines();
@@ -3401,17 +3399,14 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 				case TRAVEL_CROUCH:
 					*result = BotTravel_Crouch(ms, &reach);
 					break;
+				case TRAVEL_JUMP:
+					*result = BotTravel_Jump(ms, &reach);
+					break;
 				case TRAVEL_BARRIERJUMP:
 					*result = BotTravel_BarrierJump(ms, &reach);
 					break;
-				case TRAVEL_LADDER:
-					*result = BotTravel_Ladder(ms, &reach);
-					break;
 				case TRAVEL_WALKOFFLEDGE:
 					*result = BotTravel_WalkOffLedge(ms, &reach);
-					break;
-				case TRAVEL_JUMP:
-					*result = BotTravel_Jump(ms, &reach);
 					break;
 				case TRAVEL_SWIM:
 					*result = BotTravel_Swim(ms, &reach);
@@ -3419,17 +3414,14 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 				case TRAVEL_WATERJUMP:
 					*result = BotTravel_WaterJump(ms, &reach);
 					break;
-				case TRAVEL_TELEPORT:
-					*result = BotTravel_Teleport(ms, &reach);
-					break;
-				case TRAVEL_ELEVATOR:
-					*result = BotTravel_Elevator(ms, &reach);
-					break;
 				case TRAVEL_ROCKETJUMP:
 					*result = BotTravel_RocketJump(ms, &reach);
 					break;
 				case TRAVEL_BFGJUMP:
 					*result = BotTravel_BFGJump(ms, &reach);
+					break;
+				case TRAVEL_TELEPORT:
+					*result = BotTravel_Teleport(ms, &reach);
 					break;
 				case TRAVEL_JUMPPAD:
 					*result = BotTravel_JumpPad(ms, &reach);
@@ -3437,11 +3429,14 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 				case TRAVEL_FUNCBOB:
 					*result = BotTravel_FuncBobbing(ms, &reach);
 					break;
-				default:
-				{
-					botimport.Print(PRT_FATAL, "travel type %d not implemented yet\n", (reach.traveltype & TRAVELTYPE_MASK));
+				case TRAVEL_ELEVATOR:
+					*result = BotTravel_Elevator(ms, &reach);
 					break;
-				}
+				case TRAVEL_LADDER:
+					*result = BotTravel_Ladder(ms, &reach);
+					break;
+				default:
+					break;
 			}
 
 			result->traveltype = reach.traveltype;
@@ -3512,6 +3507,7 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 		if (ms->lastreachnum) {
 			//botimport.Print(PRT_MESSAGE, "%s: NOT onground, swimming or against ladder\n", ClientName(ms->entitynum - 1));
 			AAS_ReachabilityFromNum(ms->lastreachnum, &reach);
+
 			result->traveltype = reach.traveltype;
 #ifdef DEBUG
 			//botimport.Print(PRT_MESSAGE, "client %d finish: ", ms->client);
@@ -3525,17 +3521,14 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 				case TRAVEL_CROUCH:
 					/*do nothing*/
 					break;
+				case TRAVEL_JUMP:
+					*result = BotFinishTravel_Jump(ms, &reach);
+					break;
 				case TRAVEL_BARRIERJUMP:
 					*result = BotFinishTravel_BarrierJump(ms, &reach);
 					break;
-				case TRAVEL_LADDER:
-					*result = BotTravel_Ladder(ms, &reach);
-					break;
 				case TRAVEL_WALKOFFLEDGE:
 					*result = BotFinishTravel_WalkOffLedge(ms, &reach);
-					break;
-				case TRAVEL_JUMP:
-					*result = BotFinishTravel_Jump(ms, &reach);
 					break;
 				case TRAVEL_SWIM:
 					*result = BotTravel_Swim(ms, &reach);
@@ -3543,15 +3536,12 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 				case TRAVEL_WATERJUMP:
 					*result = BotFinishTravel_WaterJump(ms, &reach);
 					break;
-				case TRAVEL_TELEPORT:
-					/*do nothing*/
-					break;
-				case TRAVEL_ELEVATOR:
-					*result = BotFinishTravel_Elevator(ms, &reach);
-					break;
 				case TRAVEL_ROCKETJUMP:
 				case TRAVEL_BFGJUMP:
 					*result = BotFinishTravel_WeaponJump(ms, &reach);
+					break;
+				case TRAVEL_TELEPORT:
+					/*do nothing*/
 					break;
 				case TRAVEL_JUMPPAD:
 					*result = BotFinishTravel_JumpPad(ms, &reach);
@@ -3559,11 +3549,14 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 				case TRAVEL_FUNCBOB:
 					*result = BotFinishTravel_FuncBobbing(ms, &reach);
 					break;
-				default:
-				{
-					botimport.Print(PRT_FATAL, "(last) travel type %d not implemented yet\n", (reach.traveltype & TRAVELTYPE_MASK));
+				case TRAVEL_ELEVATOR:
+					*result = BotFinishTravel_Elevator(ms, &reach);
 					break;
-				}
+				case TRAVEL_LADDER:
+					*result = BotTravel_Ladder(ms, &reach);
+					break;
+				default:
+					break;
 			}
 
 			result->traveltype = reach.traveltype;

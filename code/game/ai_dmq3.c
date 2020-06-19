@@ -23,6 +23,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 */
 
 #include "g_local.h"
+#include "../botlib/aasfile.h"
 #include "../botlib/botlib.h"
 #include "../botlib/be_aas.h"
 #include "../botlib/be_ea.h"
@@ -44,11 +45,6 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #include "syn.h" // synonyms
 #include "match.h" // string matching types and vars
 #include "../../ui/menudef.h" // for the voice chats
-// from aasfile.h
-#define AREACONTENTS_MOVER 0x00000400
-#define AREACONTENTS_MODELNUMSHIFT 24
-#define AREACONTENTS_MAXMODELNUM 0xFF
-#define AREACONTENTS_MODELNUM (AREACONTENTS_MAXMODELNUM << AREACONTENTS_MODELNUMSHIFT)
 
 #define MAX_WAYPOINTS 128
 
