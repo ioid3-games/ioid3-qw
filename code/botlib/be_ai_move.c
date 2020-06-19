@@ -1266,11 +1266,11 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			cmdmove[2] = 400;
 			maxframes = PREDICTIONTIME_JUMP / 0.1;
 			cmdframes = 1;
-			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERLAVA|SE_ENTERSLIME|SE_HITGROUND;
+			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_HITGROUND;
 		} else {
 			maxframes = 2;
 			cmdframes = 2;
-			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERLAVA|SE_ENTERSLIME;
+			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME;
 		}
 
 		//AAS_ClearShownDebugLines();
