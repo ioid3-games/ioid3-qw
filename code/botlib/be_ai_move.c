@@ -1102,14 +1102,20 @@ qboolean MoverBottomCenter(aas_reachability_t *reach, vec3_t bottomcenter) {
 BotGapDistance
 =======================================================================================================================================
 */
-int BotGapDistance(vec3_t origin, vec3_t hordir, int checkdist, int entnum) {
-	int dist;
-	vec3_t start, end;
-	aas_trace_t trace;
+static int BotGapDistance(bot_movestate_t *ms, vec3_t origin, vec3_t hordir) {
+	int gapdist, checkdist;
+	vec3_t start, end, mins, maxs;
+	bsp_trace_t trace;
 
+	// get the current speed
+	checkdist = DotProduct(ms->velocity, hordir);
+
+	if (checkdist < 8) {
+		checkdist = 8;
+	}
 	// do gap checking
-	for (dist = 8; dist <= checkdist; dist += 8) {
-		VectorMA(origin, dist, hordir, start);
+	for (gapdist = 8; gapdist <= checkdist; gapdist += 8) {
+		VectorMA(origin, gapdist, hordir, start);
 
 		start[2] = origin[2] + 24;
 
@@ -1117,11 +1123,12 @@ int BotGapDistance(vec3_t origin, vec3_t hordir, int checkdist, int entnum) {
 
 		end[2] -= 48 + sv_maxbarrier->value;
 
-		trace = AAS_TraceClientBBox(start, end, PRESENCE_CROUCH, entnum);
+		AAS_PresenceTypeBoundingBox(PRESENCE_CROUCH, mins, maxs);
+		trace = AAS_Trace(start, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
 		// if solid is found the bot can't walk any further and fall into a gap
 		if (!trace.startsolid) {
 			// if it is a gap
-			if (trace.endpos[2] < origin[2] - sv_maxstep->value - 8) {
+			if (trace.endpos[2] < origin[2] - sv_maxbarrier->value) {
 				VectorCopy(trace.endpos, end);
 
 				end[2] -= 20;
@@ -1130,8 +1137,7 @@ int BotGapDistance(vec3_t origin, vec3_t hordir, int checkdist, int entnum) {
 					break;
 				}
 				// if a gap is found slow down
-				//botimport.Print(PRT_MESSAGE, S_COLOR_YELLOW "BotGapDistance: found a gap at %i (checkdist = %i).\n", gapdist, checkdist);
-				return dist;
+				return gapdist;
 			}
 
 			origin[2] = trace.endpos[2];
@@ -1229,9 +1235,8 @@ BotWalkInDirection
 */
 int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 	vec3_t hordir, cmdmove, velocity, tmpdir, origin;
-	int presencetype, maxframes, cmdframes, stopevent, scoutFlag;
+	int presencetype, maxframes, cmdframes, stopevent, gapdist, scoutFlag;
 	aas_clientmove_t move;
-	float dist;
 
 	if (AAS_OnGround(ms->origin, ms->presencetype, ms->entitynum)) {
 		ms->moveflags |= MFL_ONGROUND;
@@ -1259,7 +1264,7 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 		// if the bot is not supposed to jump
 		if (!(type & MOVE_JUMP)) {
 			// if there is a gap, try to jump over it
-			if (BotGapDistance(ms->origin, hordir, 100, ms->entitynum) > 0) {
+			if (BotGapDistance(ms, ms->origin, hordir) > 0) {
 				type |= MOVE_JUMP;
 			}
 		}
@@ -1305,15 +1310,15 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			// check for nearby gap
 			VectorNormalize2(move.velocity, tmpdir);
 
-			dist = BotGapDistance(move.endpos, tmpdir, 100, ms->entitynum);
+			gapdist = BotGapDistance(ms, move.endpos, tmpdir);
 
-			if (dist > 0) {
+			if (gapdist > 0) {
 				return qfalse;
 			}
 
-			dist = BotGapDistance(move.endpos, hordir, 100, ms->entitynum);
+			gapdist = BotGapDistance(ms, move.endpos, hordir);
 
-			if (dist > 0) {
+			if (gapdist > 0) {
 				return qfalse;
 			}
 		}
@@ -1449,6 +1454,7 @@ BotTravel_Walk
 */
 bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) {
 	float dist, speed, currentspeed;
+	int gapdist;
 	vec3_t hordir, sideward, up = {0, 0, 1};
 	bot_moveresult_t_cleared(result);
 
@@ -1479,31 +1485,36 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 		}
 	}
 
-	dist = BotGapDistance(ms->origin, hordir, 200, ms->entitynum);
-
 	if (ms->moveflags & MFL_WALK) {
 		speed = 200;
 	} else {
-		if (dist > 0) {
-			speed = 400 - (200 - dist);
+		// check for nearby gap
+		gapdist = BotGapDistance(ms, ms->origin, hordir);
+		// if there is a gap
+		if (gapdist > 0) {
+			VectorNormalize(hordir);
+			// get the sideward vector
+			CrossProduct(hordir, up, sideward);
+			// if there is NO gap at the right side
+			if (!BotGapDistance(ms, ms->origin, sideward)) {
+				// check if blocked
+				BotCheckBlocked(ms, sideward, qtrue, &result);
+				// elementary action move in direction
+				EA_Move(ms->client, sideward, 400);
+			} else {
+				VectorNegate(sideward, sideward);
+				// if there is NO gap at the left side
+				if (!BotGapDistance(ms, ms->origin, sideward)) {
+					// check if blocked
+					BotCheckBlocked(ms, sideward, qtrue, &result);
+					// elementary action move in direction
+					EA_Move(ms->client, sideward, 400);
+				}
+			}
+
+			speed = 400 - (200 - gapdist);
 		} else {
 			speed = 400;
-		}
-	}
-
-	if (dist > 0) {
-		VectorNormalize(hordir);
-		// get the sideward vector
-		CrossProduct(hordir, up, sideward);
-		// if there is NO gap at the right side
-		if (!BotGapDistance(ms->origin, sideward, 100, ms->entitynum)) {
-			EA_Move(ms->client, sideward, 400);
-		} else {
-			VectorNegate(sideward, sideward);
-			// if there is NO gap at the left side
-			if (!BotGapDistance(ms->origin, sideward, 100, ms->entitynum)) {
-				EA_Move(ms->client, sideward, 400);
-			}
 		}
 	}
 	// elementary action move in direction
@@ -1620,7 +1631,6 @@ bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *
 	AAS_PredictClientMovement(&move, ms->entitynum, end, PRESENCE_NORMAL, qtrue, scoutFlag, velocity, cmdmove, 2, 2, 0.1f, SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP, 0);
 	// reduce the speed if the bot will fall into slime, lava or into a gap
 	if (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP)) {
-
 		if (ms->moveflags & MFL_WALK) {
 			speed = 200;
 		} else {
@@ -1828,7 +1838,7 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 		// movement prediction
 		AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, scoutFlag, velocity, cmdmove, 2, 2, 0.1f, SE_TOUCHJUMPPAD|SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP, 0);
 		// check for nearby gap behind the current ledge
-		gapdist = BotGapDistance(reach->end, hordir, 400, ms->entitynum);
+		gapdist = BotGapDistance(ms, reach->end, hordir);
 		// if there is no gap under the current ledge
 		if (reachhordist < 20) {
 			// if there is a jumpad, lava or slime under the current ledge or if the bot is walking
