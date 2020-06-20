@@ -2362,7 +2362,7 @@ int AAS_Reachability_Jump(int area1num, int area2num) {
 		VectorNormalize(dir);
 		CrossProduct(dir, up, sidewards);
 
-		stopevent = SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_HITGROUND;
+		stopevent = SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERLAVA|SE_ENTERSLIME|SE_HITGROUND;
 
 		if (!AAS_AreaClusterPortal(area1num) && !AAS_AreaClusterPortal(area2num)) {
 			stopevent |= SE_TOUCHCLUSTERPORTAL;
@@ -2389,7 +2389,7 @@ int AAS_Reachability_Jump(int area1num, int area2num) {
 			if (move.frames >= 30) {
 				return qfalse;
 			}
-			// never jump or fall through a cluster portal, don't fall from too high and don't enter slime or lava
+			// never jump or fall through a cluster portal and don't enter slime or lava
 			if (move.stopevent & (SE_TOUCHCLUSTERPORTAL|SE_ENTERLAVA|SE_ENTERSLIME)) {
 				return qfalse;
 			}
@@ -3006,7 +3006,7 @@ void AAS_Reachability_Teleport(void) {
 
 				VectorClear(cmdmove);
 				// movement prediction
-				AAS_PredictClientMovement(&move, -1, destorigin, PRESENCE_NORMAL, qfalse, velocity, cmdmove, 0, 30, 0.1f, SE_TOUCHTELEPORTER|SE_TOUCHJUMPPAD|SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_HITGROUND, 0, qfalse); //qtrue
+				AAS_PredictClientMovement(&move, -1, destorigin, PRESENCE_NORMAL, qfalse, velocity, cmdmove, 0, 30, 0.1f, SE_TOUCHTELEPORTER|SE_TOUCHJUMPPAD|SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERLAVA|SE_ENTERSLIME|SE_HITGROUND, 0, qfalse); //qtrue
 
 				area2num = AAS_PointAreaNum(move.endpos);
 
