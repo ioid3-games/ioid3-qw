@@ -521,7 +521,6 @@ void SV_BotInitCvars(void) {
 	Cvar_Get("bot_maxdebugpolys", "2", 0);				// maximum number of debug polys
 	Cvar_Get("bot_groundonly", "1", 0);					// only show ground faces of areas
 	Cvar_Get("bot_reachability", "0", 0);				// show all reachabilities to other areas
-	Cvar_Get("bot_visualizejumppads", "0", CVAR_CHEAT);	// show jumppads
 	Cvar_Get("bot_forceclustering", "0", 0);			// force cluster calculations
 	Cvar_Get("bot_forcereachability", "0", 0);			// force reachability calculations
 	Cvar_Get("bot_forcewrite", "0", 0);					// force writing aas file

@@ -1774,12 +1774,6 @@ int BotInitLibrary(void) {
 	if (strlen(buf)) {
 		trap_BotLibVarSet("nochat", buf);
 	}
-	// visualize jump pads
-	trap_Cvar_VariableStringBuffer("bot_visualizejumppads", buf, sizeof(buf));
-
-	if (strlen(buf)) {
-		trap_BotLibVarSet("bot_visualizejumppads", buf);
-	}
 	// forced clustering calculations
 	trap_Cvar_VariableStringBuffer("bot_forceclustering", buf, sizeof(buf));
 

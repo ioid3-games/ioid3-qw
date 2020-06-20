@@ -4895,7 +4895,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 
 					VectorClear(cmdmove);
 					// movement prediction
-					trap_AAS_PredictClientMovement(&move, bs->enemy, origin, PRESENCE_CROUCH, qfalse, dir, cmdmove, 0, dist * 10 / wi.speed, 0.1f, 0, 0, qfalse);
+					trap_AAS_PredictClientMovement(&move, bs->enemy, origin, PRESENCE_CROUCH, qfalse, qfalse, dir, cmdmove, 0, dist * 10 / wi.speed, 0.1f, 0, 0);
 					VectorCopy(move.endpos, bestorigin);
 				// if not that skilled do linear prediction
 				} else if (aim_skill > 0.4) {

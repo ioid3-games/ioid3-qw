@@ -1217,6 +1217,14 @@ void AAS_InitReachabilityAreas(void) {
 				numareas = AAS_TraceAreas(reach->start, end, areas, NULL, MAX_REACHABILITYPASSAREAS);
 				break;
 			// trace arch
+			case TRAVEL_SCOUTJUMP:
+				break;
+			case TRAVEL_SCOUTBARRIER:
+				VectorCopy(reach->start, end);
+				end[2] = reach->end[2];
+				numareas = AAS_TraceAreas(reach->start, end, areas, NULL, MAX_REACHABILITYPASSAREAS);
+				break;
+			// trace arch
 			case TRAVEL_ROCKETJUMP:
 				break;
 			case TRAVEL_BFGJUMP:

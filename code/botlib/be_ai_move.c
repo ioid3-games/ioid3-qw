@@ -728,6 +728,12 @@ int BotAvoidSpots(vec3_t origin, aas_reachability_t *reach, bot_avoidspot_t *avo
 		case TRAVEL_WATERJUMP:
 			checkbetween = qtrue;
 			break;
+		case TRAVEL_SCOUTJUMP:
+			checkbetween = qfalse;
+			break;
+		case TRAVEL_SCOUTBARRIER:
+			checkbetween = qtrue;
+			break;
 		case TRAVEL_ROCKETJUMP:
 			checkbetween = qfalse;
 			break;
@@ -1223,7 +1229,7 @@ BotWalkInDirection
 */
 int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 	vec3_t hordir, cmdmove, velocity, tmpdir, origin;
-	int presencetype, maxframes, cmdframes, stopevent;
+	int presencetype, maxframes, cmdframes, stopevent, scoutFlag;
 	aas_clientmove_t move;
 	float dist;
 
@@ -1278,8 +1284,9 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 		VectorCopy(ms->origin, origin);
 
 		origin[2] += 0.5;
+		scoutFlag = ms->moveflags & MFL_SCOUT ? qtrue : qfalse;
 		// movement prediction
-		AAS_PredictClientMovement(&move, ms->entitynum, origin, presencetype, qtrue, velocity, cmdmove, cmdframes, maxframes, 0.1f, stopevent, 0, qfalse); // qtrue
+		AAS_PredictClientMovement(&move, ms->entitynum, origin, presencetype, qtrue, scoutFlag, velocity, cmdmove, cmdframes, maxframes, 0.1f, stopevent, 0);
 		// if prediction time wasn't enough to fully predict the movement
 		if (move.frames >= maxframes && (type & MOVE_JUMP)) {
 			//botimport.Print(PRT_MESSAGE, "client %d: max prediction frames\n", ms->client);
@@ -1584,6 +1591,7 @@ BotTravel_BarrierJump
 */
 bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *reach) {
 	float rundist, dist, jumpdist, speed, currentspeed;
+	int scoutFlag;
 	vec3_t hordir, cmdmove, end, velocity;
 	bot_moveresult_t_cleared(result);
 	aas_clientmove_t move;
@@ -1603,11 +1611,13 @@ bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *
 	BotCheckBlocked(ms, hordir, qtrue, &result);
 	// get command movement
 	VectorScale(hordir, 400, cmdmove);
+
+	scoutFlag = ms->moveflags & MFL_SCOUT ? qtrue : qfalse;
 	VectorCopy(ms->velocity, velocity);
 	// start point
 	VectorCopy(reach->end, end);
 	// movement prediction
-	AAS_PredictClientMovement(&move, ms->entitynum, end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP, 0, qfalse);
+	AAS_PredictClientMovement(&move, ms->entitynum, end, PRESENCE_NORMAL, qtrue, scoutFlag, velocity, cmdmove, 2, 2, 0.1f, SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP, 0);
 	// reduce the speed if the bot will fall into slime, lava or into a gap
 	if (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP)) {
 
@@ -1782,7 +1792,7 @@ BotTravel_WalkOffLedge
 bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t *reach) {
 	vec3_t hordir, dir, cmdmove, velocity;
 	float dist, speed, reachhordist;
-	int gapdist;
+	int gapdist, scoutFlag;
 	bot_moveresult_t_cleared(result);
 	aas_clientmove_t move;
 
@@ -1812,9 +1822,11 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 		VectorNormalize(hordir);
 		// get command movement
 		VectorScale(hordir, 400, cmdmove);
+
+		scoutFlag = ms->moveflags & MFL_SCOUT ? qtrue : qfalse;
 		VectorCopy(ms->velocity, velocity);
 		// movement prediction
-		AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_TOUCHJUMPPAD|SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP, 0, qfalse); //qtrue
+		AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, scoutFlag, velocity, cmdmove, 2, 2, 0.1f, SE_TOUCHJUMPPAD|SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP, 0);
 		// check for nearby gap behind the current ledge
 		gapdist = BotGapDistance(reach->end, hordir, 400, ms->entitynum);
 		// if there is no gap under the current ledge
@@ -2078,10 +2090,14 @@ BotTravel_Jump
 bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) {
 	vec3_t hordir, dir1, dir2, dir3, runstart;
 	float dist1, dist2, dist3, speed;
-
 	bot_moveresult_t_cleared(result);
 
-	AAS_JumpReachRunStart(reach, runstart);
+	if (ms->moveflags & MFL_SCOUT) {
+		AAS_ScoutJumpReachRunStart(reach, runstart);
+	} else {
+		AAS_JumpReachRunStart(reach, runstart);
+	}
+
 	VectorSubtract(ms->origin, reach->start, dir1);
 
 	dir1[2] = 0;
@@ -3060,6 +3076,10 @@ int BotReachabilityTime(aas_reachability_t *reach) {
 			return 5;
 		case TRAVEL_WATERJUMP:
 			return 5;
+		case TRAVEL_SCOUTJUMP:
+			return 5;
+		case TRAVEL_SCOUTBARRIER:
+			return 5;
 		case TRAVEL_ROCKETJUMP:
 			return 6;
 		case TRAVEL_BFGJUMP:
@@ -3414,6 +3434,12 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 				case TRAVEL_WATERJUMP:
 					*result = BotTravel_WaterJump(ms, &reach);
 					break;
+				case TRAVEL_SCOUTJUMP: // Tobias NOTE: separate 'BotTravel_ScoutJump' needed?
+					*result = BotTravel_Jump(ms, &reach);
+					break;
+				case TRAVEL_SCOUTBARRIER: // Tobias NOTE: separate 'BotTravel_ScoutBarrierJump' needed?
+					*result = BotTravel_BarrierJump(ms, &reach);
+					break;
 				case TRAVEL_ROCKETJUMP:
 					*result = BotTravel_RocketJump(ms, &reach);
 					break;
@@ -3535,6 +3561,12 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 					break;
 				case TRAVEL_WATERJUMP:
 					*result = BotFinishTravel_WaterJump(ms, &reach);
+					break;
+				case TRAVEL_SCOUTJUMP: // Tobias NOTE: separate 'BotFinishTravel_ScoutJump' needed?
+					*result = BotFinishTravel_Jump(ms, &reach);
+					break;
+				case TRAVEL_SCOUTBARRIER: // Tobias NOTE: separate 'BotFinishTravel_ScoutBarrierJump' needed?
+					*result = BotFinishTravel_BarrierJump(ms, &reach);
 					break;
 				case TRAVEL_ROCKETJUMP:
 				case TRAVEL_BFGJUMP:
