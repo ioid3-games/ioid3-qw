@@ -2456,6 +2456,7 @@ int AAS_Reachability_Jump(int area1num, int area2num) {
 		}
 
 		lreach->next = areareachability[area1num];
+
 		areareachability[area1num] = lreach;
 
 		if ((traveltype & TRAVELTYPE_MASK) == TRAVEL_JUMP) {
