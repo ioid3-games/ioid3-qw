@@ -2078,7 +2078,6 @@ BotTravel_Jump
 bot_moveresult_t BotTravel_Jump(bot_movestate_t *ms, aas_reachability_t *reach) {
 	vec3_t hordir, dir1, dir2, dir3, runstart;
 	float dist1, dist2, dist3, speed;
-
 	bot_moveresult_t_cleared(result);
 
 	AAS_JumpReachRunStart(reach, runstart);
