@@ -1266,11 +1266,11 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			cmdmove[2] = 400;
 			maxframes = PREDICTIONTIME_JUMP / 0.1;
 			cmdframes = 1;
-			stopevent = SE_HITGROUND|SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA;
+			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_HITGROUND|SE_GAP;
 		} else {
 			maxframes = 2;
 			cmdframes = 2;
-			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERWATER|SE_ENTERSLIME|SE_ENTERLAVA;
+			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP;
 		}
 
 		//AAS_ClearShownDebugLines();
@@ -1285,8 +1285,8 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			//botimport.Print(PRT_MESSAGE, "client %d: max prediction frames\n", ms->client);
 			return qfalse;
 		}
-		// don't enter slime or lava and don't fall from too high
-		if (move.stopevent & (SE_ENTERSLIME|SE_ENTERLAVA|SE_HITGROUNDDAMAGE)) {
+		// don't fall from too high, don't enter slime or lava and don't fall in gaps
+		if (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP)) {
 			//botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, would be hurt\n", ms->client, move.frames, maxframes);
 			//if (move.stopevent & SE_ENTERSLIME) botimport.Print(PRT_MESSAGE, "slime\n");
 			//if (move.stopevent & SE_ENTERLAVA) botimport.Print(PRT_MESSAGE, "lava\n");
@@ -1814,13 +1814,13 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 		VectorScale(hordir, 400, cmdmove);
 		VectorCopy(ms->velocity, velocity);
 		// movement prediction
-		AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_TOUCHJUMPPAD, 0, qfalse); //qtrue
+		AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, velocity, cmdmove, 2, 2, 0.1f, SE_TOUCHJUMPPAD|SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP, 0, qfalse); //qtrue
 		// check for nearby gap behind the current ledge
 		gapdist = BotGapDistance(reach->end, hordir, 400, ms->entitynum);
 		// if there is no gap under the current ledge
 		if (reachhordist < 20) {
 			// if there is a jumpad, lava or slime under the current ledge or if the bot is walking
-			if (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERSLIME|SE_ENTERLAVA|SE_TOUCHJUMPPAD) || ms->moveflags & MFL_WALK) {
+			if (move.stopevent & (SE_TOUCHJUMPPAD|SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP) || ms->moveflags & MFL_WALK) {
 				speed = 200;
 			// if there is a gap or a ledge behind the current ledge (like a cascade)
 			} else if (gapdist > 0) {
@@ -3380,6 +3380,7 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 		if (reachnum) {
 			// get the reachability from the number
 			AAS_ReachabilityFromNum(reachnum, &reach);
+
 			result->traveltype = reach.traveltype;
 #ifdef DEBUG_AI_MOVE
 			AAS_ClearShownDebugLines();
@@ -3506,6 +3507,7 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 		if (ms->lastreachnum) {
 			//botimport.Print(PRT_MESSAGE, "%s: NOT onground, swimming or against ladder\n", ClientName(ms->entitynum - 1));
 			AAS_ReachabilityFromNum(ms->lastreachnum, &reach);
+
 			result->traveltype = reach.traveltype;
 #ifdef DEBUG
 			//botimport.Print(PRT_MESSAGE, "client %d finish: ", ms->client);
