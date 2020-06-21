@@ -1575,7 +1575,7 @@ BotTravel_BarrierJump
 =======================================================================================================================================
 */
 bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *reach) {
-	float rundist, dist, jumpdist, speed, currentspeed;
+	float reachhordist, dist, jumpdist, speed, currentspeed;
 	int scoutFlag;
 	vec3_t hordir, cmdmove;
 	bot_moveresult_t_cleared(result);
@@ -1586,8 +1586,8 @@ bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *
 	hordir[1] = reach->start[1] - ms->origin[1];
 	hordir[2] = 0;
 
-	rundist = VectorNormalize(hordir);
-	dist = rundist;
+	reachhordist = VectorNormalize(hordir);
+	dist = reachhordist;
 
 	if (dist > 100) {
 		dist = 100;
@@ -1621,7 +1621,7 @@ bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *
 	// get the current speed
 	currentspeed = DotProduct(ms->velocity, hordir);
 	// if pretty close to the barrier
-	if (rundist < (sv_maxbarrier->value + (currentspeed * 1.1)) * jumpdist) {
+	if (reachhordist < (sv_maxbarrier->value + currentspeed * 1.1f) * jumpdist) {
 		EA_Jump(ms->client);
 	}
 	// elementary action move in direction
@@ -1674,12 +1674,12 @@ bot_moveresult_t BotTravel_Swim(bot_movestate_t *ms, aas_reachability_t *reach) 
 	BotCheckBlocked(ms, dir, qtrue, &result);
 	// elementary action move in direction
 	EA_Move(ms->client, dir, 400);
+	// save the movement direction
+	VectorCopy(dir, result.movedir);
 	// set the ideal view angles
 	VectorToAngles(dir, result.ideal_viewangles);
 	// set the movement view flag
 	result.flags |= MOVERESULT_SWIMVIEW;
-	// save the movement direction
-	VectorCopy(dir, result.movedir);
 
 	return result;
 }
@@ -1715,12 +1715,12 @@ bot_moveresult_t BotTravel_WaterJump(bot_movestate_t *ms, aas_reachability_t *re
 			EA_MoveUp(ms->client);
 		}
 	}
+	// save the movement direction
+	VectorCopy(dir, result.movedir);
 	// set the ideal view angles
 	VectorToAngles(dir, result.ideal_viewangles);
 	// set the movement view flag
 	result.flags |= MOVERESULT_MOVEMENTVIEW;
-	// save the movement direction
-	VectorCopy(dir, result.movedir);
 
 	return result;
 }
@@ -1755,12 +1755,12 @@ bot_moveresult_t BotFinishTravel_WaterJump(bot_movestate_t *ms, aas_reachability
 	dir[2] += 70 + crandom() * 10;
 	// elementary action move in direction
 	EA_Move(ms->client, dir, 400);
+	// save the movement direction
+	VectorCopy(dir, result.movedir);
 	// set the ideal view angles
 	VectorToAngles(dir, result.ideal_viewangles);
 	// set the movement view flag
 	result.flags |= MOVERESULT_MOVEMENTVIEW;
-	// save the movement direction
-	VectorCopy(dir, result.movedir);
 
 	return result;
 }
@@ -2138,12 +2138,13 @@ bot_moveresult_t BotTravel_Teleport(bot_movestate_t *ms, aas_reachability_t *rea
 	} else {
 		EA_Move(ms->client, hordir, 400);
 	}
+	// save the movement direction
+	VectorCopy(hordir, result.movedir);
 	// set the movement view flag
 	if (ms->moveflags & MFL_SWIMMING) {
 		result.flags |= MOVERESULT_SWIMVIEW;
 	}
-	// save the movement direction
-	VectorCopy(hordir, result.movedir);
+
 	return result;
 }
 
@@ -2987,19 +2988,20 @@ bot_moveresult_t BotMoveInGoalArea(bot_movestate_t *ms, bot_goal_t *goal) {
 	EA_Move(ms->client, dir, speed);
 	// save the movement direction
 	VectorCopy(dir, result.movedir);
+	// set the ideal view angles
+	VectorToAngles(dir, result.ideal_viewangles);
 	// set the movement view flag
 	if (ms->moveflags & MFL_SWIMMING) {
-		VectorToAngles(dir, result.ideal_viewangles);
 		result.flags |= MOVERESULT_SWIMVIEW;
 	}
 	//if (!debugline) debugline = botimport.DebugLineCreate();
 	//botimport.DebugLineShow(debugline, ms->origin, goal->origin, LINECOLOR_BLUE);
+	// copy the last origin
+	VectorCopy(ms->origin, ms->lastorigin);
 
 	ms->lastreachnum = 0;
 	ms->lastareanum = 0;
 	ms->lastgoalareanum = goal->areanum;
-	// copy the last origin
-	VectorCopy(ms->origin, ms->lastorigin);
 
 	return result;
 }
