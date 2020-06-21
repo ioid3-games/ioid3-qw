@@ -1451,8 +1451,8 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 	}
 	// get the current speed
 	currentspeed = DotProduct(ms->velocity, hordir);
-	// if going towards a crouch area
-	if (!(AAS_AreaPresenceType(reach->areanum) & PRESENCE_NORMAL)) {
+	// if going towards a crouch area (some areas have a 0 presence)
+	if ((AAS_AreaPresenceType(reach->areanum) & PRESENCE_CROUCH) && !(AAS_AreaPresenceType(reach->areanum) & PRESENCE_NORMAL)) {
 		// if pretty close to the reachable area
 		if (dist < (200 + currentspeed) * 0.1f) {
 			EA_Crouch(ms->client);
@@ -1891,19 +1891,18 @@ BotFinishTravel_WalkOffLedge
 =======================================================================================================================================
 */
 bot_moveresult_t BotFinishTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t *reach) {
-	vec3_t dir, hordir, end, v;
+	vec3_t dir, hordir, end;
 	float dist, speed;
 	bot_moveresult_t_cleared(result);
 
 	VectorSubtract(reach->end, ms->origin, dir);
 	BotCheckBlocked(ms, dir, qtrue, &result);
-	VectorSubtract(reach->end, ms->origin, v);
 
-	v[2] = 0;
-	dist = VectorNormalize(v);
+	dir[2] = 0;
+	dist = VectorNormalize(dir);
 
 	if (dist > 16) {
-		VectorMA(reach->end, 16, v, end);
+		VectorMA(reach->end, 16, dir, end);
 	} else {
 		VectorCopy(reach->end, end);
 	}
@@ -2346,7 +2345,10 @@ bot_moveresult_t BotFinishTravel_Elevator(bot_movestate_t *ms, aas_reachability_
 	vec3_t bottomcenter, bottomdir, topdir;
 	bot_moveresult_t_cleared(result);
 
-	MoverBottomCenter(reach, bottomcenter);
+	if (!MoverBottomCenter(reach, bottomcenter)) {
+		return result;
+	}
+
 	VectorSubtract(bottomcenter, ms->origin, bottomdir);
 	VectorSubtract(reach->end, ms->origin, topdir);
 
@@ -2974,7 +2976,7 @@ bot_moveresult_t BotMoveInGoalArea(bot_movestate_t *ms, bot_goal_t *goal) {
 	}
 
 	if (ms->moveflags & MFL_WALK) {
-		speed = 200 - (200 - 2 * dist);
+		speed = 200;
 	} else {
 		speed = 400 - (400 - 4 * dist);
 	}
@@ -3307,13 +3309,13 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 			}
 
 			result->traveltype = reach.traveltype;
-			result->flags |= resultflags;
 		} else {
 			result->failure = qtrue;
-			result->flags |= resultflags;
 
 			Com_Memset(&reach, 0, sizeof(aas_reachability_t));
 		}
+
+		result->flags |= resultflags;
 #ifdef DEBUG
 		if (botDeveloper) {
 			if (result->failure) {
