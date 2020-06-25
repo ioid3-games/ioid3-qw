@@ -1144,6 +1144,7 @@ static int BotGapDistance(bot_movestate_t *ms, vec3_t origin, vec3_t hordir) {
 
 	return 0;
 }
+
 /*
 =======================================================================================================================================
 BotCheckBarrierCrouch
