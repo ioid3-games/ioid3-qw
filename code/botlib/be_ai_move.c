@@ -45,8 +45,6 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #include "be_ai_goal.h"
 #include "be_ai_move.h"
 
-//#define DEBUG_AI_MOVE
-//#define DEBUG_ELEVATOR
 // movement state
 // NOTE: the moveflags MFL_ONGROUND, MFL_WATERJUMP, MFL_SCOUT and MFL_TELEPORTED must be set outside the movement code
 typedef struct bot_movestate_s {
@@ -1237,6 +1235,7 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 	vec3_t hordir, cmdmove, tmpdir, origin;
 	int presencetype, maxframes, cmdframes, stopevent, gapdist, scoutFlag;
 	aas_clientmove_t move;
+	qboolean predictSuccess;
 
 	if (AAS_OnGround(ms->origin, ms->presencetype, ms->entitynum)) {
 		ms->moveflags |= MFL_ONGROUND;
@@ -1249,12 +1248,6 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 		}
 		// remove barrier jump flag
 		ms->moveflags &= ~MFL_BARRIERJUMP;
-		// get the presence type for the movement
-		if ((type & MOVE_CROUCH) && !(type & MOVE_JUMP)) {
-			presencetype = PRESENCE_CROUCH;
-		} else {
-			presencetype = PRESENCE_NORMAL;
-		}
 		// horizontal direction
 		hordir[0] = dir[0];
 		hordir[1] = dir[1];
@@ -1266,42 +1259,46 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			// if there is a gap, try to jump over it
 			if (BotGapDistance(ms, ms->origin, hordir) > 0) {
 				type |= MOVE_JUMP;
+				botimport.Print(PRT_MESSAGE, "trying jump over gap\n");
 			}
 		}
 		// get command movement
 		VectorScale(hordir, speed, cmdmove);
 
 		if (type & MOVE_JUMP) {
-			//botimport.Print(PRT_MESSAGE, "trying jump\n");
+			// get the presence type for the movement
+			presencetype = PRESENCE_NORMAL;
 			cmdmove[2] = 400;
 			maxframes = PREDICTIONTIME_JUMP / 0.1;
 			cmdframes = 1;
 			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_HITGROUND|SE_GAP;
 		} else {
+			// get the presence type for the movement
+			if (type & MOVE_CROUCH) {
+				presencetype = PRESENCE_CROUCH;
+				cmdmove[2] = -400;
+			} else {
+				presencetype = PRESENCE_NORMAL;
+				cmdmove[2] = 0;
+			}
+
 			maxframes = 2;
 			cmdframes = 2;
 			stopevent = SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP;
 		}
-
-		//AAS_ClearShownDebugLines();
 
 		VectorCopy(ms->origin, origin);
 
 		origin[2] += 0.5;
 		scoutFlag = ms->moveflags & MFL_SCOUT ? qtrue : qfalse;
 		// movement prediction
-		AAS_PredictClientMovement(&move, ms->entitynum, origin, presencetype, qtrue, scoutFlag, ms->velocity, cmdmove, cmdframes, maxframes, 0.1f, stopevent, 0);
-		// if prediction time wasn't enough to fully predict the movement
-		if (move.frames >= maxframes && (type & MOVE_JUMP)) {
-			//botimport.Print(PRT_MESSAGE, "client %d: max prediction frames\n", ms->client);
+		predictSuccess = AAS_PredictClientMovement(&move, ms->entitynum, origin, presencetype, qtrue, scoutFlag, ms->velocity, cmdmove, cmdframes, maxframes, 0.1f, stopevent, 0);
+		// check if prediction failed
+		if (!predictSuccess) {
 			return qfalse;
 		}
 		// don't fall from too high, don't enter slime or lava and don't fall in gaps
 		if (move.stopevent & (SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP)) {
-			//botimport.Print(PRT_MESSAGE, "client %d: predicted frame %d of %d, would be hurt\n", ms->client, move.frames, maxframes);
-			//if (move.stopevent & SE_ENTERSLIME) botimport.Print(PRT_MESSAGE, "slime\n");
-			//if (move.stopevent & SE_ENTERLAVA) botimport.Print(PRT_MESSAGE, "lava\n");
-			//if (move.stopevent & SE_HITGROUNDDAMAGE) botimport.Print(PRT_MESSAGE, "hitground\n");
 			return qfalse;
 		}
 		// if ground was hit
@@ -1321,15 +1318,20 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 				return qfalse;
 			}
 		}
-		// get horizontal movement
-		tmpdir[0] = move.endpos[0] - ms->origin[0];
-		tmpdir[1] = move.endpos[1] - ms->origin[1];
-		tmpdir[2] = 0;
-
-		//AAS_DrawCross(move.endpos, 4, LINECOLOR_BLUE);
-		// the bot is blocked by something
-		if (VectorLength(tmpdir) < speed * ms->thinktime * 0.5) {
+		// if prediction time wasn't enough to fully predict the movement
+		if (move.frames >= maxframes && (type & MOVE_JUMP)) {
 			return qfalse;
+		}
+
+		if (!(type & MOVE_JUMP)) {
+			// get horizontal movement
+			tmpdir[0] = move.endpos[0] - ms->origin[0];
+			tmpdir[1] = move.endpos[1] - ms->origin[1];
+			tmpdir[2] = 0;
+			// the bot is blocked by something
+			if (VectorLength(tmpdir) < speed * ms->thinktime * 0.5) {
+				return qfalse;
+			}
 		}
 		// perform the movement
 		if (type & MOVE_JUMP) {
@@ -1341,6 +1343,8 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 		}
 		// elementary action move in direction
 		EA_Move(ms->client, hordir, speed);
+
+		ms->presencetype = presencetype;
 		// movement was succesfull
 		return qtrue;
 	} else {
