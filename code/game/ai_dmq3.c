@@ -6185,9 +6185,8 @@ void BotPrintActivateGoalInfo(bot_state_t *bs, bot_activategoal_t *activategoal,
 BotEntityAvoidanceMove
 =======================================================================================================================================
 */
-void BotEntityAvoidanceMove(bot_state_t *bs, bot_moveresult_t *moveresult) {
+void BotEntityAvoidanceMove(bot_state_t *bs, bot_moveresult_t *moveresult, int movetype) {
 	vec3_t hordir, angles;
-	int movetype;
 
 	// just some basic dynamic obstacle avoidance code
 	hordir[0] = moveresult->movedir[0];
@@ -6199,14 +6198,6 @@ void BotEntityAvoidanceMove(bot_state_t *bs, bot_moveresult_t *moveresult) {
 		AngleVectorsForward(angles, hordir);
 	}
 
-	if (moveresult->flags & MOVERESULT_BARRIER_JUMP) {
-		movetype = MOVE_JUMP;
-	} else if (moveresult->flags & MOVERESULT_BARRIER_CROUCH) {
-		movetype = MOVE_CROUCH;
-	} else {
-		movetype = MOVE_WALK;
-	}
-
 	trap_BotMoveInDirection(bs->ms, hordir, 400, movetype);
 }
 
@@ -6215,7 +6206,7 @@ void BotEntityAvoidanceMove(bot_state_t *bs, bot_moveresult_t *moveresult) {
 BotRandomMove
 =======================================================================================================================================
 */
-void BotRandomMove(bot_state_t *bs, bot_moveresult_t *moveresult, int speed) {
+void BotRandomMove(bot_state_t *bs, bot_moveresult_t *moveresult, int speed, int movetype) {
 	vec3_t dir, angles;
 	int i;
 
@@ -6226,7 +6217,7 @@ void BotRandomMove(bot_state_t *bs, bot_moveresult_t *moveresult, int speed) {
 	for (i = 0; i < 8; i++) {
 		AngleVectorsForward(angles, dir);
 
-		if (trap_BotMoveInDirection(bs->ms, dir, speed, MOVE_WALK)) {
+		if (trap_BotMoveInDirection(bs->ms, dir, speed, movetype)) {
 			break;
 		}
 
@@ -6266,10 +6257,18 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, bot_aienter_t a
 	} else {
 		speed = 200;
 	}
+
+	if (moveresult->flags & MOVERESULT_BARRIER_JUMP) {
+		movetype = MOVE_JUMP;
+	} else if (moveresult->flags & MOVERESULT_BARRIER_CROUCH) {
+		movetype = MOVE_CROUCH;
+	} else {
+		movetype = MOVE_WALK;
+	}
 	// if stuck in a solid area
 	if (moveresult->type == RESULTTYPE_INSOLIDAREA) {
 		// move in a random direction in the hope to get out
-		BotRandomMove(bs, moveresult, speed);
+		BotRandomMove(bs, moveresult, speed, movetype);
 		return;
 	}
 	// get info for the entity that is blocking the bot
@@ -6315,7 +6314,7 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, bot_aienter_t a
 					// enable any routing areas that were disabled
 					BotEnableActivateGoalAreas(&activategoal, qtrue);
 					// try to crouch through or jump over obstacles
-					BotEntityAvoidanceMove(bs, moveresult); // Tobias NOTE: why has this to be done here, inside (bspent/activatedonefunc)?
+					BotEntityAvoidanceMove(bs, moveresult, movetype); // Tobias NOTE: why has this to be done here, inside (bspent/activatedonefunc)?
 					return;
 				}
 			}
@@ -6345,8 +6344,6 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, bot_aienter_t a
 		VectorSet(angles, 0, 360 * random(), 0);
 		AngleVectorsForward(angles, hordir);
 	}
-
-	movetype = MOVE_WALK;
 	// get the (right) sideward vector
 	CrossProduct(hordir, up, sideward);
 	// get the direction the blocking obstacle is moving
@@ -6367,7 +6364,7 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, bot_aienter_t a
 			// move in the other direction
 			if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
 				// move in a random direction in the hope to get out
-				BotRandomMove(bs, moveresult, speed);
+				BotRandomMove(bs, moveresult, speed, movetype);
 			}
 		}
 	}
