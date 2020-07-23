@@ -6182,27 +6182,6 @@ void BotPrintActivateGoalInfo(bot_state_t *bs, bot_activategoal_t *activategoal,
 
 /*
 =======================================================================================================================================
-BotEntityAvoidanceMove
-=======================================================================================================================================
-*/
-void BotEntityAvoidanceMove(bot_state_t *bs, bot_moveresult_t *moveresult, int movetype) {
-	vec3_t hordir, angles;
-
-	// just some basic dynamic obstacle avoidance code
-	hordir[0] = moveresult->movedir[0];
-	hordir[1] = moveresult->movedir[1];
-	hordir[2] = 0;
-	// if no direction just take a random direction
-	if (VectorNormalize(hordir) < 0.1) {
-		VectorSet(angles, 0, 360 * random(), 0);
-		AngleVectorsForward(angles, hordir);
-	}
-
-	trap_BotMoveInDirection(bs->ms, hordir, 400, movetype);
-}
-
-/*
-=======================================================================================================================================
 BotRandomMove
 =======================================================================================================================================
 */
@@ -6231,6 +6210,88 @@ void BotRandomMove(bot_state_t *bs, bot_moveresult_t *moveresult, int speed, int
 
 /*
 =======================================================================================================================================
+BotObstacleAvoidanceMove
+=======================================================================================================================================
+*/
+void BotObstacleAvoidanceMove(bot_state_t *bs, bot_moveresult_t *moveresult, int speed, int movetype) {
+	vec3_t dir2, mins, maxs, start, end, hordir, sideward, angles, up = {0, 0, 1};
+	gentity_t *ent;
+	bsp_trace_t trace;
+
+	// just some basic dynamic obstacle avoidance code
+	hordir[0] = moveresult->movedir[0];
+	hordir[1] = moveresult->movedir[1];
+	hordir[2] = 0;
+	// if no direction just take a random direction
+	if (VectorNormalize(hordir) < 0.1) {
+		VectorSet(angles, 0, 360 * random(), 0);
+		AngleVectorsForward(angles, hordir);
+	}
+	// try to crouch or jump over barrier
+	if (!trap_BotMoveInDirection(bs->ms, hordir, speed, movetype)) {
+		// get the (right) sideward vector
+		CrossProduct(hordir, up, sideward);
+		// get the direction the blocking obstacle is moving
+		ent = &g_entities[moveresult->blockentity];
+		dir2[2] = 0;
+
+		VectorCopy(ent->client->ps.velocity, dir2);
+		// if the blocking obstacle is moving
+		if (VectorLengthSquared(dir2) > 0) {
+			// we start moving to our right side, but if the blocking entity is also moving towards our right side flip the direction and move to the left side
+			if (DotProduct(dir2, sideward) > 50.0f) {
+				// flip the direction
+				VectorNegate(sideward, sideward);
+			}
+		// if the blocking obstacle is not moving at all
+		} else {
+			trap_AAS_PresenceTypeBoundingBox(PRESENCE_NORMAL, mins, maxs);
+			VectorMA(bs->origin, 32, sideward, start);
+			VectorMA(ent->client->ps.origin, 32, sideward, end);
+
+			BotAI_Trace(&trace, start, mins, maxs, end, bs->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
+			// if something is hit
+			if (trace.startsolid || trace.fraction < 1.0f) {
+				// flip the direction
+				VectorNegate(sideward, sideward);
+			}
+		}
+		// move sidwards
+		if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
+			// flip the direction
+			VectorNegate(sideward, sideward);
+			// move in the other direction
+			if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
+				// move in a random direction in the hope to get out
+				BotRandomMove(bs, moveresult, speed, movetype);
+			}
+		}
+	}
+}
+
+/*
+=======================================================================================================================================
+BotObstacleAvoidanceMoveFast
+=======================================================================================================================================
+*/
+void BotObstacleAvoidanceMoveFast(bot_state_t *bs, bot_moveresult_t *moveresult, int movetype) {
+	vec3_t hordir, angles;
+
+	// just some basic dynamic obstacle avoidance code
+	hordir[0] = moveresult->movedir[0];
+	hordir[1] = moveresult->movedir[1];
+	hordir[2] = 0;
+	// if no direction just take a random direction
+	if (VectorNormalize(hordir) < 0.1) {
+		VectorSet(angles, 0, 360 * random(), 0);
+		AngleVectorsForward(angles, hordir);
+	}
+
+	trap_BotMoveInDirection(bs->ms, hordir, 400, movetype);
+}
+
+/*
+=======================================================================================================================================
 BotAIBlocked
 
 Very basic handling of bots being blocked by other entities. Check what kind of entity is blocking the bot and try to activate it.
@@ -6240,7 +6301,7 @@ Before the bot ends in this part of the AI it should predict which doors to open
 */
 void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, bot_aienter_t activatedonefunc) {
 	int movetype, bspent, speed;
-	vec3_t dir1, dir2, mins, maxs, end, hordir, sideward, angles, up = {0, 0, 1};
+	vec3_t dir1, dir2, mins, maxs, end;
 	gentity_t *ent;
 	aas_entityinfo_t entinfo;
 	bot_activategoal_t activategoal;
@@ -6314,7 +6375,7 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, bot_aienter_t a
 					// enable any routing areas that were disabled
 					BotEnableActivateGoalAreas(&activategoal, qtrue);
 					// try to crouch through or jump over obstacles
-					BotEntityAvoidanceMove(bs, moveresult, movetype); // Tobias NOTE: why has this to be done here, inside (bspent/activatedonefunc)?
+					BotObstacleAvoidanceMoveFast(bs, moveresult, movetype); // Tobias NOTE: why has this to be done here, inside (bspent/activatedonefunc)?
 					return;
 				}
 			}
@@ -6336,38 +6397,7 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, bot_aienter_t a
 		}
 	}
 	// just some basic dynamic obstacle avoidance code
-	hordir[0] = moveresult->movedir[0];
-	hordir[1] = moveresult->movedir[1];
-	hordir[2] = 0;
-	// if no direction just take a random direction
-	if (VectorNormalize(hordir) < 0.1) {
-		VectorSet(angles, 0, 360 * random(), 0);
-		AngleVectorsForward(angles, hordir);
-	}
-	// get the (right) sideward vector
-	CrossProduct(hordir, up, sideward);
-	// get the direction the blocking obstacle is moving
-	dir2[2] = 0;
-
-	VectorCopy(ent->client->ps.velocity, dir2);
-	// we start moving to our right side, but if the blocking entity is also moving towards our right side flip the direction and move to the left side
-	if (DotProduct(dir2, sideward) > 50.0f) {
-		// flip the direction
-		VectorNegate(sideward, sideward);
-	}
-	// try to crouch or jump over barrier
-	if (!trap_BotMoveInDirection(bs->ms, hordir, speed, movetype)) {
-		// move sidwards
-		if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
-			// flip the direction
-			VectorNegate(sideward, sideward);
-			// move in the other direction
-			if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
-				// move in a random direction in the hope to get out
-				BotRandomMove(bs, moveresult, speed, movetype);
-			}
-		}
-	}
+	BotObstacleAvoidanceMove(bs, moveresult, speed, movetype);
 
 	if (activatedonefunc == NULL) {
 		if (bs->notblocked_time < FloatTime() - 0.4) {
