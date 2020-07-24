@@ -616,7 +616,7 @@ int BotChat_EndLevel(bot_state_t *bs) {
 	if (bs->lastchat_time > FloatTime() - TIME_BETWEENCHATTING) {
 		return qfalse;
 	}
-	// teamplay
+	// don't chat in teamplay
 	if (TeamPlayIsOn()) {
 		if (BotIsFirstInRankings(bs)) {
 			trap_EA_Command(bs->client, "vtaunt");
@@ -702,7 +702,7 @@ int BotChat_Death(bot_state_t *bs) {
 
 		bs->chatto = CHAT_TEAM;
 	} else {
-		// teamplay
+		// don't chat in teamplay
 		if (TeamPlayIsOn()) {
 			trap_EA_Command(bs->client, "vtaunt");
 			return qtrue;
@@ -1155,7 +1155,7 @@ int BotChat_Random(bot_state_t *bs) {
 	} else {
 		EasyClientName(bs->lastkilledplayer, name, sizeof(name));
 	}
-
+	// don't chat in teamplay
 	if (TeamPlayIsOn()) {
 		trap_EA_Command(bs->client, "vtaunt");
 		return qfalse; // don't wait
