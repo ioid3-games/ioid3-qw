@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/ioid3-games/ioid3-qw/tree/0.01/misc/quakewars.png" width="128">
+<img src="https://raw.githubusercontent.com/ioid3-games/ioid3-qw/branches/0.01/misc/quakewars.png" width="128">
 
 # Ioid3-qw
 
