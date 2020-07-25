@@ -1,6 +1,6 @@
-<img src="https://raw.githubusercontent.com/KuehnhammerTobias/ioqw/master/misc/quakewars.png" width="128">
+<img src="https://raw.githubusercontent.com/ioid3-games/ioid3-qw/tree/0.01/misc/quakewars.png" width="128">
 
-# Ioid3-qw 
+# Ioid3-qw
 
 **A second breath of life for Xreal, based on Zack Middleton's ioq3ztm engine**
 
