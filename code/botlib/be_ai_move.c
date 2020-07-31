@@ -1428,7 +1428,7 @@ void BotCheckBlocked(bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_mover
 		maxs[2] += sv_maxstep->value;
 	}
 	// get the current speed
-	currentspeed = DotProduct(ms->velocity, dir) + 24;
+	currentspeed = DotProduct(ms->velocity, dir) + 32;
 	// do a full trace to check for distant obstacles to avoid, depending on current speed
 	VectorMA(ms->origin, currentspeed * 1.4, dir, end); // Tobias NOTE: tweak this, because this depends on bot_thinktime
 	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);

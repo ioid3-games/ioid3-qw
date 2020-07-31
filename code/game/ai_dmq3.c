@@ -453,8 +453,6 @@ void BotSetTeamStatus(bot_state_t *bs) {
 	int teamtask;
 	aas_entityinfo_t entinfo;
 
-	teamtask = TEAMTASK_PATROL;
-
 	switch (bs->ltgtype) {
 		case LTG_GETFLAG:
 			teamtask = TEAMTASK_OFFENSE;
@@ -495,9 +493,6 @@ void BotSetTeamStatus(bot_state_t *bs) {
 		case LTG_CAMPORDER:
 			teamtask = TEAMTASK_CAMP;
 			break;
-		case LTG_PATROL:
-		case LTG_GETITEM:
-		case LTG_KILL:
 		default:
 			teamtask = TEAMTASK_PATROL;
 			break;
@@ -3420,6 +3415,8 @@ bot_moveresult_t BotAttackMove(bot_state_t *bs, int tfl) {
 	}
 	// if the bot is really stupid
 	if (attack_skill < 0.2) {
+		// check if the bot is blocking team mates
+		BotCheckBlockedTeammates(bs);
 		return moveresult;
 	}
 	// get the entity information
@@ -6568,6 +6565,160 @@ void BotCheckConsoleMessages(bot_state_t *bs) {
 
 /*
 =======================================================================================================================================
+BotCheckBlockedTeammates
+=======================================================================================================================================
+*/
+void BotCheckBlockedTeammates(bot_state_t *bs) {
+	bot_moveresult_t moveresult;
+	int movetype, i, squaredist, mindist, speed;
+	aas_entityinfo_t entinfo;
+	gentity_t *ent;
+	float obtrusiveness;
+	vec3_t dir, viewangles, mins, maxs, end, v3, v2, v1, sideward, angles, up = {0, 0, 1};
+	bsp_trace_t trace;
+
+	if (gametype < GT_TEAM) {
+		return;
+	}
+
+	if (BotCTFCarryingFlag(bs)) {
+		return;
+	}
+
+	if (Bot1FCTFCarryingFlag(bs)) {
+		return;
+	}
+
+	if (BotHarvesterCarryingCubes(bs)) {
+		return;
+	}
+
+	obtrusiveness = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_OBTRUSIVENESS, 0, 1);
+
+	VectorSet(bs->notblocked_dir, 0, 0, 0);
+
+	for (i = 0; i < level.maxclients; i++) {
+		if (i == bs->client) {
+			continue;
+		}
+		// if on the same team
+		if (!BotSameTeam(bs, i)) {
+			continue;
+		}
+		// get the entity information
+		BotEntityInfo(i, &entinfo);
+		// if the entity information is valid
+		if (!entinfo.valid) {
+			continue;
+		}
+		// if the entity isn't the bot self
+		if (entinfo.number == bs->entitynum) {
+			continue;
+		}
+		// if the entity isn't dead
+		if (EntityIsDead(&entinfo)) {
+			continue;
+		}
+		// if the teammate is not visible
+		if (!BotEntityVisible(&bs->cur_ps, 360, i)) {
+			continue;
+		}
+		// calculate the distance towards the teammate
+		VectorSubtract(bs->origin, entinfo.origin, dir);
+		VectorToAngles(dir, viewangles);
+
+		squaredist = VectorLengthSquared(dir);
+		ent = &g_entities[i];
+		// if the teammate walks slowly and doesn't carrying a flag or skulls and if the teammate isn't dangerous
+		if (VectorLengthSquared(ent->client->ps.velocity) < 40000 && !EntityCarriesFlag(&entinfo) && !EntityCarriesCubes(&entinfo) && (!(entinfo.flags & EF_TICKING))) { // TODO: 1# we need BUTON_RUN (ACTION) instead of ent->client->ps.velocity
+			// if the teammate is far away enough
+			if (squaredist > 16384) {
+				continue;
+			}
+			// human players and facing teammates need more space
+			if (!(ent->r.svFlags & SVF_BOT) || (BotEntityVisible(&bs->cur_ps, 60, i) && InFieldOfVision(entinfo.angles, 60, viewangles))) {
+				mindist = 42;
+			} else {
+				// set minimum distance
+				mindist = 8;
+			}
+			// set default speed
+			speed = 200;
+		} else {
+			// if the teammate is far away enough
+			if (squaredist > 65536) {
+				continue;
+			}
+
+			mindist = 256 - (128 * obtrusiveness);
+			// use max speed
+			speed = 400;
+		}
+		// safety check, don't force to reach the goal
+		if (mindist >= bs->formation_dist) {
+			bs->formation_dist = mindist;
+		}
+		// calculate the direction towards the teammate
+		v2[2] = 0;
+
+		VectorSubtract(entinfo.origin, bs->origin, v2);
+		VectorNormalize(v2);
+		// now check if the teammate is blocked, increase the distance accordingly
+		trap_AAS_PresenceTypeBoundingBox(PRESENCE_NORMAL, mins, maxs);
+		VectorMA(bs->origin, mindist, v2, end);
+		BotAI_TraceEntities(&trace, bs->origin, mins, maxs, end, bs->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
+		// if the teammate is too close (blocked)
+		if (trace.entityNum == i && (trace.startsolid || trace.fraction < 1.0f)) {
+			// stop crouching to gain speed
+			bs->crouch_time = FloatTime() - 1;
+			movetype = MOVE_WALK;
+			// look into the direction of the blocked teammate
+			VectorToAngles(v2, bs->ideal_viewangles);
+			// get the sideward vector
+			CrossProduct(up, v2, sideward);
+			// get the direction the blocked player is moving
+			v1[2] = 0;
+
+			VectorNormalize2(ent->client->ps.velocity, v1);
+			VectorCopy(ent->client->ps.velocity, v1);
+			// the blocked player is moving to his left side, so move to his right side (and vice versa)
+			if (DotProduct(v1, sideward) > -50.0f) {
+				// flip the direction
+				VectorNegate(sideward, sideward);
+			}
+			// also go backwards a little
+			VectorMA(sideward, -1, v2, sideward);
+			// move sidwards
+			if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
+				// flip the direction
+				VectorNegate(sideward, sideward);
+				// move in the other direction
+				if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
+					// try to step back
+					if (!trap_BotMoveInDirection(bs->ms, v2, speed, movetype)) {
+						if (DotProduct(bs->notblocked_dir, bs->notblocked_dir) < 0.1) {
+							VectorSet(angles, 0, 360 * random(), 0);
+							AngleVectorsForward(angles, v3);
+						} else {
+							VectorCopy(bs->notblocked_dir, v3);
+						}
+
+						if (!trap_BotMoveInDirection(bs->ms, v3, speed, movetype)) {
+							VectorSet(bs->notblocked_dir, 0, 0, 0);
+							// move in a random direction in the hope to get out
+							BotRandomMove(bs, &moveresult, speed, movetype);
+						} else {
+							VectorCopy(v3, bs->notblocked_dir);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+/*
+=======================================================================================================================================
 BotCheckForGrenades
 =======================================================================================================================================
 */
@@ -6593,7 +6744,7 @@ void BotCheckForProxMines(bot_state_t *bs, entityState_t *state) {
 		return;
 	}
 	// if this prox mine is from someone on our own team
-	if (state->team == BotTeam(bs)) {
+	if (gametype > GT_TOURNAMENT && state->team == BotTeam(bs)) {
 		return;
 	}
 	// if the bot doesn't have a weapon to deactivate the mine
@@ -6757,6 +6908,13 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 					case GTS_BLUE_TAKEN:
 						bs->neutralflagstatus = BotTeam(bs) == TEAM_BLUE ? 2 : 1; // FIXME: check Team_TakeFlagSound in g_team.c
 						bs->flagstatuschanged = qtrue;
+						break;
+				}
+			} else if (gametype == GT_OBELISK || gametype == GT_HARVESTER) {
+				switch (state->eventParm) {
+					case GTS_RED_CAPTURE:
+					case GTS_BLUE_CAPTURE:
+						bs->lastteamscore_time = FloatTime();
 						break;
 				}
 			}

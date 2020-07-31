@@ -456,19 +456,9 @@ qhandle_t CG_StatusHandle(int task) {
 		case TEAMTASK_CAMP:
 			h = cgs.media.campShader;
 			break;
-// Tobias DEBUG
-		case TEAMTASK_PATROL:
+		default:
 			h = cgs.media.patrolShader;
 			break;
-		default:
-			if (cg_drawDebug.integer) {
-				h = cgs.media.roamShader;
-			} else {
-				h = cgs.media.patrolShader;
-			}
-
-			break;
-// Tobias END
 	}
 
 	return h;
