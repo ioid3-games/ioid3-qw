@@ -1793,7 +1793,7 @@ void BotChooseWeapon(bot_state_t *bs) {
 		}
 
 		bs->weaponnum = newweaponnum;
-		//BotAI_Print(PRT_MESSAGE, "bs->weaponnum = %d\n", bs->weaponnum);
+
 		trap_EA_SelectWeapon(bs->client, bs->weaponnum);
 	}
 }
@@ -1804,11 +1804,11 @@ BotWantsToWalk
 =======================================================================================================================================
 */
 qboolean BotWantsToWalk(bot_state_t *bs) {
-//#ifdef DEBUG
+
 	if (bot_nowalk.integer) {
 		return qfalse;
 	}
-//#endif
+
 	if (bs->walker < 0.1f) {
 		return qfalse;
 	}
@@ -3582,7 +3582,6 @@ bot_moveresult_t BotAttackMove(bot_state_t *bs, int tfl) {
 		bs->attackstrafe_time = 0;
 	}
 	// bot couldn't do any useful movement
-	//bs->attackchase_time = AAS_Time() + 6;
 	return moveresult;
 }
 
@@ -4128,6 +4127,90 @@ const int BotFindEnemy(bot_state_t *bs, int curenemy) {
 
 /*
 =======================================================================================================================================
+BotTeamCubeCarrierVisible
+=======================================================================================================================================
+*/
+int BotTeamCubeCarrierVisible(bot_state_t *bs) {
+	int i;
+	aas_entityinfo_t entinfo;
+
+	for (i = 0; i < level.maxclients; i++) {
+		if (i == bs->client) {
+			continue;
+		}
+		// if the cube carrier is not on the same team
+		if (!BotSameTeam(bs, i)) {
+			continue;
+		}
+		// get the entity information
+		BotEntityInfo(i, &entinfo);
+		// if the entity information is valid
+		if (!entinfo.valid) {
+			continue;
+		}
+		// if the entity isn't the bot self
+		if (entinfo.number == bs->entitynum) {
+			continue;
+		}
+		// if this player is carrying cubes
+		if (!EntityCarriesCubes(&entinfo)) {
+			continue;
+		}
+		// if the cube carrier is not visible
+		if (!BotEntityVisible(&bs->cur_ps, 360, i)) {
+			continue;
+		}
+
+		return i;
+	}
+
+	return -1;
+}
+
+/*
+=======================================================================================================================================
+BotEnemyCubeCarrierVisible
+=======================================================================================================================================
+*/
+int BotEnemyCubeCarrierVisible(bot_state_t *bs) {
+	int i;
+	aas_entityinfo_t entinfo;
+
+	for (i = 0; i < level.maxclients; i++) {
+		if (i == bs->client) {
+			continue;
+		}
+		// if the cube carrier is on the same team
+		if (BotSameTeam(bs, i)) {
+			continue;
+		}
+		// get the entity information
+		BotEntityInfo(i, &entinfo);
+		// if the entity information is valid
+		if (!entinfo.valid) {
+			continue;
+		}
+		// if the entity isn't the bot self
+		if (entinfo.number == bs->entitynum) {
+			continue;
+		}
+		// if this player is carrying cubes
+		if (!EntityCarriesCubes(&entinfo)) {
+			continue;
+		}
+		// if the cube carrier is not visible
+		if (!BotEntityVisible(&bs->cur_ps, 360, i)) {
+			continue;
+		}
+
+		return i;
+	}
+
+	return -1;
+}
+
+/*
+=======================================================================================================================================
 BotTeamFlagCarrierVisible
 =======================================================================================================================================
 */
@@ -4402,90 +4485,6 @@ int BotCountAllTeamMates(bot_state_t *bs, float range) {
 
 	return teammates;
 }
-
-/*
-=======================================================================================================================================
-BotTeamCubeCarrierVisible
-=======================================================================================================================================
-*/
-int BotTeamCubeCarrierVisible(bot_state_t *bs) {
-	int i;
-	aas_entityinfo_t entinfo;
-
-	for (i = 0; i < level.maxclients; i++) {
-		if (i == bs->client) {
-			continue;
-		}
-		// if the cube carrier is not on the same team
-		if (!BotSameTeam(bs, i)) {
-			continue;
-		}
-		// get the entity information
-		BotEntityInfo(i, &entinfo);
-		// if the entity information is valid
-		if (!entinfo.valid) {
-			continue;
-		}
-		// if the entity isn't the bot self
-		if (entinfo.number == bs->entitynum) {
-			continue;
-		}
-		// if this player is carrying cubes
-		if (!EntityCarriesCubes(&entinfo)) {
-			continue;
-		}
-		// if the cube carrier is not visible
-		if (!BotEntityVisible(&bs->cur_ps, 360, i)) {
-			continue;
-		}
-
-		return i;
-	}
-
-	return -1;
-}
-
-/*
-=======================================================================================================================================
-BotEnemyCubeCarrierVisible
-=======================================================================================================================================
-*/
-int BotEnemyCubeCarrierVisible(bot_state_t *bs) {
-	int i;
-	aas_entityinfo_t entinfo;
-
-	for (i = 0; i < level.maxclients; i++) {
-		if (i == bs->client) {
-			continue;
-		}
-		// if the cube carrier is on the same team
-		if (BotSameTeam(bs, i)) {
-			continue;
-		}
-		// get the entity information
-		BotEntityInfo(i, &entinfo);
-		// if the entity information is valid
-		if (!entinfo.valid) {
-			continue;
-		}
-		// if the entity isn't the bot self
-		if (entinfo.number == bs->entitynum) {
-			continue;
-		}
-		// if this player is carrying cubes
-		if (!EntityCarriesCubes(&entinfo)) {
-			continue;
-		}
-		// if the cube carrier is not visible
-		if (!BotEntityVisible(&bs->cur_ps, 360, i)) {
-			continue;
-		}
-
-		return i;
-	}
-
-	return -1;
-}
 // Tobias HACK
 /*
 =======================================================================================================================================
@@ -4493,24 +4492,16 @@ BotEqualizeTeamScore
 =======================================================================================================================================
 */
 qboolean BotEqualizeTeamScore(bot_state_t *bs) {
-// DEBUG
+
 	if (!bot_equalize.integer) {
 		return qfalse;
 	}
-// DEBUGEND
 	// if not in team deathmatch mode
 	if (gametype != GT_TEAM) {
 		return qfalse;
 	}
 
-	if (bs->enemyteamscore + bot_equalizer_teambon.value < bs->ownteamscore) { // DEBUG: bot_equalizer_teambon
-#if 0 // DEBUG
-		if (BotTeam(bs) == TEAM_RED) {
-			BotAI_Print(PRT_MESSAGE, S_COLOR_RED "EQUALIZE for B! (%s) Blue scores: %s, Red scores: %i\n", enemyteamscore, ownteamscore);
-		} else {
-			BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "EQUALIZE for R! (%s) Blue scores: %s, Red scores: %i\n", enemyteamscore, ownteamscore);
-		}
-#endif // DEBUGEND
+	if (bs->enemyteamscore + bot_equalizer_teambon.value < bs->ownteamscore) {
 		return qtrue;
 	}
 
@@ -4527,14 +4518,11 @@ qboolean BotEqualizeWeakestHumanTeamScore(bot_state_t *bs) {
 	int i, femaleClient, maleClient, femaleScores, maleScores, referenceScores;
 	aas_entityinfo_t entinfo;
 	playerState_t ps;
-// DEBUG
-#if 0
-	char netname[MAX_NETNAME];
-#endif
+
 	if (!bot_equalize.integer) {
 		return qfalse;
 	}
-// DEBUGEND
+
 	if (!TeamPlayIsOn()) {
 		return qfalse;
 	}
@@ -4573,12 +4561,11 @@ qboolean BotEqualizeWeakestHumanTeamScore(bot_state_t *bs) {
 		if (atoi(Info_ValueForKey(buf, "t")) == TEAM_SPECTATOR) {
 			continue;
 		}
-//#if 0 // DEBUG
 		// skip bots
 		if (g_entities[i].r.svFlags & SVF_BOT) {
 			continue;
 		}
-//#endif// DEBUGEND
+
 		if (BotAI_GetClientState(i, &ps)) {
 			ClientSkin(i, modelName, sizeof(modelName));
 
@@ -4588,7 +4575,7 @@ qboolean BotEqualizeWeakestHumanTeamScore(bot_state_t *bs) {
 
 			if (!Q_stricmp(modelName, "mynx")) { // DEBUG (major)
 				femaleClient = i;
-				femaleScores = ps.persistant[PERS_SCORE] - bot_equalizer_fembon.value; // DEBUG: bot_equalizer_fembon
+				femaleScores = ps.persistant[PERS_SCORE] - bot_equalizer_fembon.value;
 			}
 
 			if (!Q_stricmp(modelName, "james")) { // DEBUG (sarge)
@@ -4599,30 +4586,15 @@ qboolean BotEqualizeWeakestHumanTeamScore(bot_state_t *bs) {
 	}
 
 	if (referenceScores <= maleScores || referenceScores <= femaleScores) {
-#if 0 // DEBUG
-		if (BotTeam(bs) == TEAM_RED) {
-			BotAI_Print(PRT_MESSAGE, S_COLOR_GREEN "NO CHANGES (R is NOT FIRST). R score: %i, M score: %i, F score: %i.\n", referenceScores, maleScores, femaleScores);
-		}
-#endif // DEBUGEND
 		return qfalse;
 	}
 
 	if ((bs->enemy == femaleClient && femaleScores < maleScores) || (bs->enemy == maleClient && maleScores < femaleScores)) {
-#if 0 // DEBUG
-		if (BotTeam(bs) == TEAM_RED) {
-			if (maleScores < femaleScores) {
-				BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "EQUALIZE for M! (%s) Enemy: %s, R score: %i, M score: %i, F score: %i.\n", ClientName(bs->client, netname, sizeof(netname)), ClientName(bs->enemy, modelName, sizeof(modelName)), referenceScores, maleScores, femaleScores);
-			} else {
-				BotAI_Print(PRT_MESSAGE, S_COLOR_MAGENTA "EQUALIZE for F! (%s) Enemy: %s, R score: %i, M score: %i, F score: %i.\n", ClientName(bs->client, netname, sizeof(netname)), ClientName(bs->enemy, modelName, sizeof(modelName)), referenceScores, maleScores, femaleScores);
-			}
-		}
-#endif // DEBUGEND
 		return qtrue;
 	}
 
 	return qfalse;
 }
-// Tobias END
 // Tobias DEBUG
 /*
 =======================================================================================================================================
@@ -4824,7 +4796,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	}
 	// consider enemy model specific attributes
 	if (BotEqualizeWeakestHumanTeamScore(bs) || BotEqualizeTeamScore(bs)) {
-		aim_accuracy *= bot_equalizer_aim.value; // DEBUG: bot_equalizer_aim
+		aim_accuracy *= bot_equalizer_aim.value;
 	}
 	// keep a minimum accuracy
 	if (aim_accuracy <= 0.0f) {
@@ -5142,7 +5114,7 @@ void BotCheckAttack(bot_state_t *bs) {
 	}
 	// consider enemy model specific attributes
 	if (BotEqualizeWeakestHumanTeamScore(bs) || BotEqualizeTeamScore(bs)) {
-		reactiontime += bot_equalizer_react.value; // DEBUG: bot_equalizer_react
+		reactiontime += bot_equalizer_react.value;
 	}
 
 	VectorSubtract(bs->aimtarget, bs->eye, dir);
@@ -6110,9 +6082,7 @@ int BotGetActivateGoal(bot_state_t *bs, int entitynum, bot_activategoal_t *activ
 			}
 		}
 	}
-#ifdef OBSTACLEDEBUG
-	BotAI_Print(PRT_ERROR, "BotGetActivateGoal: no valid activator for entity with target \"%s\"\n", targetname[0]);
-#endif
+
 	return 0;
 }
 
@@ -6211,7 +6181,10 @@ BotObstacleAvoidanceMove
 =======================================================================================================================================
 */
 void BotObstacleAvoidanceMove(bot_state_t *bs, bot_moveresult_t *moveresult, int speed, int movetype) {
-	vec3_t dir2, mins, maxs, start, end, hordir, sideward, angles, up = {0, 0, 1};
+	vec3_t blocked_dir, avoidAngles, avoidRight_dir, avoidLeft_dir, block_pos;
+	vec3_t dir2, mins, maxs, hordir, sideward, rightwards, leftwards, angles, up = {0, 0, 1};
+	float blocked_dist, rightSucc, leftSucc, yaw, avoidRadius, arcAngle;
+	aas_entityinfo_t entinfo;
 	gentity_t *ent;
 	bsp_trace_t trace;
 
@@ -6240,27 +6213,92 @@ void BotObstacleAvoidanceMove(bot_state_t *bs, bot_moveresult_t *moveresult, int
 				// flip the direction
 				VectorNegate(sideward, sideward);
 			}
+			// move sidwards
+			if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
+				// flip the direction
+				VectorNegate(sideward, sideward);
+				// move in the other direction
+				if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
+					// move in a random direction in the hope to get out
+					BotRandomMove(bs, moveresult, speed, movetype);
+				}
+			}
 		// if the blocking obstacle is not moving at all
 		} else {
 			trap_AAS_PresenceTypeBoundingBox(PRESENCE_NORMAL, mins, maxs);
-			VectorMA(bs->origin, 32, sideward, start);
-			VectorMA(ent->client->ps.origin, 32, sideward, end);
 
-			BotAI_Trace(&trace, start, mins, maxs, end, bs->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
-			// if something is hit
-			if (trace.startsolid || trace.fraction < 1.0f) {
-				// flip the direction
-				VectorNegate(sideward, sideward);
+			mins[2] += STEPSIZE;
+			// get the blocked direction
+			yaw = VectorToYaw(blocked_dir);
+			// get the avoid radius
+			avoidRadius = sqrt((ent->r.maxs[0] * ent->r.maxs[0]) + (ent->r.maxs[1] * ent->r.maxs[1])) + sqrt((maxs[0] * maxs[0]) + (maxs[1] * maxs[1]));
+			// get info for the entity that is blocking the bot
+			BotEntityInfo(moveresult->blockentity, &entinfo);
+			// see if we're inside our avoidance radius
+			VectorSubtract(entinfo.origin, bs->origin, blocked_dir);
+
+			blocked_dist = VectorNormalize(blocked_dir);
+			arcAngle = (blocked_dist <= avoidRadius) ? 135 : ((avoidRadius / blocked_dist) * 90);
+
+			VectorClear(avoidAngles);
+			// test right
+			avoidAngles[YAW] = AngleNormalize360(yaw + arcAngle);
+
+			AngleVectorsForward(avoidAngles, avoidRight_dir);
+			VectorMA(bs->origin, blocked_dist, avoidRight_dir, block_pos);
+			BotAI_Trace(&trace, bs->origin, mins, maxs, block_pos, bs->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
+
+			if (!trace.allsolid && !trace.startsolid) {
+				if (trace.fraction >= 1.0f) {
+					// all clear, go for it (favor the right if both are equal)
+					VectorCopy(avoidRight_dir, rightwards);
+				}
+
+				rightSucc = trace.fraction;
+			} else {
+				rightSucc = 0.0f;
 			}
-		}
-		// move sidwards
-		if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
-			// flip the direction
-			VectorNegate(sideward, sideward);
-			// move in the other direction
-			if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
-				// move in a random direction in the hope to get out
-				BotRandomMove(bs, moveresult, speed, movetype);
+			// now test left
+			arcAngle *= -1;
+
+			avoidAngles[YAW] = AngleNormalize360(yaw + arcAngle);
+
+			AngleVectorsForward(avoidAngles, avoidLeft_dir);
+			VectorMA(bs->origin, blocked_dist, avoidLeft_dir, block_pos);
+			BotAI_Trace(&trace, bs->origin, mins, maxs, block_pos, bs->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
+
+			if (!trace.allsolid && !trace.startsolid) {
+				if (trace.fraction >= 1.0f) {
+					// all clear, go for it (right side would have already succeeded if as good as this)
+					VectorCopy(avoidLeft_dir, leftwards);
+				}
+
+				leftSucc = trace.fraction;
+			} else {
+				leftSucc = 0.0f;
+			}
+			// both sides failed
+			if (leftSucc == 0.0f && rightSucc == 0.0f) {
+
+			}
+			// if the traces hit something, but got a relatively good distance
+			if (rightSucc * blocked_dist >= avoidRadius || leftSucc * blocked_dist >= avoidRadius) {
+				// favor the right, all things being equal
+				if (rightSucc >= leftSucc) {
+					VectorCopy(avoidRight_dir, rightwards);
+				} else {
+					VectorCopy(avoidLeft_dir, leftwards);
+				}
+
+				//return qtrue;
+			}
+			// move sidwards
+			if (!trap_BotMoveInDirection(bs->ms, rightwards, speed, movetype)) {
+				// move in the other direction
+				if (!trap_BotMoveInDirection(bs->ms, leftwards, speed, movetype)) {
+					// move in a random direction in the hope to get out
+					BotRandomMove(bs, moveresult, speed, movetype);
+				}
 			}
 		}
 	}
@@ -6372,7 +6410,7 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, bot_aienter_t a
 					// enable any routing areas that were disabled
 					BotEnableActivateGoalAreas(&activategoal, qtrue);
 					// try to crouch through or jump over obstacles
-					BotObstacleAvoidanceMoveFast(bs, moveresult, movetype); // Tobias NOTE: why has this to be done here, inside (bspent/activatedonefunc)?
+					BotObstacleAvoidanceMoveFast(bs, moveresult, movetype);
 					return;
 				}
 			}
@@ -6630,7 +6668,7 @@ void BotCheckBlockedTeammates(bot_state_t *bs) {
 		squaredist = VectorLengthSquared(dir);
 		ent = &g_entities[i];
 		// if the teammate walks slowly and doesn't carrying a flag or skulls and if the teammate isn't dangerous
-		if (VectorLengthSquared(ent->client->ps.velocity) < 40000 && !EntityCarriesFlag(&entinfo) && !EntityCarriesCubes(&entinfo) && (!(entinfo.flags & EF_TICKING))) { // TODO: 1# we need BUTON_RUN (ACTION) instead of ent->client->ps.velocity
+		if (VectorLengthSquared(ent->client->ps.velocity) < 40000 && !EntityCarriesFlag(&entinfo) && !EntityCarriesCubes(&entinfo) && (!(entinfo.flags & EF_TICKING))) {
 			// if the teammate is far away enough
 			if (squaredist > 16384) {
 				continue;
