@@ -331,7 +331,6 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		if (!entinfo.valid) {
 			bs->ltg_time = 0;
 			bs->ltgtype = 0;
-			return qfalse;
 		}
 		// if the team mate is visible
 		if (BotEntityVisible(&bs->cur_ps, 360, bs->teammate)) {
@@ -389,7 +388,6 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		if (!entinfo.valid) {
 			bs->ltg_time = 0;
 			bs->ltgtype = 0;
-			return qfalse;
 		}
 		// if the companion is visible
 		if (BotEntityVisible(&bs->cur_ps, 360, bs->teammate)) {
@@ -2580,7 +2578,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 	// if the view is fixed for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEW|MOVERESULT_SWIMVIEW)) {
 		VectorCopy(moveresult.ideal_viewangles, bs->ideal_viewangles);
-	} else if (!(moveresult.flags & MOVERESULT_MOVEMENTVIEWSET) && !(bs->flags & BFL_IDEALVIEWSET)) {
+	} else if (!(bs->flags & BFL_IDEALVIEWSET) && !(moveresult.flags & MOVERESULT_MOVEMENTVIEWSET)) {
 		attack_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_ATTACK_SKILL, 0, 1);
 		// if the bot is skilled enough
 		if (attack_skill > 0.3) {
@@ -2733,7 +2731,7 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 	// if the view is fixed for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEW|MOVERESULT_SWIMVIEW)) {
 		VectorCopy(moveresult.ideal_viewangles, bs->ideal_viewangles);
-	} else if (!(moveresult.flags & MOVERESULT_MOVEMENTVIEWSET) && !(bs->flags & BFL_IDEALVIEWSET)) {
+	} else if (!(bs->flags & BFL_IDEALVIEWSET) && !(moveresult.flags & MOVERESULT_MOVEMENTVIEWSET)) {
 		attack_skill = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_ATTACK_SKILL, 0, 1);
 		// if the bot is skilled enough
 		if (attack_skill > 0.3) {

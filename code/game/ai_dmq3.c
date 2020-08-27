@@ -721,7 +721,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 		}
 
 		return;
-	// if both flags Not at their bases
+	// if both flags not at their bases
 	} else if (flagstatus == 3) {
 		if (bs->owndecision_time < FloatTime()) {
 			// if not trying to return the flag and not following the team flag carrier
@@ -787,8 +787,8 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 		bs->ltg_time = 0;
 		bs->ltgtype = 0;
 	}
-	// if already a CTF or team goal
-	if (bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_GETFLAG || bs->ltgtype == LTG_RUSHBASE || bs->ltgtype == LTG_RETURNFLAG || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_GETITEM) {
+	// if the bot already has a CTF or team goal
+	if (bs->ltgtype == LTG_GETFLAG || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_RUSHBASE || bs->ltgtype == LTG_RETURNFLAG || bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_GETITEM) {
 		return;
 	}
 
@@ -899,7 +899,7 @@ void Bot1FCTFSeekGoals(bot_state_t *bs) {
 	float rnd, l1, l2;
 	int c;
 
-	// when carrying a flag in ctf the bot should rush to the base
+	// when carrying the flag in 1ctf the bot should rush to the enemy base
 	if (Bot1FCTFCarryingFlag(bs)) {
 		// if not already rushing to the base
 		if (bs->ltgtype != LTG_RUSHBASE) {
@@ -962,8 +962,8 @@ void Bot1FCTFSeekGoals(bot_state_t *bs) {
 					return;
 				}
 			}
-			// if already a CTF or team goal
-			if (bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_GETFLAG || bs->ltgtype == LTG_RUSHBASE || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_ATTACKENEMYBASE || bs->ltgtype == LTG_GETITEM) {
+			// if the bot already has a CTF or team goal
+			if (bs->ltgtype == LTG_GETFLAG || bs->ltgtype == LTG_ATTACKENEMYBASE || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_RUSHBASE || bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_GETITEM) {
 				return;
 			}
 			// if not already attacking the enemy base
@@ -998,7 +998,7 @@ void Bot1FCTFSeekGoals(bot_state_t *bs) {
 			if (c >= 0) {
 				// FIXME: attack enemy flag carrier
 			}
-			// if already a CTF or team goal
+			// if the bot already has a CTF or team goal
 			if (bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_GETITEM) {
 				return;
 			}
@@ -1041,8 +1041,8 @@ void Bot1FCTFSeekGoals(bot_state_t *bs) {
 		bs->ltg_time = 0;
 		bs->ltgtype = 0;
 	}
-	// if already a CTF or team goal
-	if (bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_GETFLAG || bs->ltgtype == LTG_RUSHBASE || bs->ltgtype == LTG_RETURNFLAG || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_ATTACKENEMYBASE || bs->ltgtype == LTG_GETITEM) {
+	// if the bot already has a CTF or team goal
+	if (bs->ltgtype == LTG_GETFLAG || bs->ltgtype == LTG_ATTACKENEMYBASE || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_RUSHBASE || bs->ltgtype == LTG_RETURNFLAG || bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_GETITEM) {
 		return;
 	}
 
@@ -1125,7 +1125,7 @@ Bot1FCTFRetreatGoals
 */
 void Bot1FCTFRetreatGoals(bot_state_t *bs) {
 
-	// when carrying a flag in ctf the bot should rush to the enemy base
+	// when carrying the flag in 1ctf the bot should rush to the enemy base
 	if (Bot1FCTFCarryingFlag(bs)) {
 		// if not already rushing to the base
 		if (bs->ltgtype != LTG_RUSHBASE) {
@@ -1159,8 +1159,8 @@ void BotObeliskSeekGoals(bot_state_t *bs) {
 	if (bs->lastgoal_ltgtype) {
 		bs->teamgoal_time += 60;
 	}
-	// if already a team goal
-	if (bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_GETFLAG || bs->ltgtype == LTG_RUSHBASE || bs->ltgtype == LTG_RETURNFLAG || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_ATTACKENEMYBASE || bs->ltgtype == LTG_GETITEM) {
+	// if the bot already has a CTF or team goal
+	if (bs->ltgtype == LTG_ATTACKENEMYBASE || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_GETITEM) {
 		return;
 	}
 
@@ -1190,7 +1190,7 @@ void BotObeliskSeekGoals(bot_state_t *bs) {
 		l1 = 0.4f;
 		l2 = 0.7f;
 	}
-	// get the flag or defend the base
+	// attack the enemy base or defend the base
 	rnd = random();
 
 	if (rnd < l1 && redobelisk.areanum && blueobelisk.areanum) {
@@ -1275,7 +1275,7 @@ void BotHarvesterSeekGoals(bot_state_t *bs) {
 	float rnd, l1, l2;
 	int c;
 
-	// when carrying cubes in harvester the bot should rush to the base
+	// when carrying cubes in harvester the bot should rush to the enemy base
 	if (BotHarvesterCarryingCubes(bs)) {
 		// if not already rushing to the base
 		if (bs->ltgtype != LTG_RUSHBASE) {
@@ -1311,8 +1311,8 @@ void BotHarvesterSeekGoals(bot_state_t *bs) {
 	if (bs->lastgoal_ltgtype) {
 		bs->teamgoal_time += 60;
 	}
-	// if not yet doing something
-	if (bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_GETFLAG || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_ATTACKENEMYBASE || bs->ltgtype == LTG_HARVEST || bs->ltgtype == LTG_GETITEM) {
+	// if the bot already has a CTF or team goal
+	if (bs->ltgtype == LTG_ATTACKENEMYBASE || bs->ltgtype == LTG_HARVEST || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_RUSHBASE || bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_GETITEM) {
 		return;
 	}
 
@@ -1416,7 +1416,7 @@ BotHarvesterRetreatGoals
 */
 void BotHarvesterRetreatGoals(bot_state_t *bs) {
 
-	// when carrying cubes in harvester the bot should rush to the base
+	// when carrying cubes in harvester the bot should rush to the enemy base
 	if (BotHarvesterCarryingCubes(bs)) {
 		// if not already rushing to the base
 		if (bs->ltgtype != LTG_RUSHBASE) {
@@ -3227,8 +3227,8 @@ int BotWantsToCamp(bot_state_t *bs) {
 	if (camper < 0.1) {
 		return qfalse;
 	}
-	// if the bot has a team goal
-	if (bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_GETFLAG || bs->ltgtype == LTG_RUSHBASE || bs->ltgtype == LTG_CAMP || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL) {
+	// if the bot already has a CTF or team goal
+	if (bs->ltgtype == LTG_GETFLAG || bs->ltgtype == LTG_ATTACKENEMYBASE || bs->ltgtype == LTG_HARVEST || bs->ltgtype == LTG_DEFENDKEYAREA || bs->ltgtype == LTG_RUSHBASE || bs->ltgtype == LTG_RETURNFLAG || bs->ltgtype == LTG_TEAMHELP || bs->ltgtype == LTG_TEAMACCOMPANY || bs->ltgtype == LTG_CAMP || bs->ltgtype == LTG_CAMPORDER || bs->ltgtype == LTG_PATROL || bs->ltgtype == LTG_GETITEM || bs->ltgtype == LTG_KILL) {
 		return qfalse;
 	}
 	// if camped recently
