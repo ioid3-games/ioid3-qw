@@ -2233,17 +2233,7 @@ static void CG_PlayerSprites(centity_t *cent, const refEntity_t *parent) {
 	} else {
 		friendFlags = thirdPersonFlags = 0;
 	}
-// Tobias DEBUG
-	if (cg_drawDebug.integer && cgs.gametype > GT_TOURNAMENT) {
-		if (ci) {
-			qhandle_t h;
 
-			h = CG_StatusHandle(ci->teamTask);
-			CG_PlayerFloatSprite(origin, thirdPersonFlags, h);
-			return;
-		}
-	}
-// Tobias END
 	if (cent->currentState.eFlags & EF_CONNECTION) {
 		CG_PlayerFloatSprite(origin, thirdPersonFlags, cgs.media.connectionShader);
 		return;

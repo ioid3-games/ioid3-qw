@@ -587,7 +587,7 @@ void BotMatch_HelpAccompany(bot_state_t *bs, bot_match_t *match) {
 	if (entinfo.valid) {
 		areanum = BotPointAreaNum(entinfo.origin);
 
-		if (areanum) { // && trap_AAS_AreaReachability(areanum)) {
+		if (areanum) {
 			bs->teamgoal.entitynum = client;
 			bs->teamgoal.areanum = areanum;
 			VectorCopy(entinfo.origin, bs->teamgoal.origin);
@@ -1831,7 +1831,7 @@ void BotMatch_LeadTheWay(bot_state_t *bs, bot_match_t *match) {
 	if (entinfo.valid) {
 		areanum = BotPointAreaNum(entinfo.origin);
 
-		if (areanum) { // && trap_AAS_AreaReachability(areanum)) {
+		if (areanum) {
 			bs->lead_teamgoal.entitynum = client;
 			bs->lead_teamgoal.areanum = areanum;
 
