@@ -49,7 +49,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define LEGACY_MASTER_GAMENAME		"Quake3Arena"
 #define LEGACY_HEARTBEAT_FOR_MASTER	"QuakeArena-1"
 #ifndef PRODUCT_VERSION
-#define PRODUCT_VERSION				"0.03"
+#define PRODUCT_VERSION				"0.05"
 #endif
 #ifndef PRODUCT_DATE
 #define PRODUCT_DATE __DATE__
@@ -521,7 +521,10 @@ float NormalizeColor(const vec3_t in, vec3_t out);
 float RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
-
+float VectorDistanceSquared(vec3_t p1, vec3_t p2);
+float VectorDistance(vec3_t v1, vec3_t v2);
+int VectorBetweenVectors(vec3_t v, vec3_t v1, vec3_t v2);
+void VectorMiddle(vec3_t v1, vec3_t v2, vec3_t middle);
 #if !defined(Q3_VM) || (defined(Q3_VM) && defined(__Q3_VM_MATH))
 /*
 =======================================================================================================================================

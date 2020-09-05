@@ -92,6 +92,8 @@ typedef struct bot_waypoint_s {
 #define MAX_ACTIVATESTACK 8
 #define MAX_ACTIVATEAREAS 32
 
+#define BOTAREA_BOX_DIST 256
+
 struct bot_state_s;
 typedef void (*bot_aienter_t)(struct bot_state_s *bs, char *s);
 
@@ -199,6 +201,7 @@ typedef struct bot_state_s {
 	float predictobstacles_time;			// last time the bot predicted obstacles
 	int predictobstacles_goalareanum;		// last goal areanum the bot predicted obstacles for
 	qboolean allowHitWorld;					// in some situations a bot is allowed to shoot at the ground or walls (i.e. projectiles with radial damage)
+	float aimnotperfect_time;				// last time the bot didn't exactly aim to enemy
 	vec3_t aimtarget;
 	vec3_t enemyvelocity;					// enemy velocity 0.5 secs ago during battle
 	vec3_t enemyorigin;						// enemy origin 0.5 secs ago during battle
@@ -262,6 +265,7 @@ typedef struct bot_state_s {
 	int visteammates[MAX_SUBTEAM_SIZE];		// the visible teammates
 	char subteam[32];						// sub team name
 	float formation_dist;					// formation team mate intervening space
+	int camp_dist;							// dynamically computed space for camping teammates
 	bot_activategoal_t *activatestack;		// first activate goal on the stack
 	bot_activategoal_t activategoalheap[MAX_ACTIVATESTACK];	// activate goal heap
 	bot_waypoint_t *checkpoints;			// check points

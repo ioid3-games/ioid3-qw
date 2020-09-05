@@ -117,7 +117,7 @@ int BotGetAirGoal(bot_state_t *bs, bot_goal_t *goal) {
 	BotAI_Trace(&bsptrace, end, mins, maxs, bs->origin, bs->entitynum, CONTENTS_WATER|CONTENTS_SLIME|CONTENTS_LAVA);
 	// if we found the water surface
 	if (bsptrace.fraction > 0) {
-		areanum = BotPointAreaNum(bsptrace.endpos);
+		areanum = BotPointAreaNum(bs->client, bsptrace.endpos);
 
 		if (areanum) {
 			VectorCopy(bsptrace.endpos, goal->origin);
@@ -297,14 +297,13 @@ We could also create a separate AI node for every long term goal type. However, 
 =======================================================================================================================================
 */
 int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) {
-	vec3_t target, dir, start, mins = {-4, -4, -4}, maxs = {4, 4, 4};
+	vec3_t target, dir;
 	char netname[MAX_NETNAME];
 	char buf[MAX_MESSAGE_SIZE];
 	int areanum;
 	float croucher;
 	aas_entityinfo_t entinfo;
 	bot_waypoint_t *wp;
-	bsp_trace_t bsptrace;
 
 	if (bs->ltgtype == LTG_TEAMHELP && !retreat) {
 		// check for bot typing status message
@@ -332,8 +331,11 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			bs->ltg_time = 0;
 			bs->ltgtype = 0;
 		}
-		// if the team mate is visible
-		if (BotEntityVisible(&bs->cur_ps, 360, bs->teammate)) {
+		// if the teammate is visible
+		if (!BotEntityVisible(&bs->cur_ps, 360, bs->teammate)) {
+			// last time the bot was NOT visible
+			bs->teammatevisible_time = FloatTime();
+		} else {
 			// if close just stand still there
 			VectorSubtract(entinfo.origin, bs->origin, dir);
 
@@ -343,23 +345,18 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotCheckBlockedTeammates(bs);
 				return qfalse;
 			}
-		} else {
-			// last time the bot was NOT visible
-			bs->teammatevisible_time = FloatTime();
 		}
-		// if the entity information is valid
-		if (entinfo.valid) {
-			areanum = BotPointAreaNum(entinfo.origin);
 
-			if (areanum && trap_AAS_AreaReachability(areanum)) {
-				// update team goal
-				bs->teamgoal.entitynum = bs->teammate;
-				bs->teamgoal.areanum = areanum;
+		areanum = BotPointAreaNum(entinfo.number, entinfo.origin);
 
-				VectorCopy(entinfo.origin, bs->teamgoal.origin);
-				VectorSet(bs->teamgoal.mins, -8, -8, -8);
-				VectorSet(bs->teamgoal.maxs, 8, 8, 8);
-			}
+		if (areanum && trap_AAS_AreaReachability(areanum)) {
+			// update team goal
+			bs->teamgoal.entitynum = bs->teammate;
+			bs->teamgoal.areanum = areanum;
+
+			VectorCopy(entinfo.origin, bs->teamgoal.origin);
+			VectorSet(bs->teamgoal.mins, -8, -8, -8);
+			VectorSet(bs->teamgoal.maxs, 8, 8, 8);
 		}
 		// set the bot goal
 		memcpy(goal, &bs->teamgoal, sizeof(bot_goal_t));
@@ -389,26 +386,32 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			bs->ltg_time = 0;
 			bs->ltgtype = 0;
 		}
-		// if the companion is visible
-		if (BotEntityVisible(&bs->cur_ps, 360, bs->teammate)) {
-			// update visible time
-			bs->teammatevisible_time = FloatTime();
 
-			VectorSubtract(entinfo.origin, bs->origin, dir);
+		VectorSubtract(entinfo.origin, bs->origin, dir);
+		// recalculate the formation space
+		bs->formation_dist = BotSetTeamFormationDist(bs);
 
-			if (VectorLengthSquared(dir) < Square(bs->formation_dist)) {
-				// don't crouch when swimming
-				if (trap_AAS_Swimming(bs->origin)) {
-					bs->crouch_time = FloatTime() - 1;
+		if (VectorLengthSquared(dir) < Square(bs->formation_dist)) {
+			// don't crouch when swimming
+			if (trap_AAS_Swimming(bs->origin)) {
+				bs->crouch_time = FloatTime() - 1;
+			}
+			// check if the bot wants to crouch, don't crouch if crouched less than 5 seconds ago
+			if (bs->crouch_time < FloatTime() - 5) {
+				croucher = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CROUCHER, 0, 1);
+
+				if (random() < bs->thinktime * croucher) {
+					bs->crouch_time = FloatTime() + 5 + croucher * 15;
 				}
-				// check if the bot wants to crouch, don't crouch if crouched less than 5 seconds ago
-				if (bs->crouch_time < FloatTime() - 5) {
-					croucher = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CROUCHER, 0, 1);
-
-					if (random() < bs->thinktime * croucher) {
-						bs->crouch_time = FloatTime() + 5 + croucher * 15;
-					}
-				}
+			}
+			// if the bot wants to crouch
+			if (bs->crouch_time > FloatTime()) {
+				trap_EA_Crouch(bs->client);
+			}
+			// if the companion is visible
+			if (BotEntityVisible(&bs->cur_ps, 360, bs->teammate)) {
+				// update visible time
+				bs->teammatevisible_time = FloatTime();
 				// if not arrived yet or arived some time ago
 				if (bs->arrive_time < FloatTime() - 2) {
 					// if not arrived yet
@@ -417,17 +420,6 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 						BotAI_BotInitialChat(bs, "accompany_arrive", EasyClientName(bs->teammate, netname, sizeof(netname)), NULL);
 						trap_BotEnterChat(bs->cs, bs->teammate, CHAT_TELL);
 						bs->arrive_time = FloatTime();
-					// if the bot wants to crouch
-					} else if (bs->crouch_time > FloatTime()) {
-						VectorCopy(bs->origin, start);
-						// get the crouch view height
-						start[2] += CROUCH_VIEWHEIGHT;
-						// only try to crouch if the team mate remains visible
-						BotAI_Trace(&bsptrace, start, mins, maxs, entinfo.origin, bs->client, MASK_SHOT);
-						// if the team mate remains visible from the predicted position
-						if (bsptrace.fraction >= 1.0f || bsptrace.entityNum == bs->teammate) {
-							trap_EA_Crouch(bs->client);
-						}
 					// else do some model taunts
 					} else if (random() < bs->thinktime * 0.05) {
 						// do a gesture :)
@@ -438,42 +430,39 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				if (bs->arrive_time > FloatTime() - 2) {
 					VectorSubtract(entinfo.origin, bs->origin, dir);
 					VectorToAngles(dir, bs->ideal_viewangles);
-					bs->ideal_viewangles[2] *= 0.5;
-				// else look strategically around for enemies
-				} else if (random() < bs->thinktime * 0.8) {
-					BotRoamGoal(bs, target);
-					VectorSubtract(target, bs->origin, dir);
-					VectorToAngles(dir, bs->ideal_viewangles);
-					bs->ideal_viewangles[2] *= 0.5;
 				}
-				// check if the bot wants to go for air
-				if (BotGoForAir(bs, bs->tfl, &bs->teamgoal, 400)) {
-					trap_BotResetLastAvoidReach(bs->ms);
-					// time the bot gets to pick up the nearby goal item
-					bs->nbg_time = FloatTime() + 8;
-					AIEnter_Seek_NBG(bs, "BotGetLongTermGoal: Go for air!");
-					return qfalse;
-				}
-
-				trap_BotResetAvoidReach(bs->ms);
-				// check if the bot is blocking team mates
-				BotCheckBlockedTeammates(bs);
+			}
+			// look strategically around for enemies
+			if (random() < bs->thinktime * 0.8) {
+				BotRoamGoal(bs, target);
+				VectorSubtract(target, bs->origin, dir);
+				VectorToAngles(dir, bs->ideal_viewangles);
+			}
+			// check if the bot wants to go for air
+			if (BotGoForAir(bs, bs->tfl, &bs->teamgoal, 400)) {
+				trap_BotResetLastAvoidReach(bs->ms);
+				// time the bot gets to pick up the nearby goal item
+				bs->nbg_time = FloatTime() + 8;
+				AIEnter_Seek_NBG(bs, "BotGetLongTermGoal: Go for air!");
 				return qfalse;
 			}
+
+			trap_BotResetAvoidReach(bs->ms);
+			// check if the bot is blocking team mates
+			BotCheckBlockedTeammates(bs);
+			return qfalse;
 		}
-		// if the entity information is valid
-		if (entinfo.valid) {
-			areanum = BotPointAreaNum(entinfo.origin);
 
-			if (areanum && trap_AAS_AreaReachability(areanum)) {
-				// update team goal
-				bs->teamgoal.entitynum = bs->teammate;
-				bs->teamgoal.areanum = areanum;
+		areanum = BotPointAreaNum(entinfo.number, entinfo.origin);
 
-				VectorCopy(entinfo.origin, bs->teamgoal.origin);
-				VectorSet(bs->teamgoal.mins, -8, -8, -8);
-				VectorSet(bs->teamgoal.maxs, 8, 8, 8);
-			}
+		if (areanum && trap_AAS_AreaReachability(areanum)) {
+			// update team goal
+			bs->teamgoal.entitynum = bs->teammate;
+			bs->teamgoal.areanum = areanum;
+
+			VectorCopy(entinfo.origin, bs->teamgoal.origin);
+			VectorSet(bs->teamgoal.mins, -8, -8, -8);
+			VectorSet(bs->teamgoal.maxs, 8, 8, 8);
 		}
 		// the goal the bot should go for
 		memcpy(goal, &bs->teamgoal, sizeof(bot_goal_t));
@@ -626,8 +615,10 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		}
 		// if really near the camp spot
 		VectorSubtract(goal->origin, bs->origin, dir);
+		// recalculate the space for camping teammates
+		bs->camp_dist = BotSetTeamCampDist(bs);
 
-		if (VectorLengthSquared(dir) < Square(60)) {
+		if (VectorLengthSquared(dir) < Square(bs->camp_dist)) {
 			// if not arrived yet
 			if (!bs->arrive_time) {
 				if (bs->ltgtype == LTG_CAMPORDER) {
@@ -643,7 +634,6 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotRoamGoal(bs, target);
 				VectorSubtract(target, bs->origin, dir);
 				VectorToAngles(dir, bs->ideal_viewangles);
-				bs->ideal_viewangles[2] *= 0.5;
 			}
 			// don't crouch when swimming
 			if (trap_AAS_Swimming(bs->origin)) {
@@ -808,7 +798,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 					bs->ltgtype = 0;
 					return qfalse;
 			}
-			// if not carrying the flag anymore
+			// if not carrying the enemy flag anymore
 			if (!BotCTFCarryingFlag(bs)) {
 				bs->ltg_time = 0;
 				bs->ltgtype = 0;
@@ -824,7 +814,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				if (BotCTFCarryingFlag(bs)) {
 					trap_BotResetAvoidReach(bs->ms);
 					bs->rushbaseaway_time = FloatTime() + 5 + 10 * random();
-					// FIXME: add chat to tell the others to get back the flag
+					// FIXME: add chat to tell the others to get back our flag
 				} else {
 					bs->ltg_time = 0;
 					bs->ltgtype = 0;
@@ -834,7 +824,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			BotAlternateRoute(bs, goal);
 			return qtrue;
 		}
-		// returning flag
+		// returning our flag
 		if (bs->ltgtype == LTG_RETURNFLAG) {
 			// check for bot typing status message
 			if (bs->teammessage_time && bs->teammessage_time < FloatTime()) {
@@ -1153,7 +1143,7 @@ int BotLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) {
 		BotEntityInfo(bs->lead_teammate, &entinfo);
 		// if the entity information is valid
 		if (entinfo.valid) {
-			areanum = BotPointAreaNum(entinfo.origin);
+			areanum = BotPointAreaNum(entinfo.number, entinfo.origin);
 
 			if (areanum && trap_AAS_AreaReachability(areanum)) {
 				// update team goal
@@ -1202,7 +1192,6 @@ int BotLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) {
 				// look at the team mate
 				VectorSubtract(entinfo.origin, bs->origin, dir);
 				VectorToAngles(dir, bs->ideal_viewangles);
-				bs->ideal_viewangles[2] *= 0.5;
 				// just wait for the team mate
 				return qfalse;
 			}
@@ -1329,6 +1318,7 @@ void AIEnter_Respawn(bot_state_t *bs, char *s) {
 	// reset some states
 	trap_BotResetMoveState(bs->ms);
 	trap_BotResetGoalState(bs->gs);
+	trap_BotResetAvoidGoals(bs->gs);
 	trap_BotResetAvoidReach(bs->ms);
 	// if the bot wants to chat
 	if (BotChat_Death(bs)) {
@@ -1718,7 +1708,6 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 			BotRoamGoal(bs, target);
 			VectorSubtract(target, bs->origin, dir);
 			VectorToAngles(dir, bs->ideal_viewangles);
-			bs->ideal_viewangles[2] *= 0.5;
 		}
 	} else if (!(bs->flags & BFL_IDEALVIEWSET)) {
 		if (trap_BotMovementViewTarget(bs->ms, goal, bs->tfl, 300, target)) {
@@ -1727,8 +1716,6 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 		} else {
 			VectorToAngles(moveresult.movedir, bs->ideal_viewangles);
 		}
-
-		bs->ideal_viewangles[2] *= 0.5;
 	}
 	// if the weapon is used for the bot movement
 	if (moveresult.flags & MOVERESULT_MOVEMENTWEAPON) {
@@ -1856,7 +1843,6 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 			BotRoamGoal(bs, target);
 			VectorSubtract(target, bs->origin, dir);
 			VectorToAngles(dir, bs->ideal_viewangles);
-			bs->ideal_viewangles[2] *= 0.5;
 		}
 	} else if (!(bs->flags & BFL_IDEALVIEWSET)) {
 		if (!trap_BotGetSecondGoal(bs->gs, &goal)) {
@@ -1870,8 +1856,6 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 		} else {
 			VectorToAngles(moveresult.movedir, bs->ideal_viewangles);
 		}
-
-		bs->ideal_viewangles[2] *= 0.5;
 	}
 	// if the weapon is used for the bot movement
 	if (moveresult.flags & MOVERESULT_MOVEMENTWEAPON) {
@@ -2039,7 +2023,6 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 			BotRoamGoal(bs, target);
 			VectorSubtract(target, bs->origin, dir);
 			VectorToAngles(dir, bs->ideal_viewangles);
-			bs->ideal_viewangles[2] *= 0.5;
 		}
 	} else if (!(bs->flags & BFL_IDEALVIEWSET)) {
 		if (trap_BotMovementViewTarget(bs->ms, &goal, bs->tfl, 300, target)) {
@@ -2052,10 +2035,7 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 			BotRoamGoal(bs, target);
 			VectorSubtract(target, bs->origin, dir);
 			VectorToAngles(dir, bs->ideal_viewangles);
-			bs->ideal_viewangles[2] *= 0.5;
 		}
-
-		bs->ideal_viewangles[2] *= 0.5;
 	}
 	// if the weapon is used for the bot movement
 	if (moveresult.flags & MOVERESULT_MOVEMENTWEAPON) {
@@ -2063,8 +2043,8 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 	}
 
 	if (bs->killedenemy_time > FloatTime() - 2) {
-		if (random() < bs->thinktime * 10) { // Tobias NOTE: tweak the randomness (with more anims)
-			if (BotValidChatPosition(bs)) { // Tobias NOTE: it still looks silly if a bot is doing a gesture while jumping into a pool for example (use our new SURF_ANIM?)
+		if (random() < bs->thinktime * 10) {
+			if (BotValidChatPosition(bs)) {
 				trap_EA_Gesture(bs->client);
 			}
 		}
@@ -2181,7 +2161,7 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 			}
 		}
 		// update the reachability area and origin if possible
-		areanum = BotPointAreaNum(target);
+		areanum = BotPointAreaNum(entinfo.number, target);
 
 		if (areanum && trap_AAS_AreaReachability(areanum)) {
 			VectorCopy(target, bs->lastenemyorigin);
@@ -2391,8 +2371,6 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 				VectorToAngles(moveresult.movedir, bs->ideal_viewangles);
 			}
 		}
-
-		bs->ideal_viewangles[2] *= 0.5;
 	}
 	// if the weapon is used for the bot movement
 	if (moveresult.flags & MOVERESULT_MOVEMENTWEAPON) {
@@ -2503,7 +2481,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 			}
 		}
 		// update the reachability area and origin if possible
-		areanum = BotPointAreaNum(target);
+		areanum = BotPointAreaNum(entinfo.number, target);
 
 		if (areanum && trap_AAS_AreaReachability(areanum)) {
 			VectorCopy(target, bs->lastenemyorigin);
@@ -2590,8 +2568,6 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 			} else {
 				VectorToAngles(moveresult.movedir, bs->ideal_viewangles);
 			}
-
-			bs->ideal_viewangles[2] *= 0.5;
 		}
 	}
 	// if the weapon is used for the bot movement
@@ -2685,7 +2661,7 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 			}
 		}
 		// update the reachability area and origin if possible
-		areanum = BotPointAreaNum(target);
+		areanum = BotPointAreaNum(entinfo.number, target);
 
 		if (areanum && trap_AAS_AreaReachability(areanum)) {
 			VectorCopy(target, bs->lastenemyorigin);
@@ -2743,8 +2719,6 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 			} else {
 				VectorToAngles(moveresult.movedir, bs->ideal_viewangles);
 			}
-
-			bs->ideal_viewangles[2] *= 0.5;
 		}
 	}
 	// if the weapon is used for the bot movement

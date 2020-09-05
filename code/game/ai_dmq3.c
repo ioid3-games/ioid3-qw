@@ -91,6 +91,8 @@ int red_numaltroutegoals;
 aas_altroutegoal_t blue_altroutegoals[MAX_ALTROUTEGOALS];
 int blue_numaltroutegoals;
 
+byte botCheckedAreas[65536];
+
 /*
 =======================================================================================================================================
 BotSetUserInfo
@@ -676,7 +678,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 					// get the team goal time
 					bs->teamgoal_time = FloatTime() + TEAM_ACCOMPANY_TIME;
 					bs->ltgtype = LTG_TEAMACCOMPANY;
-					bs->formation_dist = 128;
+					bs->formation_dist = BotSetTeamFormationDist(bs);
 
 					BotSetTeamStatus(bs);
 
@@ -747,7 +749,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 					// get the team goal time
 					bs->teamgoal_time = FloatTime() + TEAM_ACCOMPANY_TIME;
 					bs->ltgtype = LTG_TEAMACCOMPANY;
-					bs->formation_dist = 128;
+					bs->formation_dist = BotSetTeamFormationDist(bs);
 
 					BotSetTeamStatus(bs);
 
@@ -954,7 +956,7 @@ void Bot1FCTFSeekGoals(bot_state_t *bs) {
 					// get the team goal time
 					bs->teamgoal_time = FloatTime() + TEAM_ACCOMPANY_TIME;
 					bs->ltgtype = LTG_TEAMACCOMPANY;
-					bs->formation_dist = 128;
+					bs->formation_dist = BotSetTeamFormationDist(bs);
 
 					BotSetTeamStatus(bs);
 
@@ -1301,7 +1303,7 @@ void BotHarvesterSeekGoals(bot_state_t *bs) {
 	if (bs->ltgtype == LTG_TEAMACCOMPANY && !bs->ordered) {
 		// get the entity information
 		BotEntityInfo(bs->teammate, &entinfo);
-		// if the team mate being accompanied no longer carries the flag
+		// if the teammate being accompanied no longer carries cubes
 		if (!EntityCarriesCubes(&entinfo)) {
 			bs->ltg_time = 0;
 			bs->ltgtype = 0;
@@ -1356,7 +1358,7 @@ void BotHarvesterSeekGoals(bot_state_t *bs) {
 			// get the team goal time
 			bs->teamgoal_time = FloatTime() + TEAM_ACCOMPANY_TIME;
 			bs->ltgtype = LTG_TEAMACCOMPANY;
-			bs->formation_dist = 128;
+			bs->formation_dist = BotSetTeamFormationDist(bs);
 
 			BotSetTeamStatus(bs);
 			return;
@@ -1470,29 +1472,265 @@ void BotTeamGoals(bot_state_t *bs, int retreat) {
 
 /*
 =======================================================================================================================================
+BotFirstReachabilityArea
+=======================================================================================================================================
+*/
+int BotFirstReachabilityArea(int entnum, vec3_t origin, int *areas, int numareas, qboolean distCheck) {
+	int i, best;
+	vec3_t center;
+	float bestDist, dist;
+	bsp_trace_t trace;
+	vec3_t mins, maxs;
+
+	best = 0;
+	bestDist = 999999;
+
+	if (entnum >= 0 && entnum < level.maxclients) {
+		trap_AAS_PresenceTypeBoundingBox(PRESENCE_NORMAL, mins, maxs);
+		mins[2] += STEPSIZE;
+	} else {
+		VectorCopy(vec3_origin, mins);
+		VectorCopy(vec3_origin, maxs);
+	}
+
+	for (i = 0; i < numareas; i++) {
+		if (botCheckedAreas[areas[i]]) {
+			continue;
+		}
+
+		botCheckedAreas[areas[i]] = 1;
+
+		if (trap_AAS_AreaReachability(areas[i])) {
+			trap_AAS_AreaCenter(areas[i], center);
+
+			if (distCheck) {
+				dist = VectorDistance(center, origin);
+
+				if (center[2] > origin[2]) {
+					dist += 32 * (center[2] - origin[2]);
+				}
+
+				if (dist < bestDist) {
+					trap_Trace(&trace, origin, mins, maxs, center, -1, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP);
+					// if no solids were found
+					if (!trace.startsolid && !trace.allsolid && trace.fraction >= 1.0f) {
+						bestDist = dist;
+						best = areas[i];
+						break;
+					}
+				}
+			} else {
+				trap_Trace(&trace, origin, mins, maxs, center, -1, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP);
+				// if no solids were found
+				if (!trace.startsolid && !trace.allsolid && trace.fraction >= 1.0f) {
+					best = areas[i];
+					break;
+				}
+			}
+		}
+	}
+
+	return best;
+}
+
+/*
+=======================================================================================================================================
 BotPointAreaNum
 =======================================================================================================================================
 */
-int BotPointAreaNum(vec3_t origin) {
-	int areanum, numareas, areas[10];
-	vec3_t end;
+int BotPointAreaNum(int entnum, vec3_t origin) {
+	int areanum, numareas, areas[50], bestarea, i;
+	vec3_t end, start, ofs, mins, maxs;
+	float f;
+	gentity_t *ent;
 
-	areanum = trap_AAS_PointAreaNum(origin);
+	bestarea = 0;
 
-	if (areanum) {
-		return areanum;
+	if (entnum >= 0 && VectorCompare(origin, g_entities[entnum].botAreaPos)) {
+		return g_entities[entnum].botAreaNum;
 	}
 
-	VectorCopy(origin, end);
+	memset(botCheckedAreas, 0, sizeof(botCheckedAreas));
 
-	end[2] += 10;
-	numareas = trap_AAS_TraceAreas(origin, end, areas, NULL, 10);
+	ent = NULL;
 
-	if (numareas > 0) {
-		return areas[0];
+	if (entnum >= 0) {
+		ent = &g_entities[entnum];
+	}/*
+	// if this is a bot, and it's touching a ladder, do special handling
+	if (ent && ent->client && ent->client->ps.pm_flags & PMF_LADDER) {
+		// use the point only if its a ladder area
+		areanum = trap_AAS_PointAreaNum(origin);
+
+		if (areanum && !trap_AAS_AreaLadder(areanum)) {
+			areanum = 0;
+		}
+
+		if (areanum) {
+			bestarea = areanum;
+
+			if (entnum >= 0) {
+				VectorCopy(origin, g_entities[entnum].botAreaPos);
+				g_entities[entnum].botAreaNum = bestarea;
+			}
+
+			return bestarea;
+		}
+		// try a small box, and take a ladder area as preference
+		maxs[0] = 8;
+		maxs[1] = 8;
+		maxs[2] = 4;
+
+		VectorSubtract(origin, maxs, mins);
+		VectorAdd(origin, maxs, maxs);
+
+		numareas = trap_AAS_BBoxAreas(mins, maxs, areas, 50);
+
+		if (numareas > 0) {
+			bestarea = BotFirstLadderArea(entnum, areas, numareas);
+		}
+
+		if (bestarea) {
+			if (entnum >= 0) {
+				VectorCopy(origin, g_entities[entnum].botAreaPos);
+				g_entities[entnum].botAreaNum = bestarea;
+			}
+
+			return bestarea;
+		}
+		// try the actual point
+		areanum = trap_AAS_PointAreaNum(origin);
+
+		if (areanum && !trap_AAS_AreaReachability(areanum)) {
+			areanum = 0;
+		}
+
+		if (areanum) {
+			bestarea = areanum;
+			if (entnum >= 0) {
+				VectorCopy(origin, g_entities[entnum].botAreaPos);
+				g_entities[entnum].botAreaNum = bestarea;
+			}
+
+			return bestarea;
+		}
+	} else */{
+		areanum = trap_AAS_PointAreaNum(origin);
+
+		if (areanum && !trap_AAS_AreaReachability(areanum)) {
+			areanum = 0;
+		}
+
+		if (areanum) {
+			bestarea = areanum;
+
+			if (entnum >= 0) {
+				VectorCopy(origin, g_entities[entnum].botAreaPos);
+				g_entities[entnum].botAreaNum = bestarea;
+			}
+
+			return bestarea;
+		}
+		// trace a line from below us, upwards, finding the first area the line touches
+		VectorCopy(origin, start);
+		VectorCopy(origin, end);
+
+		start[2] -= 30;
+
+		if (entnum >= 0 && g_entities[entnum].inuse && g_entities[entnum].client) {
+			end[2] += g_entities[entnum].client->ps.viewheight;
+		}
+
+		numareas = trap_AAS_TraceAreas(start, end, areas, NULL, 50);
+
+		if (numareas > 0) {
+			bestarea = BotFirstReachabilityArea(entnum, origin, areas, numareas, qfalse);
+		}
+
+		if (bestarea) {
+			if (entnum >= 0) {
+				VectorCopy(origin, g_entities[entnum].botAreaPos);
+				g_entities[entnum].botAreaNum = bestarea;
+			}
+
+			return bestarea;
+		}
+		// try a small box around the origin
+		maxs[0] = 4;
+		maxs[1] = 4;
+		maxs[2] = 4;
+
+		VectorSubtract(origin, maxs, mins);
+		VectorAdd(origin, maxs, maxs);
+
+		numareas = trap_AAS_BBoxAreas(mins, maxs, areas, 50);
+
+		if (numareas > 0) {
+			bestarea = BotFirstReachabilityArea(entnum, origin, areas, numareas, qtrue);
+		}
+
+		if (bestarea) {
+			if (entnum >= 0) {
+				VectorCopy(origin, g_entities[entnum].botAreaPos);
+				g_entities[entnum].botAreaNum = bestarea;
+			}
+
+			return bestarea;
+		}
+	}
+	// try using the players bounding box
+	if (entnum >= 0 && g_entities[entnum].inuse && g_entities[entnum].client) {
+		numareas = trap_AAS_BBoxAreas(g_entities[entnum].r.absmin, g_entities[entnum].r.absmax, areas, 50);
+
+		if (numareas > 0) {
+			bestarea = BotFirstReachabilityArea(entnum, origin, areas, numareas, qtrue);
+		}
+
+		if (bestarea) {
+			if (entnum >= 0) {
+				VectorCopy(origin, g_entities[entnum].botAreaPos);
+				g_entities[entnum].botAreaNum = bestarea;
+			}
+
+			return bestarea;
+		}
+	}
+	// TODO: the following code seems to often cause bogus areanums to be returned. They are offset from the real areas, and this causes all sorts of bot stickiness
+	// try half size first
+	for (f = 0.1f; f <= 1.0f; f += 0.45f) {
+		VectorCopy(origin, end);
+
+		end[2] += 80;
+
+		VectorCopy(origin, ofs);
+
+		ofs[2] -= 60;
+
+		for (i = 0; i < 2; i++) {
+			end[i] += BOTAREA_BOX_DIST * f;
+		}
+
+		for (i = 0; i < 2; i++) {
+			ofs[i] -= BOTAREA_BOX_DIST * f;
+		}
+
+		numareas = trap_AAS_BBoxAreas(ofs, end, areas, 50);
+
+		if (numareas > 0) {
+			bestarea = BotFirstReachabilityArea(entnum, origin, areas, numareas, qtrue);
+		}
+
+		if (bestarea) {
+			if (entnum >= 0) {
+				VectorCopy(origin, g_entities[entnum].botAreaPos);
+				g_entities[entnum].botAreaNum = bestarea;
+			}
+
+			return bestarea;
+		}
 	}
 
-	return 0;
+	return bestarea;
 }
 
 /*
@@ -2037,7 +2275,7 @@ void BotUpdateInventory(bot_state_t *bs) {
 	bs->inventory[INVENTORY_BLUEFLAG] = bs->cur_ps.powerups[PW_BLUEFLAG] != 0;
 	bs->inventory[INVENTORY_NEUTRALFLAG] = bs->cur_ps.powerups[PW_NEUTRALFLAG] != 0;
 
-	if (BotTeam(bs) == TEAM_RED) {
+	if (BotTeam(bs) != TEAM_RED) {
 		bs->inventory[INVENTORY_REDCUBE] = bs->cur_ps.tokens;
 		bs->inventory[INVENTORY_BLUECUBE] = 0;
 	} else {
@@ -2084,7 +2322,7 @@ qboolean BotWantsToUseKamikaze(bot_state_t *bs) {
 
 	if (gametype == GT_OBELISK) {
 		// if the bot is low on health and recently hurt
-		if (bs->inventory[INVENTORY_HEALTH] < 60 && g_entities[bs->entitynum].client->lasthurt_time > level.time - 1000) { // Tobias NOTE: exclude falling damage
+		if (bs->inventory[INVENTORY_HEALTH] < 60 && g_entities[bs->entitynum].client->lasthurt_time > level.time - 1000) {
 			return qtrue;
 		}
 		// if the bot has the ammoregen powerup
@@ -2141,7 +2379,7 @@ qboolean BotWantsToUseKamikaze(bot_state_t *bs) {
 		}
 	} else {
 		// if the bot is low on health and recently hurt
-		if (bs->inventory[INVENTORY_HEALTH] < 80 && g_entities[bs->entitynum].client->lasthurt_time > level.time - 1000) { // Tobias NOTE: exclude falling damage
+		if (bs->inventory[INVENTORY_HEALTH] < 80 && g_entities[bs->entitynum].client->lasthurt_time > level.time - 1000) {
 			return qtrue;
 		}
 	}
@@ -4063,7 +4301,7 @@ const int BotFindEnemy(bot_state_t *bs, int curenemy) {
 				continue;
 			}
 
-			enemyArea = BotPointAreaNum(entinfo.origin);
+			enemyArea = BotPointAreaNum(i, entinfo.origin);
 
 			if (enemyArea <= 0) {
 				continue;
@@ -4110,14 +4348,15 @@ const int BotFindEnemy(bot_state_t *bs, int curenemy) {
 			bs->enemysight_time = FloatTime();
 		}
 
-		bs->enemysuicide = qfalse;
-		bs->enemydeath_time = 0;
 		bs->enemy = curenemy;
+		bs->aimnotperfect_time = FloatTime();
 		bs->enemyvisible_time = FloatTime();
+		bs->enemydeath_time = 0;
+		bs->enemysuicide = qfalse;
 
 		VectorCopy(entinfo.origin, bs->lastenemyorigin);
 
-		bs->lastenemyareanum = BotPointAreaNum(entinfo.origin);
+		bs->lastenemyareanum = BotPointAreaNum(curenemy, entinfo.origin);
 
 		return qtrue;
 	}
@@ -4485,7 +4724,7 @@ int BotCountAllTeamMates(bot_state_t *bs, float range) {
 
 	return teammates;
 }
-// Tobias HACK
+
 /*
 =======================================================================================================================================
 BotEqualizeTeamScore
@@ -4573,12 +4812,12 @@ qboolean BotEqualizeWeakestHumanTeamScore(bot_state_t *bs) {
 				referenceScores = ps.persistant[PERS_SCORE];
 			}
 
-			if (!Q_stricmp(modelName, "mynx")) { // DEBUG (major)
+			if (!Q_stricmp(modelName, "mynx")) {
 				femaleClient = i;
 				femaleScores = ps.persistant[PERS_SCORE] - bot_equalizer_fembon.value;
 			}
 
-			if (!Q_stricmp(modelName, "james")) { // DEBUG (sarge)
+			if (!Q_stricmp(modelName, "james")) {
 				maleClient = i;
 				maleScores = ps.persistant[PERS_SCORE];
 			}
@@ -4595,7 +4834,7 @@ qboolean BotEqualizeWeakestHumanTeamScore(bot_state_t *bs) {
 
 	return qfalse;
 }
-// Tobias DEBUG
+
 /*
 =======================================================================================================================================
 BotAimAtEnemy
@@ -4792,7 +5031,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 			f = 2.0f;
 		}
 
-		aim_accuracy += 0.2f * (f * 0.5f);
+		aim_accuracy += 0.1f * f;
 	}
 	// consider enemy model specific attributes
 	if (BotEqualizeWeakestHumanTeamScore(bs) || BotEqualizeTeamScore(bs)) {
@@ -4806,14 +5045,45 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	if (aim_accuracy > 1.0f) {
 		aim_accuracy = 1.0f;
 	}
-//#ifdef DEBUG
-	if (bot_challenge.integer) {
-		aim_accuracy = 1.0f;
-	}
-//#endif
+
 	bs->allowHitWorld = qfalse;
+	// if the enemy is NOT visible
+	if (!BotEntityVisible(&bs->cur_ps, 360, bs->enemy)) {
+		VectorCopy(bs->lastenemyorigin, bestorigin);
+
+		bestorigin[2] += 8;
+		// if the bot is skilled enough
+		if (aim_skill > 0.5) {
+			// do prediction shots around corners
+			if (!BotUsesInstantHitWeapon(bs)) {
+				// create the chase goal
+				goal.entitynum = bs->client;
+				goal.areanum = bs->areanum;
+
+				VectorCopy(bs->eye, goal.origin);
+				VectorSet(goal.mins, -8, -8, -8);
+				VectorSet(goal.maxs, 8, 8, 8);
+
+				if (trap_BotPredictVisiblePosition(bs->lastenemyorigin, bs->lastenemyareanum, &goal, TFL_DEFAULT, target)) {
+					VectorSubtract(target, bs->eye, dir);
+					// if the hitpoint is far enough from the bot
+					if (VectorLengthSquared(dir) > Square(100)) {
+						VectorCopy(target, bestorigin);
+						// if the projectile does large radial damage try to aim at the ground in front of the enemy
+						if (wi.proj.damagetype & DAMAGETYPE_RADIAL) {
+							bestorigin[2] -= 20;
+						}
+					}
+					// allow the bot to hit the world
+					bs->allowHitWorld = qtrue;
+					aim_accuracy = 1.0f;
+				}
+			}
+		}
+
+		VectorCopy(bestorigin, bs->aimtarget);
 	// if the enemy is visible
-	if (BotEntityVisible(&bs->cur_ps, 360, bs->enemy)) {
+	} else {
 		// get the start point shooting from
 		// NOTE: the x and y projectile start offsets are ignored
 		VectorCopy(bs->origin, start);
@@ -4916,7 +5186,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 
 							if (trace.fraction >= 1.0f) {
 								VectorCopy(groundtarget, bestorigin);
-								// allow the bot to shoot at the ground
+								// allow the bot to hit the world (shooting at the ground)
 								bs->allowHitWorld = qtrue;
 							}
 						}
@@ -4924,52 +5194,13 @@ void BotAimAtEnemy(bot_state_t *bs) {
 				}
 			}
 		}
-//#ifdef DEBUG
-		if (!bot_challenge.integer) {
-//#endif
-			bestorigin[0] += 20 * crandom() * (1 - aim_accuracy);
-			bestorigin[1] += 20 * crandom() * (1 - aim_accuracy);
-			bestorigin[2] += 10 * crandom() * (1 - aim_accuracy);
-//#ifdef DEBUG
-		}
-//#endif
+
+		bestorigin[0] += 20 * crandom() * (1 - aim_accuracy);
+		bestorigin[1] += 20 * crandom() * (1 - aim_accuracy);
+		bestorigin[2] += 10 * crandom() * (1 - aim_accuracy);
+
 		BotAI_Trace(&trace, bs->eye, mins, maxs, bestorigin, bs->entitynum, mask);
 		VectorCopy(trace.endpos, bs->aimtarget);
-	// if the enemy is NOT visible
-	} else {
-		VectorCopy(bs->lastenemyorigin, bestorigin);
-
-		bestorigin[2] += 8;
-		// if the bot is skilled enough
-		if (aim_skill > 0.5) {
-			// do prediction shots around corners
-			if (!BotUsesInstantHitWeapon(bs)) {
-				// create the chase goal
-				goal.entitynum = bs->client;
-				goal.areanum = bs->areanum;
-
-				VectorCopy(bs->eye, goal.origin);
-				VectorSet(goal.mins, -8, -8, -8);
-				VectorSet(goal.maxs, 8, 8, 8);
-
-				if (trap_BotPredictVisiblePosition(bs->lastenemyorigin, bs->lastenemyareanum, &goal, TFL_DEFAULT, target)) {
-					VectorSubtract(target, bs->eye, dir);
-					// if the hitpoint is far enough from the bot
-					if (VectorLengthSquared(dir) > Square(100)) {
-						VectorCopy(target, bestorigin);
-						// if the projectile does large radial damage try to aim at the ground in front of the enemy
-						if (wi.proj.damagetype & DAMAGETYPE_RADIAL) {
-							bestorigin[2] -= 20;
-						}
-					}
-				}
-				// allow the bot to shoot at the ground
-				bs->allowHitWorld = qtrue;
-				aim_accuracy = 1.0f;
-			}
-		}
-
-		VectorCopy(bestorigin, bs->aimtarget);
 	}
 
 	if (BotUsesGravityAffectedProjectileWeapon(bs)) {
@@ -5007,31 +5238,26 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	}
 	// get aim direction
 	VectorSubtract(bestorigin, bs->eye, dir);
-//#ifdef DEBUG
-	if (!bot_challenge.integer) {
-//#endif
-		if (BotUsesInstantHitWeapon(bs)) {
-			// distance towards the enemy
-			dist = VectorLength(dir);
 
-			if (dist > 150) {
-				dist = 150;
-			}
+	if (BotUsesInstantHitWeapon(bs)) {
+		// distance towards the enemy
+		dist = VectorLength(dir);
 
-			f = 0.6f + dist / 150 * 0.4f;
-			aim_accuracy *= f;
+		if (dist > 150) {
+			dist = 150;
 		}
-		// add some random stuff to the aim direction depending on the aim accuracy
-		if (aim_accuracy < 0.8f) {
-			VectorNormalize(dir);
 
-			for (i = 0; i < 3; i++) {
-				dir[i] += 0.3f * crandom() * (1 - aim_accuracy);
-			}
-		}
-//#ifdef DEBUG
+		f = 0.6f + dist / 150 * 0.4f;
+		aim_accuracy *= f;
 	}
-//#endif
+	// add some random stuff to the aim direction depending on the aim accuracy
+	if (aim_accuracy < 0.8f) {
+		VectorNormalize(dir);
+
+		for (i = 0; i < 3; i++) {
+			dir[i] += 0.3f * crandom() * (1 - aim_accuracy);
+		}
+	}
 	// set the ideal view angles
 	VectorToAngles(dir, bs->ideal_viewangles);
 	// take the weapon spread into account for lower skilled bots
@@ -5042,11 +5268,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	// if the bots should be really challenging
 	viewType = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_VIEW_TYPE, 0, 1);
 
-	if (viewType > 0.9
-//#ifdef DEBUG
-		|| bot_challenge.integer
-//#endif
-		) {
+	if (viewType > 0.9) {
 		// if the bot is really accurate and has the enemy in view for some time
 		if (aim_accuracy > 0.9f && bs->enemysight_time < FloatTime() - 1) {
 			// set the view angles directly
@@ -5059,50 +5281,128 @@ void BotAimAtEnemy(bot_state_t *bs) {
 		}
 	}
 }
+/*
+=======================================================================================================================================
+BotMayRadiusDamageTeamMate
+=======================================================================================================================================
+*/
+static qboolean BotMayRadiusDamageTeamMate(bot_state_t *bs, vec3_t origin, float radius) {
+	gentity_t *ent;
+	int i, e, numListedEntities, entityList[MAX_GENTITIES];
+	float teampreservation, dist;
+	vec3_t mins, maxs, v;
+	team_t team;
+
+	if (g_gametype.integer < GT_TEAM) {
+		return qfalse;
+	}
+
+	if (!g_friendlyFire.integer) {
+		return qfalse;
+	}
+
+	if (radius < 1) {
+		radius = 1;
+	}
+
+	for (i = 0; i < 3; i++) {
+		mins[i] = origin[i] - radius;
+		maxs[i] = origin[i] + radius;
+	}
+
+	numListedEntities = trap_EntitiesInBox(mins, maxs, entityList, MAX_GENTITIES);
+	team = g_entities[bs->entitynum].client->sess.sessionTeam;
+	teampreservation = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_TEAMPRESERVATION, 0, 1);
+
+	for (e = 0; e < numListedEntities; e++) {
+		// if this is the bot self
+		if (e == bs->client) {
+			continue;
+		}
+
+		ent = &g_entities[entityList[e]];
+
+		if (!ent->takedamage) {
+			continue;
+		}
+
+		if (!ent->client) {
+			continue;
+		}
+
+		if (ent->client->sess.sessionTeam != team) {
+			continue;
+		}
+
+		if (ent->client->ps.stats[STAT_HEALTH] <= 0) {
+			continue;
+		}
+		// find the distance from the edge of the bounding box
+		for (i = 0; i < 3; i++) {
+			if (origin[i] < ent->r.absmin[i]) {
+				v[i] = ent->r.absmin[i] - origin[i];
+			} else if (origin[i] > ent->r.absmax[i]) {
+				v[i] = origin[i] - ent->r.absmax[i];
+			} else {
+				v[i] = 0;
+			}
+		}
+
+		dist = VectorLength(v);
+
+		if (dist >= radius * 2 * teampreservation) {
+			continue;
+		}
+
+		return qtrue;
+	}
+
+	return qfalse;
+}
 
 /*
 =======================================================================================================================================
 BotCheckAttack
 =======================================================================================================================================
 */
-void BotCheckAttack(bot_state_t *bs) {
-	float points, reactiontime, firethrottle;
+qboolean BotCheckAttack(bot_state_t *bs) {
+	float attack_accuracy, aim_accuracy, reactiontime, firethrottle, *mins, *maxs;
 	int attackentity, fov, weaponfov, weaponrange, mask;
-	//float selfpreservation;
-	vec3_t forward, right, start, end, dir, angles;
+	vec3_t forward, right, start, end, targetpoint, dir, angles;
 	weaponinfo_t wi;
 	bsp_trace_t trace;
 	aas_entityinfo_t entinfo;
 	static vec3_t rmins = {-4, -4, -4}, rmaxs = {4, 4, 4}; // rockets/missiles
-	float *mins, *maxs;
 
 	attackentity = bs->enemy;
 
 	if (attackentity < 0) {
-		return;
+		return qfalse;
 	}
 
 	if (bs->weaponnum <= WP_NONE || bs->weaponnum >= WP_NUM_WEAPONS) {
-		return;
+		return qfalse;
 	}
 	// get the entity information
 	BotEntityInfo(attackentity, &entinfo);
 	// if the entity information is valid
 	if (!entinfo.valid) {
-		return;
+		return qfalse;
 	}
 	// if the entity isn't dead
 	if (EntityIsDead(&entinfo)) {
-		return;
+		return qfalse;
 	}
 	// if attacking an obelisk
 	if (attackentity >= MAX_CLIENTS && (entinfo.number == redobelisk.entitynum || entinfo.number == blueobelisk.entitynum)) {
 		// if the obelisk is respawning
 		if (g_entities[entinfo.number].activator && g_entities[entinfo.number].activator->s.frame == 2) {
-			return;
+			return qfalse;
 		}
 	}
 
+	attack_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_ATTACK_ACCURACY, 0, 1);
+	// get the reaction time
 	reactiontime = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_REACTIONTIME, 0, 5);
 	// if the enemy is invisible
 	if (EntityIsInvisible(&entinfo)) {
@@ -5116,34 +5416,28 @@ void BotCheckAttack(bot_state_t *bs) {
 	if (BotEqualizeWeakestHumanTeamScore(bs) || BotEqualizeTeamScore(bs)) {
 		reactiontime += bot_equalizer_react.value;
 	}
-
-	VectorSubtract(bs->aimtarget, bs->eye, dir);
-	VectorToAngles(dir, angles);
-	// don't shoot too early with some weapons
-	if (bs->weaponnum == WP_RAILGUN && !InFieldOfVision(bs->viewangles, 40, angles) && reactiontime < 0.7) {
-		reactiontime = 0.7;
-	}
-
+	// wait until we have had time to react
 	if (bs->enemysight_time > FloatTime() - reactiontime) {
-		return;
+		bs->aimnotperfect_time = FloatTime();
+		return qfalse;
 	}
 
 	if (bs->teleport_time > FloatTime() - reactiontime) {
-		return;
+		return qfalse;
 	}
 
-	if (BotUsesCloseCombatWeapon(bs) && BotWantsToRetreat(bs)) {
-		if (VectorLengthSquared(dir) > Square(60)) {
-			return;
-		}
+	VectorSubtract(bs->aimtarget, bs->eye, dir);
+	// if using a close combat weapon and the enemy is too far away
+	if (BotUsesCloseCombatWeapon(bs) && BotWantsToRetreat(bs) && VectorLengthSquared(dir) > Square(60)) {
+		return qfalse;
 	}
 	// if changing weapons
 	if (bs->weaponchange_time > FloatTime() - 0.1) {
-		return;
+		return qfalse;
 	}
 	// check fire throttle characteristic
 	if (bs->firethrottlewait_time > FloatTime()) {
-		return;
+		return qfalse;
 	}
 
 	firethrottle = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_FIRETHROTTLE, 0, 1);
@@ -5161,94 +5455,118 @@ void BotCheckAttack(bot_state_t *bs) {
 			bs->firethrottlewait_time = 0;
 		}
 	}
-	// get some weapon specific attack values
-	switch (bs->weaponnum) {
-		case WP_GAUNTLET:
-			weaponfov = 90;
-			weaponrange = 42;
-			mins = NULL;
-			maxs = NULL;
-			mask = MASK_SHOT;
-			break;
-		case WP_MACHINEGUN:
-			weaponfov = 20;
-			weaponrange = 100000;
-			mins = NULL;
-			maxs = NULL;
-			mask = MASK_SHOT;
-			break;
-		case WP_CHAINGUN:
-			weaponfov = 80;
-			weaponrange = 100000;
-			mins = NULL;
-			maxs = NULL;
-			mask = MASK_SHOT;
-			break;
-		case WP_SHOTGUN:
-			weaponfov = 20;
-			weaponrange = 500;
-			mins = NULL;
-			maxs = NULL;
-			mask = MASK_SHOT;
-			break;
-		case WP_NAILGUN:
-			weaponfov = 40;
-			weaponrange = 500;
-			mins = NULL;
-			maxs = NULL;
-			mask = MASK_SHOT;
-			break;
-		case WP_PROXLAUNCHER:
-		case WP_GRENADELAUNCHER:
-			weaponfov = 120;
-			weaponrange = 2000;
-			mins = rmins;
-			maxs = rmaxs;
-			mask = MASK_SHOT;
-			break;
-		case WP_NAPALMLAUNCHER:
-		case WP_ROCKETLAUNCHER:
-			weaponfov = 60;
-			weaponrange = 1000;
-			mins = rmins;
-			maxs = rmaxs;
-			mask = MASK_SHOT;
-			break;
-		case WP_BEAMGUN:
-			weaponfov = 80;
-			weaponrange = BEAMGUN_RANGE;
-			mins = NULL;
-			maxs = NULL;
-			mask = MASK_SHOT;
-			break;
-		case WP_RAILGUN:
-			weaponfov = 6;
-			weaponrange = 100000;
-			mins = NULL;
-			maxs = NULL;
-			mask = MASK_SHOT;
-			break;
-		case WP_PLASMAGUN:
-			weaponfov = 20;
-			weaponrange = 1000;
-			mins = rmins;
-			maxs = rmaxs;
-			mask = MASK_SHOT;
-			break;
-		case WP_BFG:
-			weaponfov = 20;
-			weaponrange = 1000;
-			mins = rmins;
-			maxs = rmaxs;
-			mask = MASK_SHOT;
-			break;
-		default:
-			weaponfov = 50;
-			weaponrange = 1000;
-			mins = rmins;
-			maxs = rmaxs;
-			mask = MASK_SHOT;
-			break;
+
+	if (attack_accuracy != 0.5) {
+		// get some weapon specific attack values
+		switch (bs->weaponnum) {
+			case WP_GAUNTLET:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY, 0, 1);
+				weaponfov = 90;
+				weaponrange = 42;
+				mins = NULL;
+				maxs = NULL;
+				mask = MASK_SHOT;
+				break;
+			case WP_MACHINEGUN:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_MACHINEGUN, 0, 1);
+				weaponfov = 20;
+				weaponrange = 100000;
+				mins = NULL;
+				maxs = NULL;
+				mask = MASK_SHOT;
+				break;
+			case WP_CHAINGUN:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_CHAINGUN, 0, 1);
+				weaponfov = 80;
+				weaponrange = 100000;
+				mins = NULL;
+				maxs = NULL;
+				mask = MASK_SHOT;
+				break;
+			case WP_SHOTGUN:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_SHOTGUN, 0, 1);
+				weaponfov = 20;
+				weaponrange = 500;
+				mins = NULL;
+				maxs = NULL;
+				mask = MASK_SHOT;
+				break;
+			case WP_NAILGUN:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_NAILGUN, 0, 1);
+				weaponfov = 40;
+				weaponrange = 500;
+				mins = NULL;
+				maxs = NULL;
+				mask = MASK_SHOT;
+				break;
+			case WP_PROXLAUNCHER:
+			case WP_GRENADELAUNCHER:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_GRENADELAUNCHER, 0, 1);
+				weaponfov = 120;
+				weaponrange = 2000;
+				mins = rmins;
+				maxs = rmaxs;
+				mask = MASK_SHOT;
+				break;
+			case WP_NAPALMLAUNCHER:
+			case WP_ROCKETLAUNCHER:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_ROCKETLAUNCHER, 0, 1);
+				weaponfov = 60;
+				weaponrange = 1000;
+				mins = rmins;
+				maxs = rmaxs;
+				mask = MASK_SHOT;
+				break;
+			case WP_BEAMGUN:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_BEAMGUN, 0, 1);
+				weaponfov = 80;
+				weaponrange = BEAMGUN_RANGE;
+				mins = NULL;
+				maxs = NULL;
+				mask = MASK_SHOT;
+				break;
+			case WP_RAILGUN:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_RAILGUN, 0, 1);
+				weaponfov = 20;
+				weaponrange = 100000;
+				mins = NULL;
+				maxs = NULL;
+				mask = MASK_SHOT;
+				break;
+			case WP_PLASMAGUN:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_PLASMAGUN, 0, 1);
+				weaponfov = 20;
+				weaponrange = 1000;
+				mins = rmins;
+				maxs = rmaxs;
+				mask = MASK_SHOT;
+				break;
+			case WP_BFG:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_BFG10K, 0, 1);
+				weaponfov = 20;
+				weaponrange = 1000;
+				mins = rmins;
+				maxs = rmaxs;
+				mask = MASK_SHOT;
+				break;
+			default:
+				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY, 0, 1);
+				weaponfov = 50;
+				weaponrange = 1000;
+				mins = rmins;
+				maxs = rmaxs;
+				mask = MASK_SHOT;
+				break;
+		}
+
+		weaponfov += 30 - (30 * aim_accuracy);
+	// simulate old style Q3A Gladiator bot behaviour
+	} else {
+		weaponfov = 50;
+		weaponrange = 1000;
+		mins = NULL;
+		maxs = NULL;
+		mask = MASK_SHOT;
 	}
 
 	if (VectorLengthSquared(dir) < Square(100)) {
@@ -5257,8 +5575,21 @@ void BotCheckAttack(bot_state_t *bs) {
 		fov = weaponfov;
 	}
 
+	VectorToAngles(dir, angles);
+
+	if (attack_accuracy > 0.6) {
+		// some weapons don't accept inprecision (could be dangerous for ourself etc.)
+		if (!InFieldOfVision(bs->viewangles, 0.5 * fov, angles)) {
+			bs->aimnotperfect_time = FloatTime();
+		}
+		// so don't shoot too early with those weapons
+		if (bs->weaponnum == WP_RAILGUN && (bs->aimnotperfect_time > FloatTime() - 0.1)) {
+			return qfalse;
+		}
+	}
+
 	if (!InFieldOfVision(bs->viewangles, fov, angles)) {
-		return;
+		return qfalse;
 	}
 	// get the start point shooting from
 	VectorCopy(bs->origin, start);
@@ -5272,36 +5603,36 @@ void BotCheckAttack(bot_state_t *bs) {
 	start[0] += forward[0] * wi.offset[0] + right[0] * wi.offset[1];
 	start[1] += forward[1] * wi.offset[0] + right[1] * wi.offset[1];
 	start[2] += forward[2] * wi.offset[0] + right[2] * wi.offset[1] + wi.offset[2];
-	// end point aiming at
-	VectorMA(start, weaponrange, forward, end);
 	// a little back to make sure not inside a very close enemy
 	VectorMA(start, -8, forward, start);
-	BotAI_Trace(&trace, start, mins, maxs, end, bs->entitynum, mask);
+	// end point aiming at
+	VectorMA(start, weaponrange, forward, end);
+
+	if (attack_accuracy > 0.5) {
+		VectorCopy(end, targetpoint);
+	// simulate old style Q3A Gladiator bot behaviour
+	} else {
+		VectorCopy(bs->aimtarget, targetpoint);
+	}
+
+	BotAI_Trace(&trace, start, mins, maxs, targetpoint, bs->entitynum, mask);
 
 	if (!bs->allowHitWorld && trace.fraction < 1.0f && trace.entityNum != attackentity) {
-		return;
+		return qfalse;
 	}
 	// if the entity is a client
 	if (trace.entityNum >= 0 && trace.entityNum < MAX_CLIENTS) {
 		if (trace.entityNum != attackentity) {
 			// if a teammate is hit
 			if (BotSameTeam(bs, trace.entityNum)) {
-				return;
+				return qfalse;
 			}
 		}
 	}
-	// if won't hit the enemy or not attacking a player (obelisk)
-	if (trace.entityNum != attackentity || attackentity >= MAX_CLIENTS) {
-		// if the projectile does radial damage
-		if (wi.proj.damagetype & DAMAGETYPE_RADIAL) {
-			if (trace.fraction * 1000 < wi.proj.radius) {
-				points = (wi.proj.damage - 0.5 * trace.fraction * 1000) * 0.5;
-
-				if (points > 0) {
-					return;
-				}
-			}
-			// FIXME: check if a teammate gets radial damage
+	// check if a teammate gets radial damage
+	if (wi.proj.damagetype & DAMAGETYPE_RADIAL) {
+		if (BotMayRadiusDamageTeamMate(bs, trace.endpos, wi.proj.radius)) {
+			return qfalse;
 		}
 	}
 	// if fire has to be release to activate weapon
@@ -5314,6 +5645,8 @@ void BotCheckAttack(bot_state_t *bs) {
 	}
 
 	bs->flags ^= BFL_ATTACKED;
+
+	return qfalse;
 }
 
 /*

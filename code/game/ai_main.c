@@ -267,7 +267,7 @@ void BotTestAAS(vec3_t origin) {
 			return;
 		}
 
-		areanum = BotPointAreaNum(origin);
+		areanum = BotPointAreaNum(0, origin);
 
 		if (areanum) {
 			BotAI_Print(PRT_MESSAGE, "\rEmpty area.");
@@ -279,7 +279,7 @@ void BotTestAAS(vec3_t origin) {
 			return;
 		}
 
-		areanum = BotPointAreaNum(origin);
+		areanum = BotPointAreaNum(0, origin);
 
 		if (!areanum) {
 			BotAI_Print(PRT_MESSAGE, "\r^1Solid!");
@@ -815,7 +815,7 @@ BotChangeViewAngles
 =======================================================================================================================================
 */
 void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
-	float diff, factor, maxchange, anglespeed, disired_speed;
+	float diff, factor, maxchange, viewType, anglespeed, disired_speed;
 	int i;
 
 	if (bs->ideal_viewangles[PITCH] > 180) {
@@ -836,8 +836,10 @@ void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
 
 	maxchange *= thinktime;
 
+	viewType = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_VIEW_TYPE, 0, 1);
+
 	for (i = 0; i < 2; i++) {
-		if (bot_challenge.integer) {
+		if (viewType > 0.8) {
 			// smooth slowdown view model
 			diff = fabs(AngleDifference(bs->viewangles[i], bs->ideal_viewangles[i]));
 			anglespeed = diff * factor;
@@ -878,12 +880,7 @@ void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
 			// demping
 			bs->viewanglespeed[i] *= 0.45 * (1 - factor);
 		}
-
-		//BotAI_Print(PRT_MESSAGE, "ideal_angles %f %f\n", bs->ideal_viewangles[0], bs->ideal_viewangles[1], bs->ideal_viewangles[2]);
-		//bs->viewangles[i] = bs->ideal_viewangles[i];
 	}
-
-	//bs->viewangles[PITCH] = 0;
 
 	if (bs->viewangles[PITCH] > 180) {
 		bs->viewangles[PITCH] -= 360;
@@ -1152,7 +1149,7 @@ int BotAI(int client, float thinktime) {
 
 	bs->eye[2] += bs->cur_ps.viewheight;
 	// get the area the bot is in
-	bs->areanum = BotPointAreaNum(bs->origin);
+	bs->areanum = BotPointAreaNum(bs->client, bs->origin);
 	// the real AI
 	BotDeathmatchAI(bs, thinktime);
 	// set the weapon selection every AI frame

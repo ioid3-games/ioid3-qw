@@ -123,7 +123,7 @@ qboolean BotEntityVisible(playerState_t *ps, float fov, int ent);
 // the bot will aim at the current enemy
 void BotAimAtEnemy(bot_state_t *bs);
 // check if the bot should attack
-void BotCheckAttack(bot_state_t *bs);
+qboolean BotCheckAttack(bot_state_t *bs);
 // AI when the bot is blocked
 void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, bot_aienter_t activatedonefunc);
 // AI to predict obstacles
@@ -172,7 +172,7 @@ char *stristr(char *str, char *charset);
 // returns the number of the client with the given name
 int ClientFromName(char *name);
 int ClientOnSameTeamFromName(bot_state_t *bs, char *name);
-int BotPointAreaNum(vec3_t origin);
+int BotPointAreaNum(int entnum, vec3_t origin);
 void BotMapScripts(bot_state_t *bs);
 // CTF flags
 #define CTF_FLAG_NONE	0
