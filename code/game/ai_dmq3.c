@@ -1804,11 +1804,11 @@ BotWantsToWalk
 =======================================================================================================================================
 */
 qboolean BotWantsToWalk(bot_state_t *bs) {
-//#ifdef DEBUG
+
 	if (bot_nowalk.integer) {
 		return qfalse;
 	}
-//#endif
+
 	if (bs->walker < 0.1f) {
 		return qfalse;
 	}
@@ -4920,15 +4920,11 @@ void BotAimAtEnemy(bot_state_t *bs) {
 				}
 			}
 		}
-//#ifdef DEBUG
-		if (!bot_challenge.integer) {
-//#endif
-			bestorigin[0] += 20 * crandom() * (1 - aim_accuracy);
-			bestorigin[1] += 20 * crandom() * (1 - aim_accuracy);
-			bestorigin[2] += 10 * crandom() * (1 - aim_accuracy);
-//#ifdef DEBUG
-		}
-//#endif
+
+		bestorigin[0] += 20 * crandom() * (1 - aim_accuracy);
+		bestorigin[1] += 20 * crandom() * (1 - aim_accuracy);
+		bestorigin[2] += 10 * crandom() * (1 - aim_accuracy);
+
 		BotAI_Trace(&trace, bs->eye, mins, maxs, bestorigin, bs->entitynum, mask);
 		VectorCopy(trace.endpos, bs->aimtarget);
 	// if the enemy is NOT visible
@@ -5055,7 +5051,6 @@ BotCheckAttack
 void BotCheckAttack(bot_state_t *bs) {
 	float points, reactiontime, firethrottle;
 	int attackentity, fov, weaponfov, weaponrange, mask;
-	//float selfpreservation;
 	vec3_t forward, right, start, end, dir, angles;
 	weaponinfo_t wi;
 	bsp_trace_t trace;
