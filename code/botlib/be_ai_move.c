@@ -45,8 +45,6 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #include "be_ai_goal.h"
 #include "be_ai_move.h"
 
-//#define DEBUG_AI_MOVE
-//#define DEBUG_ELEVATOR
 // movement state
 // NOTE: the moveflags MFL_ONGROUND, MFL_WATERJUMP, MFL_SCOUT and MFL_TELEPORTED must be set outside the movement code
 typedef struct bot_movestate_s {
@@ -1687,7 +1685,6 @@ bot_moveresult_t BotTravel_WaterJump(bot_movestate_t *ms, aas_reachability_t *re
 
 	dist = VectorNormalize(hordir);
 	// elementary actions
-	//EA_Move(ms->client, dir, 400);
 	EA_MoveForward(ms->client);
 	// move up if close to the actual out of water jump spot
 	if (dist < 40) {
