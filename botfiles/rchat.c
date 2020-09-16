@@ -630,7 +630,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 	"Most likely, it's your own fault.";
 	"~Do you always try to blame others?";
 	"No ~one takes responsibility these days.";
-	" So, is it my fault?";
+	"So, is it my fault?";
 	"~It's obviously ",botnames,"'s fault.";
 	"~Don't blame me.";
 }
@@ -1393,7 +1393,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 {
 	"~You want to talk about divorce in the arena?";
 	"I'm about to divorce you from reality.";
-	"So the the scum left you. ~Should I care?";
+	"So the scum left you. ~Should I care?";
 	"Frag now. Whimper later.";
 	response_insult;
 }
