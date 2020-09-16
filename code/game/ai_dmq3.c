@@ -981,6 +981,7 @@ void Bot1FCTFSeekGoals(bot_state_t *bs) {
 					bs->teamgoal_time = FloatTime() + TEAM_ACCOMPANY_TIME;
 					// set the ltg type
 					bs->ltgtype = LTG_TEAMACCOMPANY;
+					// set the formation intervening space
 					bs->formation_dist = BotSetTeamFormationDist(bs);
 					// set the team status (offense, defense etc.)
 					BotSetTeamStatus(bs);
