@@ -93,12 +93,12 @@ void BotPrintTeamGoal(bot_state_t *bs) {
 		}
 		case LTG_TEAMHELP:
 		{
-			BotAI_Print(PRT_MESSAGE, "%s: I'm gonna help a team mate for %1.0f secs\n", netname, t);
+			BotAI_Print(PRT_MESSAGE, "%s: I'm gonna help a teammate for %1.0f secs\n", netname, t);
 			break;
 		}
 		case LTG_TEAMACCOMPANY:
 		{
-			BotAI_Print(PRT_MESSAGE, "%s: I'm gonna accompany a team mate for %1.0f secs\n", netname, t);
+			BotAI_Print(PRT_MESSAGE, "%s: I'm gonna accompany a teammate for %1.0f secs\n", netname, t);
 			break;
 		}
 		case LTG_CAMP:
@@ -540,7 +540,7 @@ void BotMatch_HelpAccompany(bot_state_t *bs, bot_match_t *match) {
 	if (!BotAddressedToBot(bs, match)) {
 		return;
 	}
-	// get the team mate name
+	// get the teammate name
 	trap_BotMatchVariable(match, TEAMMATE, teammate, sizeof(teammate));
 	// get the client to help
 	if (trap_BotFindMatch(teammate, &teammatematch, MTCONTEXT_TEAMMATE) && teammatematch.type == MSG_ME) { // if someone asks for him or herself
@@ -622,39 +622,41 @@ void BotMatch_HelpAccompany(bot_state_t *bs, bot_match_t *match) {
 		trap_BotEnterChat(bs->cs, client, CHAT_TEAM);
 		return;
 	}
-	// the team mate
+	// the teammate
 	bs->teammate = client;
 
 	trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 
 	client = ClientFromName(netname);
-	// the team mate who ordered
+	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// last time the team mate was assumed visible
+	// last time the teammate was assumed visible
 	bs->teammatevisible_time = FloatTime();
-	// set the time to send a message to the team mates
+	// set the time to send a message to the teammates
 	bs->teammessage_time = FloatTime() + 2 * random();
 	// get the team goal time
 	bs->teamgoal_time = BotGetTime(match);
 	// set the ltg type
 	if (match->type == MSG_HELP) {
 		bs->ltgtype = LTG_TEAMHELP;
-
+		// get the team goal time
 		if (!bs->teamgoal_time) {
 			bs->teamgoal_time = FloatTime() + TEAM_HELP_TIME;
 		}
 	} else {
 		bs->ltgtype = LTG_TEAMACCOMPANY;
-
+		// set the team goal time
 		if (!bs->teamgoal_time) {
 			bs->teamgoal_time = FloatTime() + TEAM_ACCOMPANY_TIME;
 		}
 
+		// set the formation intervening space
 		bs->formation_dist = 128;
+		// not arrived yet
 		bs->arrive_time = 0;
-
+		// set the team status (offense, defense etc.)
 		BotSetTeamStatus(bs);
 		// remember last ordered task
 		BotRememberLastOrderedTask(bs);
@@ -693,11 +695,11 @@ void BotMatch_DefendKeyArea(bot_state_t *bs, bot_match_t *match) {
 	trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 
 	client = ClientFromName(netname);
-	// the team mate who ordered
+	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the team mates
+	// set the time to send a message to the teammates
 	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_DEFENDKEYAREA;
@@ -709,7 +711,7 @@ void BotMatch_DefendKeyArea(bot_state_t *bs, bot_match_t *match) {
 	}
 	// away from defending
 	bs->defendaway_time = 0;
-
+	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 	// remember last ordered task
 	BotRememberLastOrderedTask(bs);
@@ -747,17 +749,17 @@ void BotMatch_GetItem(bot_state_t *bs, bot_match_t *match) {
 	trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 
 	client = ClientOnSameTeamFromName(bs, netname);
-
+	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the team mates
+	// set the time to send a message to the teammates
 	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_GETITEM;
 	// set the team goal time
 	bs->teamgoal_time = FloatTime() + TEAM_GETITEM_TIME;
-
+	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
@@ -839,11 +841,11 @@ void BotMatch_Camp(bot_state_t *bs, bot_match_t *match) {
 		//trap_BotEnterChat(bs->cs, client, CHAT_TELL);
 		return;
 	}
-
+	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the team mates
+	// set the time to send a message to the teammates
 	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_CAMPORDER;
@@ -855,7 +857,7 @@ void BotMatch_Camp(bot_state_t *bs, bot_match_t *match) {
 	}
 	// not arrived yet
 	bs->arrive_time = 0;
-
+	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 	// remember last ordered task
 	BotRememberLastOrderedTask(bs);
@@ -888,11 +890,11 @@ void BotMatch_Patrol(bot_state_t *bs, bot_match_t *match) {
 	trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 
 	client = FindClientByName(netname);
-
+	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the team mates
+	// set the time to send a message to the teammates
 	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_PATROL;
@@ -902,7 +904,7 @@ void BotMatch_Patrol(bot_state_t *bs, bot_match_t *match) {
 	if (!bs->teamgoal_time) {
 		bs->teamgoal_time = FloatTime() + TEAM_PATROL_TIME;
 	}
-
+	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 	// remember last ordered task
 	BotRememberLastOrderedTask(bs);
@@ -939,11 +941,11 @@ void BotMatch_GetFlag(bot_state_t *bs, bot_match_t *match) {
 	trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 
 	client = FindClientByName(netname);
-
+	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the team mates
+	// set the time to send a message to the teammates
 	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_GETFLAG;
@@ -954,7 +956,7 @@ void BotMatch_GetFlag(bot_state_t *bs, bot_match_t *match) {
 		// get an alternative route goal towards the enemy base
 		BotGetAlternateRouteGoal(bs, BotOppositeTeam(bs));
 	}
-
+	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 	// remember last ordered task
 	BotRememberLastOrderedTask(bs);
@@ -989,18 +991,19 @@ void BotMatch_AttackEnemyBase(bot_state_t *bs, bot_match_t *match) {
 	trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 
 	client = FindClientByName(netname);
-
+	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the team mates
+	// set the time to send a message to the teammates
 	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_ATTACKENEMYBASE;
 	// set the team goal time
 	bs->teamgoal_time = FloatTime() + TEAM_ATTACKENEMYBASE_TIME;
+	// away from attacking
 	bs->attackaway_time = 0;
-
+	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 	// remember last ordered task
 	BotRememberLastOrderedTask(bs);
@@ -1033,18 +1036,19 @@ void BotMatch_Harvest(bot_state_t *bs, bot_match_t *match) {
 	trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 
 	client = FindClientByName(netname);
-
+	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the team mates
+	// set the time to send a message to the teammates
 	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_HARVEST;
 	// set the team goal time
 	bs->teamgoal_time = FloatTime() + TEAM_HARVEST_TIME;
+	// away from harvesting
 	bs->harvestaway_time = 0;
-
+	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 	// remember last ordered task
 	BotRememberLastOrderedTask(bs);
@@ -1081,18 +1085,19 @@ void BotMatch_RushBase(bot_state_t *bs, bot_match_t *match) {
 	trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 
 	client = FindClientByName(netname);
-
+	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the team mates
+	// set the time to send a message to the teammates
 	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_RUSHBASE;
 	// set the team goal time
 	bs->teamgoal_time = FloatTime() + CTF_RUSHBASE_TIME;
+	// away from rushing to base
 	bs->rushbaseaway_time = 0;
-
+	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
@@ -1174,18 +1179,19 @@ void BotMatch_ReturnFlag(bot_state_t *bs, bot_match_t *match) {
 	trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 
 	client = FindClientByName(netname);
-
+	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the team mates
+	// set the time to send a message to the teammates
 	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_RETURNFLAG;
 	// set the team goal time
 	bs->teamgoal_time = FloatTime() + CTF_RETURNFLAG_TIME;
+	// away from rushing to base
 	bs->rushbaseaway_time = 0;
-
+	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
@@ -1401,7 +1407,7 @@ void BotMatch_Dismiss(bot_state_t *bs, bot_match_t *match) {
 	trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 
 	client = ClientFromName(netname);
-
+	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ltg_time = 0;
 	bs->ltgtype = 0;
@@ -1452,14 +1458,14 @@ void BotMatch_StartTeamLeaderShip(bot_state_t *bs, bot_match_t *match) {
 	}
 	// if chats for him or herself
 	if (match->subtype & ST_I) {
-		// get the team mate that will be the team leader
+		// get the teammate that will be the team leader
 		trap_BotMatchVariable(match, NETNAME, teammate, sizeof(teammate));
 		strncpy(bs->teamleader, teammate, sizeof(bs->teamleader));
 
 		bs->teamleader[sizeof(bs->teamleader) - 1] = '\0';
 	// chats for someone else
 	} else {
-		// get the team mate that will be the team leader
+		// get the teammate that will be the team leader
 		trap_BotMatchVariable(match, TEAMMATE, teammate, sizeof(teammate));
 
 		client = FindClientByName(teammate);
@@ -1483,7 +1489,7 @@ void BotMatch_StopTeamLeaderShip(bot_state_t *bs, bot_match_t *match) {
 	if (!TeamPlayIsOn()) {
 		return;
 	}
-	// get the team mate that stops being the team leader
+	// get the teammate that stops being the team leader
 	trap_BotMatchVariable(match, TEAMMATE, teammate, sizeof(teammate));
 	// if chats for him or herself
 	if (match->subtype & ST_I) {
@@ -1797,7 +1803,7 @@ void BotMatch_LeadTheWay(bot_state_t *bs, bot_match_t *match) {
 	}
 	// if someone asks for someone else
 	if (match->subtype & ST_SOMEONE) {
-		// get the team mate name
+		// get the teammate name
 		trap_BotMatchVariable(match, TEAMMATE, teammate, sizeof(teammate));
 
 		client = FindClientByName(teammate);
@@ -1891,13 +1897,13 @@ void BotMatch_Kill(bot_state_t *bs, bot_match_t *match) {
 	}
 
 	bs->teamgoal.entitynum = client;
-	// set the time to send a message to the team mates
+	// set the time to send a message to the teammates
 	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_KILL;
 	// set the team goal time
 	bs->teamgoal_time = FloatTime() + TEAM_KILL_SOMEONE;
-
+	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
