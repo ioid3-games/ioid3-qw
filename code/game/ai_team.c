@@ -182,7 +182,7 @@ int BotGetNextPlayerOrMonster(bot_state_t *bs, int lastPlayer, playerState_t *ps
 =======================================================================================================================================
 BotGetNextTeamMate
 
-Returns -1 if there are no more team mates. Does not return the bot itself. Use lastTeamMate = -1 for first call.
+Returns -1 if there are no more teammates. Does not return the bot itself. Use lastTeamMate = -1 for first call.
 =======================================================================================================================================
 */
 int BotGetNextTeamMate(bot_state_t *bs, int lastTeamMate, playerState_t *ps) {
@@ -483,7 +483,20 @@ void BotSayVoiceTeamOrder(bot_state_t *bs, int toclient, char *voicechat) {
 =======================================================================================================================================
 BotHarvesterOrders
 
-X% defend the base, Y% harvest.
+X% defend the base, Y% go harvest.
+
+-----------------------------------------------------------------
+  Max. passive strategy:   100% in defence   0% in offence. *NEW*
+-----------------------------------------------------------------
+  Very passive strategy:    70% in defence  20% in offence. *NEW*
+-----------------------------------------------------------------
+  Passive strategy:         50% in defence  40% in offence.
+-----------------------------------------------------------------
+  Aggressive strategy:      30% in defence  60% in offence.
+-----------------------------------------------------------------
+  Very aggressive strategy: 20% in defence  70% in offence. *NEW*
+-----------------------------------------------------------------
+  Max. aggressive strategy:  0% in defence 100% in offence. *NEW*
 =======================================================================================================================================
 */
 void BotHarvesterOrders(bot_state_t *bs) {
@@ -491,21 +504,23 @@ void BotHarvesterOrders(bot_state_t *bs) {
 	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
-	// sort team mates by travel time to base
+	// sort teammates by travel time to base
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
-	// sort team mates by CTF preference
+	// sort teammates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 
 	switch (bs->ctfstrategy) {
-		// maximum passive strategy
+		// most passive strategy
 		case CTFS_MAX_DEFENSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -520,6 +535,7 @@ void BotHarvesterOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_OFFENSE);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -539,6 +555,7 @@ void BotHarvesterOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_OFFENSE);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 70% defend the base
@@ -580,10 +597,12 @@ void BotHarvesterOrders(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -598,6 +617,7 @@ void BotHarvesterOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_OFFENSE);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -617,6 +637,7 @@ void BotHarvesterOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_OFFENSE);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 50% defend the base
@@ -657,10 +678,12 @@ void BotHarvesterOrders(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -675,6 +698,7 @@ void BotHarvesterOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_OFFENSE);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -694,6 +718,7 @@ void BotHarvesterOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_OFFENSE);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 30% defend the base
@@ -734,10 +759,12 @@ void BotHarvesterOrders(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -752,6 +779,7 @@ void BotHarvesterOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_OFFENSE);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -771,6 +799,7 @@ void BotHarvesterOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_OFFENSE);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 20% defend the base
@@ -821,15 +850,20 @@ void BotHarvesterOrders(bot_state_t *bs) {
 =======================================================================================================================================
 BotObeliskOrders
 
-X% in defence Y% in offence.
+X% defend the base, Y% attack the enemy obelisk.
+
 -----------------------------------------------------------------
-  Maximum passive strategy:    70% in defence 20% in offence. *NEW*
+  Max. passive strategy:   100% in defence   0% in offence. *NEW*
 -----------------------------------------------------------------
-  Passive strategy:            50% in defence 40% in offence.
+  Very passive strategy:    70% in defence  20% in offence. *NEW*
 -----------------------------------------------------------------
-  Aggressive strategy:         30% in defence 60% in offence.
+  Passive strategy:         50% in defence  40% in offence.
 -----------------------------------------------------------------
-  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
+  Aggressive strategy:      30% in defence  60% in offence.
+-----------------------------------------------------------------
+  Very aggressive strategy: 20% in defence  70% in offence. *NEW*
+-----------------------------------------------------------------
+  Max. aggressive strategy:  0% in defence 100% in offence. *NEW*
 =======================================================================================================================================
 */
 void BotObeliskOrders(bot_state_t *bs) {
@@ -837,21 +871,23 @@ void BotObeliskOrders(bot_state_t *bs) {
 	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
-	// sort team mates by travel time to base
+	// sort teammates by travel time to base
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
-	// sort team mates by CTF preference
+	// sort teammates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 
 	switch (bs->ctfstrategy) {
-		// maximum passive strategy
+		// most passive strategy
 		case CTFS_MAX_DEFENSIVE:
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -866,6 +902,7 @@ void BotObeliskOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_OFFENSE);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -885,6 +922,7 @@ void BotObeliskOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_OFFENSE);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 70% defend the base
@@ -926,10 +964,12 @@ void BotObeliskOrders(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -944,6 +984,7 @@ void BotObeliskOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_OFFENSE);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -963,6 +1004,7 @@ void BotObeliskOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_OFFENSE);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 50% defend the base
@@ -1003,10 +1045,12 @@ void BotObeliskOrders(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -1021,6 +1065,7 @@ void BotObeliskOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_OFFENSE);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -1040,6 +1085,7 @@ void BotObeliskOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_OFFENSE);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 30% defend the base
@@ -1080,10 +1126,12 @@ void BotObeliskOrders(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -1098,6 +1146,7 @@ void BotObeliskOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_OFFENSE);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -1117,6 +1166,7 @@ void BotObeliskOrders(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_OFFENSE);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 20% defend the base
@@ -1168,14 +1218,19 @@ void BotObeliskOrders(bot_state_t *bs) {
 Bot1FCTFOrders_FlagAtCenter
 
 X% defend the base, Y% get the flag.
+
 -----------------------------------------------------------------
-  Maximum passive strategy:    70% in defence 20% in offence. *NEW*
+  Max. passive strategy:   100% in defence   0% in offence. *NEW*
 -----------------------------------------------------------------
-  Passive strategy:            50% in defence 40% in offence.
+  Very passive strategy:    70% in defence  20% in offence. *NEW*
 -----------------------------------------------------------------
-  Aggressive strategy:         40% in defence 50% in offence.
+  Passive strategy:         50% in defence  40% in offence.
 -----------------------------------------------------------------
-  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
+  Aggressive strategy:      40% in defence  50% in offence.
+-----------------------------------------------------------------
+  Very aggressive strategy: 20% in defence  70% in offence. *NEW*
+-----------------------------------------------------------------
+  Max. aggressive strategy:  0% in defence 100% in offence. *NEW*
 =======================================================================================================================================
 */
 void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
@@ -1183,21 +1238,23 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
-	// sort team mates by travel time to base
+	// sort teammates by travel time to base
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
-	// sort team mates by CTF preference
+	// sort teammates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 
 	switch (bs->ctfstrategy) {
-		// maximum passive strategy
+		// most passive strategy
 		case CTFS_MAX_DEFENSIVE:
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -1212,6 +1269,7 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -1231,6 +1289,7 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 70% defend the base
@@ -1272,10 +1331,12 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -1290,6 +1351,7 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -1309,6 +1371,7 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 50% defend the base
@@ -1349,10 +1412,12 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -1367,6 +1432,7 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -1386,6 +1452,7 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 40% defend the base
@@ -1426,10 +1493,12 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -1444,6 +1513,7 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -1463,6 +1533,7 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 20% defend the base
@@ -1506,14 +1577,19 @@ void Bot1FCTFOrders_FlagAtCenter(bot_state_t *bs) {
 Bot1FCTFOrders_TeamHasFlag
 
 X% towards neutral flag, Y% go towards enemy base and accompany flag carrier if visible.
+
 -----------------------------------------------------------------
-  Maximum passive strategy:    50% in defence 40% in offence. *NEW*
+  Max. passive strategy:   100% in defence   0% in offence. *NEW*
 -----------------------------------------------------------------
-  Passive strategy:            30% in defence 60% in offence.
+  Very passive strategy:    50% in defence  40% in offence. *NEW*
 -----------------------------------------------------------------
-  Aggressive strategy:         20% in defence 70% in offence.
+  Passive strategy:         30% in defence  60% in offence.
 -----------------------------------------------------------------
-  Maximum aggressive strategy: 10% in defence 80% in offence. *NEW*
+  Aggressive strategy:      20% in defence  70% in offence.
+-----------------------------------------------------------------
+  Very aggressive strategy: 10% in defence  80% in offence. *NEW*
+-----------------------------------------------------------------
+  Max. aggressive strategy:  0% in defence 100% in offence. *NEW*
 =======================================================================================================================================
 */
 void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
@@ -1521,19 +1597,23 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME], carriername[MAX_NETNAME];
 
-	// sort team mates by travel time to base
+	// sort teammates by travel time to base
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
-	// sort team mates by CTF preference
+	// sort teammates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 
 	switch (bs->ctfstrategy) {
-		// maximum passive strategy
+		// most passive strategy
 		case CTFS_MAX_DEFENSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// tell the one not carrying the flag to defend the base
@@ -1549,6 +1629,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// tell the one closest to the base not carrying the flag to defend the base
@@ -1562,7 +1643,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
 					BotSayTeamOrder(bs, other);
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
-					// tell the one furthest from the base not carrying the flag to accompany the flag carrier
+					// tell the one furthest from the base not carrying the flag to accompany the flag carrier (or defend our base if we don't have a flag carrier)
 					if (teammates[2] != bs->flagcarrier) {
 						other = teammates[2];
 					} else {
@@ -1589,6 +1670,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					BotSayTeamOrder(bs, other);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 50% defend the base
@@ -1597,7 +1679,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					if (defenders > 5) {
 						defenders = 5;
 					}
-					// 40% accompanies the flag carrier
+					// 40% accompanies the flag carrier (or get the flag if we don't have a flag carrier)
 					attackers = (int)(float)numteammates * 0.4 + 0.5;
 
 					if (attackers > 4) {
@@ -1658,10 +1740,14 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 		// passive strategy
 		case CTFS_DEFENSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// tell the one not carrying the flag to defend the base
@@ -1677,6 +1763,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// tell the one closest to the base not carrying the flag to defend the base
@@ -1717,6 +1804,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					BotSayTeamOrder(bs, other);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 30% defend the base
@@ -1725,7 +1813,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					if (defenders > 3) {
 						defenders = 3;
 					}
-					// 60% accompanies the flag carrier
+					// 60% accompanies the flag carrier (or get the flag if we don't have a flag carrier)
 					attackers = (int)(float)numteammates * 0.6 + 0.5;
 
 					if (attackers > 6) {
@@ -1785,10 +1873,14 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 		// aggressive strategy
 		case CTFS_AGGRESSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// tell the one not carrying the flag to attack the enemy base
@@ -1804,6 +1896,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_OFFENSE);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// tell the one closest to the base not carrying the flag to defend the base
@@ -1817,7 +1910,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
 					BotSayTeamOrder(bs, other);
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
-					// tell the one furthest from the base not carrying the flag to accompany the flag carrier
+					// tell the one furthest from the base not carrying the flag to accompany the flag carrier (or get the flag if we don't have a flag carrier)
 					if (teammates[2] != bs->flagcarrier) {
 						other = teammates[2];
 					} else {
@@ -1844,6 +1937,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					BotSayTeamOrder(bs, other);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 20% defend the base
@@ -1852,7 +1946,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					if (defenders > 2) {
 						defenders = 2;
 					}
-					// 70% accompanies the flag carrier
+					// 70% accompanies the flag carrier (or get the flag if we don't have a flag carrier)
 					attackers = (int)(float)numteammates * 0.7 + 0.5;
 
 					if (attackers > 7) {
@@ -1912,10 +2006,14 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 		// maximum aggressive strategy
 		case CTFS_MAX_AGGRESSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// tell the one not carrying the flag to attack the enemy base
@@ -1931,6 +2029,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_OFFENSE);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// tell the one closest to the base not carrying the flag to defend the base
@@ -1971,6 +2070,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					BotSayTeamOrder(bs, other);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 10% defend the base
@@ -1979,7 +2079,7 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					if (defenders > 1) {
 						defenders = 1;
 					}
-					// 80% accompanies the flag carrier
+					// 80% accompanies the flag carrier (or get the flag if we don't have a flag carrier)
 					attackers = (int)(float)numteammates * 0.8 + 0.5;
 
 					if (attackers > 8) {
@@ -2044,14 +2144,19 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 Bot1FCTFOrders_EnemyHasFlag
 
 X% defend the base, Y% towards neutral flag.
+
 -----------------------------------------------------------------
-  Maximum passive strategy:    80% in defence 10% in offence. *NEW*
+  Max. passive strategy:   100% in defence   0% in offence. *NEW*
 -----------------------------------------------------------------
-  Passive strategy:            80% in defence 10% in offence.
+  Very passive strategy:    80% in defence  10% in offence. *NEW*
 -----------------------------------------------------------------
-  Aggressive strategy:         70% in defence 20% in offence.
+  Passive strategy:         80% in defence  10% in offence.
 -----------------------------------------------------------------
-  Maximum aggressive strategy: 70% in defence 20% in offence. *NEW*
+  Aggressive strategy:      70% in defence  20% in offence.
+-----------------------------------------------------------------
+  Very aggressive strategy: 70% in defence  20% in offence. *NEW*
+-----------------------------------------------------------------
+  Max. aggressive strategy:  0% in defence 100% in offence. *NEW*
 =======================================================================================================================================
 */
 void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
@@ -2059,13 +2164,13 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
-	// sort team mates by travel time to base
+	// sort teammates by travel time to base
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
-	// sort team mates by CTF preference
+	// sort teammates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 
 	switch (bs->ctfstrategy) {
-		// maximum passive strategy
+		// most passive strategy
 		case CTFS_MAX_DEFENSIVE:
 		default:
 		// passive strategy
@@ -2073,10 +2178,12 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// both defend the base
@@ -2091,6 +2198,7 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_DEFEND);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -2110,6 +2218,7 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_DEFEND);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 80% defend the base
@@ -2152,10 +2261,12 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -2170,6 +2281,7 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_DEFEND);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -2189,6 +2301,7 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 70% defend the base
@@ -2229,39 +2342,46 @@ void Bot1FCTFOrders_EnemyHasFlag(bot_state_t *bs) {
 
 /*
 =======================================================================================================================================
-Bot1FCTFOrders_EnemyDroppedFlag
+Bot1FCTFOrders_FlagDropped
 
 X% defend the base, Y% get the flag.
+
 -----------------------------------------------------------------
-  Maximum passive strategy:    70% in defence 20% in offence. *NEW*
+  Max. passive strategy:   100% in defence   0% in offence. *NEW*
 -----------------------------------------------------------------
-  Passive strategy:            50% in defence 40% in offence.
+  Very passive strategy:    70% in defence  20% in offence. *NEW*
 -----------------------------------------------------------------
-  Aggressive strategy:         30% in defence 60% in offence.
+  Passive strategy:         50% in defence  40% in offence.
 -----------------------------------------------------------------
-  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
+  Aggressive strategy:      30% in defence  60% in offence.
+-----------------------------------------------------------------
+  Very aggressive strategy: 20% in defence  70% in offence. *NEW*
+-----------------------------------------------------------------
+  Max. aggressive strategy:  0% in defence 100% in offence. *NEW*
 =======================================================================================================================================
 */
-void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
+void Bot1FCTFOrders_FlagDropped(bot_state_t *bs) {
 	int numteammates, defenders, attackers, i;
 	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
-	// sort team mates by travel time to base
+	// sort teammates by travel time to base
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
-	// sort team mates by CTF preference
+	// sort teammates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 
 	switch (bs->ctfstrategy) {
-		// maximum passive strategy
+		// most passive strategy
 		case CTFS_MAX_DEFENSIVE:
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -2276,6 +2396,7 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -2295,6 +2416,7 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 70% defend the base
@@ -2336,10 +2458,12 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -2354,6 +2478,7 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -2373,6 +2498,7 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 50% defend the base
@@ -2413,10 +2539,12 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -2431,6 +2559,7 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -2450,6 +2579,7 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 30% defend the base
@@ -2490,10 +2620,12 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -2508,6 +2640,7 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -2527,6 +2660,7 @@ void Bot1FCTFOrders_EnemyDroppedFlag(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 20% defend the base
@@ -2583,7 +2717,7 @@ void Bot1FCTFOrders(bot_state_t *bs) {
 			Bot1FCTFOrders_EnemyHasFlag(bs);
 			break;
 		case 3:
-			Bot1FCTFOrders_EnemyDroppedFlag(bs);
+			Bot1FCTFOrders_FlagDropped(bs);
 			break;
 	}
 }
@@ -2601,14 +2735,19 @@ void Bot1FCTFOrders(bot_state_t *bs) {
 BotCTFOrders_BothFlagsNotAtBase
 
 X% defend the base, Y% get the flag.
+
 -----------------------------------------------------------------
-  Maximum passive strategy:    60% in defence 30% in offence. *NEW*
+  Max. passive strategy:   100% in defence   0% in offence. *NEW*
 -----------------------------------------------------------------
-  Passive strategy:            40% in defence 50% in offence.
+  Very passive strategy:    60% in defence  30% in offence. *NEW*
 -----------------------------------------------------------------
-  Aggressive strategy:         30% in defence 60% in offence.
+  Passive strategy:         40% in defence  50% in offence.
 -----------------------------------------------------------------
-  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
+  Aggressive strategy:      30% in defence  60% in offence.
+-----------------------------------------------------------------
+  Very aggressive strategy: 20% in defence  70% in offence. *NEW*
+-----------------------------------------------------------------
+  Max. aggressive strategy:  0% in defence 100% in offence. *NEW*
 =======================================================================================================================================
 */
 void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
@@ -2616,19 +2755,23 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME], carriername[MAX_NETNAME];
 
-	// sort team mates by travel time to base
+	// sort teammates by travel time to base
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
-	// sort team mates by CTF preference
+	// sort teammates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 
 	switch (bs->ctfstrategy) {
-		// maximum passive strategy
+		// most passive strategy
 		case CTFS_MAX_DEFENSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// tell the one not carrying the enemy flag to attack the enemy base
@@ -2644,6 +2787,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// tell the one closest to the base not carrying the enemy flag to defend the base
@@ -2657,7 +2801,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
 					BotSayTeamOrder(bs, other);
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
-					// tell the one furthest from the the base not carrying the enemy flag to accompany the flag carrier
+					// tell the one furthest from the base not carrying the enemy flag to accompany the flag carrier (or return our flag if we don't have a flag carrier)
 					if (teammates[2] != bs->flagcarrier) {
 						other = teammates[2];
 					} else {
@@ -2684,14 +2828,16 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					BotSayTeamOrder(bs, other);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
+					// 60% accompanies the flag carrier (or defend our base if we don't have a flag carrier)
 					defenders = (int)(float)numteammates * 0.6 + 0.5;
 
 					if (defenders > 6) {
 						defenders = 6;
 					}
-
+					// 30% return our flag
 					attackers = (int)(float)numteammates * 0.3 + 0.5;
 
 					if (attackers > 3) {
@@ -2752,13 +2898,17 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 		// passive strategy
 		case CTFS_DEFENSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
-					// tell the one not carrying the flag to attack the enemy base
+					// tell the one not carrying the enemy flag to attack the enemy base
 					if (teammates[0] != bs->flagcarrier) {
 						other = teammates[0];
 					} else {
@@ -2771,9 +2921,10 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
-					// tell the one closest to the base not carrying the enemy flag to accompany the flag carrier
+					// tell the one closest to the base not carrying the enemy flag to accompany the flag carrier (or get the enemy flag if we don't have a flag carrier)
 					if (teammates[0] != bs->flagcarrier) {
 						other = teammates[0];
 					} else {
@@ -2798,7 +2949,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					}
 
 					BotSayTeamOrder(bs, other);
-					// tell the one furthest from the the base not carrying the enemy flag to return the flag
+					// tell the one furthest from the base not carrying the enemy flag to return our flag
 					if (teammates[2] != bs->flagcarrier) {
 						other = teammates[2];
 					} else {
@@ -2811,9 +2962,10 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_RETURNFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
-					// 40% defend the base
+					// 40% accompanies the flag carrier (or get the enemy flag if we don't have a flag carrier)
 					defenders = (int)(float)numteammates * 0.4 + 0.5;
 
 					if (defenders > 4) {
@@ -2879,10 +3031,14 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 		// aggressive strategy
 		case CTFS_AGGRESSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// tell the one not carrying the enemy flag to attack the enemy base
@@ -2898,6 +3054,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// tell the one closest to the base not carrying the enemy flag to defend the base
@@ -2911,7 +3068,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
 					BotSayTeamOrder(bs, other);
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
-					// tell the one furthest from the the base not carrying the enemy flag to get the enemy flag
+					// tell the one furthest from the base not carrying the enemy flag to accompany the flag carrier (or get the enemy flag if we don't have a flag carrier)
 					if (teammates[2] != bs->flagcarrier) {
 						other = teammates[2];
 					} else {
@@ -2938,14 +3095,16 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					BotSayTeamOrder(bs, other);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
+					// 30% accompanies the flag carrier (or get the enemy flag if we don't have a flag carrier)
 					defenders = (int)(float)numteammates * 0.3 + 0.5;
 
 					if (defenders > 3) {
 						defenders = 3;
 					}
-
+					// 60% get the enemy flag
 					attackers = (int)(float)numteammates * 0.6 + 0.5;
 
 					if (attackers > 6) {
@@ -3005,10 +3164,14 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 		// maximum aggressive strategy
 		case CTFS_MAX_AGGRESSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// tell the one not carrying the enemy flag to attack the enemy base
@@ -3024,6 +3187,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// tell the one closest to the base not carrying the enemy flag to defend the base
@@ -3037,7 +3201,7 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
 					BotSayTeamOrder(bs, other);
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
-					// tell the one furthest from the the base not carrying the enemy flag to get the enemy flag
+					// tell the one furthest from the base not carrying the enemy flag to accompany the flag carrier (or get the enemy flag if we don't have a flag carrier)
 					if (teammates[2] != bs->flagcarrier) {
 						other = teammates[2];
 					} else {
@@ -3064,14 +3228,16 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 					BotSayTeamOrder(bs, other);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
+					// 20% accompanies the flag carrier (or get the enemy flag if we don't have a flag carrier)
 					defenders = (int)(float)numteammates * 0.2 + 0.5;
 
 					if (defenders > 2) {
 						defenders = 2;
 					}
-
+					// 70% get the enemy flag
 					attackers = (int)(float)numteammates * 0.7 + 0.5;
 
 					if (attackers > 7) {
@@ -3136,14 +3302,19 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 BotCTFOrders_TeamFlagNotAtBase
 
 X% defend the base, Y% get the flag.
+
 -----------------------------------------------------------------
-  Maximum passive strategy:    30% in defence 60% in offence. *NEW*
+  Max. passive strategy:   100% in defence   0% in offence. *NEW*
 -----------------------------------------------------------------
-  Passive strategy:            30% in defence 60% in offence.
+  Very passive strategy:    30% in defence  60% in offence. *NEW*
 -----------------------------------------------------------------
-  Aggressive strategy:         20% in defence 70% in offence.
+  Passive strategy:         30% in defence  60% in offence.
 -----------------------------------------------------------------
-  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
+  Aggressive strategy:      20% in defence  70% in offence.
+-----------------------------------------------------------------
+  Very aggressive strategy: 20% in defence  70% in offence. *NEW*
+-----------------------------------------------------------------
+  Max. aggressive strategy:  0% in defence 100% in offence. *NEW*
 =======================================================================================================================================
 */
 void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
@@ -3151,13 +3322,13 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
-	// sort team mates by travel time to base
+	// sort teammates by travel time to base
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
-	// sort team mates by CTF preference
+	// sort teammates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 
 	switch (bs->ctfstrategy) {
-		// maximum passive strategy
+		// most passive strategy
 		case CTFS_MAX_DEFENSIVE:
 		default:
 		// passive strategy
@@ -3165,10 +3336,12 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -3183,6 +3356,7 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -3202,6 +3376,7 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 30% defend the base
@@ -3242,10 +3417,14 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 		// maximum aggressive strategy
 		case CTFS_MAX_AGGRESSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// both will go for the enemy flag
@@ -3260,6 +3439,7 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// everyone go for the enemy flag
@@ -3279,6 +3459,7 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 20% defend the base (keep some people near the base for when the flag is returned)
@@ -3322,14 +3503,19 @@ void BotCTFOrders_TeamFlagNotAtBase(bot_state_t *bs) {
 BotCTFOrders_EnemyFlagNotAtBase
 
 X% defend the base, Y% get the flag.
+
 -----------------------------------------------------------------
-  Maximum passive strategy:    70% in defence 20% in offence. *NEW*
+  Max. passive strategy:   100% in defence   0% in offence. *NEW*
 -----------------------------------------------------------------
-  Passive strategy:            60% in defence 30% in offence.
+  Very passive strategy:    70% in defence  20% in offence. *NEW*
 -----------------------------------------------------------------
-  Aggressive strategy:         40% in defence 50% in offence.
+  Passive strategy:         60% in defence  30% in offence.
 -----------------------------------------------------------------
-  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
+  Aggressive strategy:      40% in defence  50% in offence.
+-----------------------------------------------------------------
+  Very aggressive strategy: 20% in defence  70% in offence. *NEW*
+-----------------------------------------------------------------
+  Max. aggressive strategy:  0% in defence 100% in offence. *NEW*
 =======================================================================================================================================
 */
 void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
@@ -3337,19 +3523,23 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME], carriername[MAX_NETNAME];
 
-	// sort team mates by travel time to base
+	// sort teammates by travel time to base
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
-	// sort team mates by CTF preference
+	// sort teammates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 
 	switch (bs->ctfstrategy) {
-		// maximum passive strategy
+		// most passive strategy
 		case CTFS_MAX_DEFENSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// tell the one not carrying the enemy flag to defend the base
@@ -3365,6 +3555,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// tell the one closest to the base not carrying the enemy flag to defend the base
@@ -3391,6 +3582,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 70% defend the base
@@ -3399,7 +3591,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					if (defenders > 7) {
 						defenders = 7;
 					}
-					// 20% accompanies the flag carrier
+					// 20% accompanies the flag carrier (or get the enemy flag if we don't have a flag carrier)
 					attackers = (int)(float)numteammates * 0.2 + 0.5;
 
 					if (attackers > 2) {
@@ -3460,10 +3652,14 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 		// passive strategy
 		case CTFS_DEFENSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// tell the one not carrying the enemy flag to defend the base
@@ -3479,6 +3675,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// tell the one closest to the base not carrying the enemy flag to defend the base
@@ -3505,6 +3702,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 60% defend the base
@@ -3513,7 +3711,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					if (defenders > 6) {
 						defenders = 6;
 					}
-					// 30% accompanies the flag carrier
+					// 30% accompanies the flag carrier (or get the enemy flag if we don't have a flag carrier)
 					attackers = (int)(float)numteammates * 0.3 + 0.5;
 
 					if (attackers > 3) {
@@ -3573,10 +3771,14 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 		// aggressive strategy
 		case CTFS_AGGRESSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// tell the one not carrying the enemy flag to defend the base
@@ -3592,6 +3794,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// tell the one closest to the base not carrying the enemy flag to defend the base
@@ -3618,6 +3821,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 40% defend the base
@@ -3626,7 +3830,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					if (defenders > 4) {
 						defenders = 4;
 					}
-					// 50% accompanies the flag carrier
+					// 50% accompanies the flag carrier (or get the enemy flag if we don't have a flag carrier)
 					attackers = (int)(float)numteammates * 0.5 + 0.5;
 
 					if (attackers > 5) {
@@ -3686,10 +3890,14 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 		// maximum aggressive strategy
 		case CTFS_MAX_AGGRESSIVE:
 		{
-			// different orders based on the number of team mates
+			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
+				{
 					break;
+				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// tell the one not carrying the enemy flag to defend the base
@@ -3705,6 +3913,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// tell the one closest to the base not carrying the enemy flag to defend the base
@@ -3731,6 +3940,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 20% defend the base
@@ -3739,7 +3949,7 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 					if (defenders > 2) {
 						defenders = 2;
 					}
-					// 70% accompanies the flag carrier
+					// 70% get the enemy flag
 					attackers = (int)(float)numteammates * 0.7 + 0.5;
 
 					if (attackers > 7) {
@@ -3782,14 +3992,19 @@ void BotCTFOrders_EnemyFlagNotAtBase(bot_state_t *bs) {
 BotCTFOrders_BothFlagsAtBase
 
 X% defend the base, Y% get the flag.
+
 -----------------------------------------------------------------
-  Maximum passive strategy:    70% in defence 20% in offence. *NEW*
+  Max. passive strategy:   100% in defence   0% in offence. *NEW*
 -----------------------------------------------------------------
-  Passive strategy:            50% in defence 40% in offence.
+  Very passive strategy:    70% in defence  20% in offence. *NEW*
 -----------------------------------------------------------------
-  Aggressive strategy:         40% in defence 50% in offence.
+  Passive strategy:         50% in defence  40% in offence.
 -----------------------------------------------------------------
-  Maximum aggressive strategy: 20% in defence 70% in offence. *NEW*
+  Aggressive strategy:      40% in defence  50% in offence.
+-----------------------------------------------------------------
+  Very aggressive strategy: 20% in defence  70% in offence. *NEW*
+-----------------------------------------------------------------
+  Max. aggressive strategy:  0% in defence 100% in offence. *NEW*
 =======================================================================================================================================
 */
 void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
@@ -3797,21 +4012,23 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 	int teammates[MAX_CLIENTS] = {0};
 	char name[MAX_NETNAME];
 
-	// sort team mates by travel time to base
+	// sort teammates by travel time to base
 	numteammates = BotSortTeamMatesByBaseTravelTime(bs, teammates, sizeof(teammates));
-	// sort team mates by CTF preference
+	// sort teammates by CTF preference
 	BotSortTeamMatesByTaskPreference(bs, teammates, numteammates);
 
 	switch (bs->ctfstrategy) {
-		// maximum passive strategy
+		// most passive strategy
 		case CTFS_MAX_DEFENSIVE:
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -3826,6 +4043,7 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -3845,6 +4063,7 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 70% defend the base
@@ -3886,10 +4105,12 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -3904,6 +4125,7 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -3923,6 +4145,7 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 50% defend the base
@@ -3963,10 +4186,12 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -3981,6 +4206,7 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -4000,6 +4226,7 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 40% defend the base
@@ -4040,10 +4267,12 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 		{
 			// different orders based on the number of teammates
 			switch (numteammates) {
+				// one player (a leader without a teammate)
 				case 1:
 				{
 					break;
 				}
+				// two players (a leader with one teammate)
 				case 2:
 				{
 					// the one closest to the base will defend the base
@@ -4058,6 +4287,7 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[1], VOICECHAT_GETFLAG);
 					break;
 				}
+				// three players (a leader with two teammates)
 				case 3:
 				{
 					// the one closest to the base will defend the base
@@ -4077,6 +4307,7 @@ void BotCTFOrders_BothFlagsAtBase(bot_state_t *bs) {
 					BotSayVoiceTeamOrder(bs, teammates[2], VOICECHAT_GETFLAG);
 					break;
 				}
+				// four or more players (a leader with three or more teammates)
 				default:
 				{
 					// 20% defend the base
@@ -4211,7 +4442,9 @@ void BotTeamOrders(bot_state_t *bs) {
 
 	switch (numteammates) {
 		case 1:
+		{
 			break;
+		}
 		case 2:
 		{
 			// nothing special
