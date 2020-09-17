@@ -372,7 +372,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			trap_EA_Action(bs->client, ACTION_AFFIRMATIVE);
 			bs->teammessage_time = 0;
 		}
-		// if accompanying the companion for 3 minutes
+		// if accompanying the companion for 10 minutes
 		if (bs->teamgoal_time < FloatTime()) {
 			BotAI_BotInitialChat(bs, "accompany_stop", EasyClientName(bs->teammate, netname, sizeof(netname)), NULL);
 			trap_BotEnterChat(bs->cs, bs->teammate, CHAT_TELL);
@@ -496,7 +496,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		}
 		// set the bot goal
 		memcpy(goal, &bs->teamgoal, sizeof(bot_goal_t));
-		// stop after 2 minutes
+		// stop defending after 10 minutes
 		if (bs->teamgoal_time < FloatTime()) {
 			trap_BotGoalName(bs->teamgoal.number, buf, sizeof(buf));
 			BotAI_BotInitialChat(bs, "defend_stop", buf, NULL);
@@ -595,7 +595,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		}
 		// set the bot goal
 		memcpy(goal, &bs->teamgoal, sizeof(bot_goal_t));
-		// stop after some time
+		// stop camping after 10 minutes
 		if (bs->teamgoal_time < FloatTime()) {
 			if (bs->ltgtype == LTG_CAMPORDER) {
 				BotAI_BotInitialChat(bs, "camp_stop", NULL);

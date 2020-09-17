@@ -74,8 +74,6 @@ void BotVoiceChat_GetFlag(bot_state_t *bs, int client, int mode) {
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the teammates
-	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_GETFLAG;
 	// set the team goal time
@@ -89,6 +87,8 @@ void BotVoiceChat_GetFlag(bot_state_t *bs, int client, int mode) {
 	BotSetTeamStatus(bs);
 	// remember last ordered task
 	BotRememberLastOrderedTask(bs);
+	// set the time to send a message to the teammates
+	bs->teammessage_time = FloatTime() + 2 * random();
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
 #endif // DEBUG
@@ -111,8 +111,6 @@ void BotVoiceChat_Offense(bot_state_t *bs, int client, int mode) {
 		bs->decisionmaker = client;
 		bs->ordered = qtrue;
 		bs->order_time = FloatTime();
-		// set the time to send a message to the teammates
-		bs->teammessage_time = FloatTime() + 2 * random();
 		// set the ltg type
 		bs->ltgtype = LTG_HARVEST;
 		// set the team goal time
@@ -123,13 +121,13 @@ void BotVoiceChat_Offense(bot_state_t *bs, int client, int mode) {
 		BotSetTeamStatus(bs);
 		// remember last ordered task
 		BotRememberLastOrderedTask(bs);
+		// set the time to send a message to the teammates
+		bs->teammessage_time = FloatTime() + 2 * random();
 	} else {
 		// the teammate who ordered
 		bs->decisionmaker = client;
 		bs->ordered = qtrue;
 		bs->order_time = FloatTime();
-		// set the time to send a message to the teammates
-		bs->teammessage_time = FloatTime() + 2 * random();
 		// set the ltg type
 		bs->ltgtype = LTG_ATTACKENEMYBASE;
 		// set the team goal time
@@ -140,6 +138,8 @@ void BotVoiceChat_Offense(bot_state_t *bs, int client, int mode) {
 		BotSetTeamStatus(bs);
 		// remember last ordered task
 		BotRememberLastOrderedTask(bs);
+		// set the time to send a message to the teammates
+		bs->teammessage_time = FloatTime() + 2 * random();
 	}
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
@@ -182,8 +182,6 @@ void BotVoiceChat_Defend(bot_state_t *bs, int client, int mode) {
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the teammates
-	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_DEFENDKEYAREA;
 	// set the team goal time
@@ -194,6 +192,8 @@ void BotVoiceChat_Defend(bot_state_t *bs, int client, int mode) {
 	BotSetTeamStatus(bs);
 	// remember last ordered task
 	BotRememberLastOrderedTask(bs);
+	// set the time to send a message to the teammates
+	bs->teammessage_time = FloatTime() + 2 * random();
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
 #endif // DEBUG
@@ -266,24 +266,24 @@ void BotVoiceChat_Camp(bot_state_t *bs, int client, int mode) {
 		trap_BotEnterChat(bs->cs, client, CHAT_TELL);
 		return;
 	}
+	// the teammate that requested the camping
+	bs->teammate = client;
 	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the teammates
-	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_CAMPORDER;
 	// set the team goal time
 	bs->teamgoal_time = FloatTime() + TEAM_CAMP_TIME;
-	// the teammate that requested the camping
-	bs->teammate = client;
 	// not arrived yet
 	bs->arrive_time = 0;
 	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 	// remember last ordered task
 	BotRememberLastOrderedTask(bs);
+	// set the time to send a message to the teammates
+	bs->teammessage_time = FloatTime() + 2 * random();
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
 #endif // DEBUG
@@ -320,28 +320,28 @@ void BotVoiceChat_FollowMe(bot_state_t *bs, int client, int mode) {
 		trap_BotEnterChat(bs->cs, client, CHAT_TELL);
 		return;
 	}
+	// the teammate
+	bs->teammate = client;
 	// the teammate who ordered
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// the teammate
-	bs->teammate = client;
-	// last time the teammate was visible
-	bs->teammatevisible_time = FloatTime();
-	// set the time to send a message to the teammates
-	bs->teammessage_time = FloatTime() + 2 * random();
-	// set the team goal time
-	bs->teamgoal_time = FloatTime() + TEAM_ACCOMPANY_TIME;
 	// set the ltg type
 	bs->ltgtype = LTG_TEAMACCOMPANY;
-	// set the formation intervening space
-	bs->formation_dist = BotSetTeamFormationDist(bs);
+	// set the team goal time
+	bs->teamgoal_time = FloatTime() + TEAM_ACCOMPANY_TIME;
+	// last time the teammate was visible
+	bs->teammatevisible_time = FloatTime();
 	// not arrived yet
 	bs->arrive_time = 0;
+	// set the formation intervening space
+	bs->formation_dist = BotSetTeamFormationDist(bs);
 	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
 	// remember last ordered task
 	BotRememberLastOrderedTask(bs);
+	// set the time to send a message to the teammates
+	bs->teammessage_time = FloatTime() + 2 * random();
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
 #endif // DEBUG
@@ -380,8 +380,6 @@ void BotVoiceChat_ReturnFlag(bot_state_t *bs, int client, int mode) {
 	bs->decisionmaker = client;
 	bs->ordered = qtrue;
 	bs->order_time = FloatTime();
-	// set the time to send a message to the teammates
-	bs->teammessage_time = FloatTime() + 2 * random();
 	// set the ltg type
 	bs->ltgtype = LTG_RETURNFLAG;
 	// set the team goal time
@@ -390,6 +388,8 @@ void BotVoiceChat_ReturnFlag(bot_state_t *bs, int client, int mode) {
 	bs->rushbaseaway_time = 0;
 	// set the team status (offense, defense etc.)
 	BotSetTeamStatus(bs);
+	// set the time to send a message to the teammates
+	bs->teammessage_time = FloatTime() + 2 * random();
 #ifdef DEBUG
 	BotPrintTeamGoal(bs);
 #endif // DEBUG
