@@ -7928,8 +7928,8 @@ void BotSetupDeathmatchAI(void) {
 	trap_Cvar_Register(&bot_equalizer_fembon, "bot_equalizer_fembon", "8", 0);
 	trap_Cvar_Register(&bot_equalizer_teambon, "bot_equalizer_teambon", "5", 0); //10
 	trap_Cvar_Register(&bot_nowalk, "bot_nowalk", "1", 1);
-	trap_Cvar_Register(&bot_teambluestrategy, "bot_teambluestrategy", "1", 0);
-	trap_Cvar_Register(&bot_teamredstrategy, "bot_teamredstrategy", "1", 0);
+	trap_Cvar_Register(&bot_teambluestrategy, "bot_teambluestrategy", "0", 0);
+	trap_Cvar_Register(&bot_teamredstrategy, "bot_teamredstrategy", "0", 0);
 	trap_Cvar_Register(&bot_rocketjump, "bot_visualrange", "100000", 0);
 
 	trap_Cvar_Register(&g_spSkill, "g_spSkill", "2", 0);

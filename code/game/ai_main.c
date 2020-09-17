@@ -1541,6 +1541,8 @@ int BotAIStartFrame(int time) {
 	trap_Cvar_Update(&bot_pause);
 	trap_Cvar_Update(&bot_report);
 	trap_Cvar_Update(&bot_visualrange);
+	trap_Cvar_Update(&bot_teambluestrategy);
+	trap_Cvar_Update(&bot_teamredstrategy);
 
 	if (bot_report.integer) {
 		//BotTeamplayReport();
@@ -1834,6 +1836,8 @@ int BotAISetup(int restart) {
 	trap_Cvar_Register(&bot_interbreedcycle, "bot_interbreedcycle", "20", 0);
 	trap_Cvar_Register(&bot_interbreedwrite, "bot_interbreedwrite", "", 0);
 	trap_Cvar_Register(&bot_visualrange, "bot_visualrange", "100000", 0);
+	trap_Cvar_Register(&bot_teambluestrategy, "bot_teambluestrategy", "0", 0);
+	trap_Cvar_Register(&bot_teamredstrategy, "bot_teamredstrategy", "0", 0);
 	// if the game is restarted for a tournament
 	if (restart) {
 		return qtrue;

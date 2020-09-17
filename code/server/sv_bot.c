@@ -544,6 +544,8 @@ void SV_BotInitCvars(void) {
 	Cvar_Get("bot_interbreedcycle", "20", CVAR_CHEAT);	// bot interbreeding cycle
 	Cvar_Get("bot_interbreedwrite", "", CVAR_CHEAT);	// write interbreeded bots to this file
 	Cvar_Get("bot_visualrange", "100000", 0);
+	Cvar_Get("bot_teambluestrategy", "0", 0);
+	Cvar_Get("bot_teamredstrategy", "0", 0);
 }
 
 /*
