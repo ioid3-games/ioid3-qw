@@ -641,7 +641,7 @@ void BotMatch_HelpAccompany(bot_state_t *bs, bot_match_t *match) {
 	// set the ltg type
 	if (match->type == MSG_HELP) {
 		bs->ltgtype = LTG_TEAMHELP;
-		// get the team goal time
+		// set the team goal time
 		if (!bs->teamgoal_time) {
 			bs->teamgoal_time = FloatTime() + TEAM_HELP_TIME;
 		}
@@ -651,7 +651,6 @@ void BotMatch_HelpAccompany(bot_state_t *bs, bot_match_t *match) {
 		if (!bs->teamgoal_time) {
 			bs->teamgoal_time = FloatTime() + TEAM_ACCOMPANY_TIME;
 		}
-
 		// set the formation intervening space
 		bs->formation_dist = 128;
 		// not arrived yet
