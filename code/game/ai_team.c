@@ -5178,8 +5178,8 @@ void BotTeamAI(bot_state_t *bs) {
 			// if someone wants to know what to do or if the number of teammates changed
 			if (bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
 				bs->forceorders = qfalse;
+				bs->numteammates = numteammates;
 			}
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
@@ -5204,12 +5204,12 @@ void BotTeamAI(bot_state_t *bs) {
 			// if the flag status changed or someone wants to know what to do or if the number of teammates changed
 			if (bs->flagstatuschanged || bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
 				bs->flagstatuschanged = qfalse;
 				bs->forceorders = qfalse;
+				bs->numteammates = numteammates;
 			}
 			// if it's time to give orders
-			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 3) {
+			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotCTFOrders(bs);
 				bs->teamgiveorders_time = 0;
 			}
@@ -5230,12 +5230,12 @@ void BotTeamAI(bot_state_t *bs) {
 			// if the flag status changed or someone wants to know what to do or if the number of teammates changed
 			if (bs->flagstatuschanged || bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
 				bs->flagstatuschanged = qfalse;
 				bs->forceorders = qfalse;
+				bs->numteammates = numteammates;
 			}
 			// if it's time to give orders
-			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 2) {
+			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				Bot1FCTFOrders(bs);
 				bs->teamgiveorders_time = 0;
 			}
@@ -5247,8 +5247,8 @@ void BotTeamAI(bot_state_t *bs) {
 			// if someone wants to know what to do or if the number of teammates changed
 			if (bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
 				bs->forceorders = qfalse;
+				bs->numteammates = numteammates;
 			}
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
@@ -5264,8 +5264,8 @@ void BotTeamAI(bot_state_t *bs) {
 			// if someone wants to know what to do or if the number of teammates changed
 			if (bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
 				bs->forceorders = qfalse;
+				bs->numteammates = numteammates;
 			}
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
