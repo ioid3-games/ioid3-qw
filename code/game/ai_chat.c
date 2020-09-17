@@ -233,7 +233,7 @@ char *BotRandomOpponentName(bot_state_t *bs) {
 		if (atoi(Info_ValueForKey(buf, "t")) == TEAM_SPECTATOR) {
 			continue;
 		}
-		// skip team mates
+		// skip teammates
 		if (BotSameTeam(bs, i)) {
 			continue;
 		}
