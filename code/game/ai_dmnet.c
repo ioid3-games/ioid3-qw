@@ -339,7 +339,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			// if close just stand still there
 			VectorSubtract(entinfo.origin, bs->origin, dir);
 
-			if (VectorLengthSquared(dir) < Square(100)) {
+			if (VectorLengthSquared(dir) < Square(128)) {
 				trap_BotResetAvoidReach(bs->ms);
 				// check if the bot is blocking teammates
 				BotCheckBlockedTeammates(bs);
