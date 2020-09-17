@@ -2027,8 +2027,8 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 							BotSayVoiceTeamOrder(bs, other, VOICECHAT_FOLLOWFLAGCARRIER);
 						}
 					} else {
-						BotAI_BotInitialChat(bs, "cmd_accompany", name, carriername, NULL);
-						BotSayVoiceTeamOrder(bs, other, VOICECHAT_FOLLOWFLAGCARRIER);
+						BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
+						BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
 					}
 
 					BotSayTeamOrder(bs, other);
@@ -2273,17 +2273,17 @@ void Bot1FCTFOrders_TeamHasFlag(bot_state_t *bs) {
 					BotAI_BotInitialChat(bs, "cmd_defendbase", name, NULL);
 					BotSayTeamOrder(bs, other);
 					BotSayVoiceTeamOrder(bs, other, VOICECHAT_DEFEND);
+					// tell the one furthest from the base not carrying the flag to accompany the flag carrier (or get the flag if we don't have a flag carrier)
+					if (teammates[2] != bs->flagcarrier) {
+						other = teammates[2];
+					} else {
+						other = teammates[1];
+					}
+
+					ClientName(other, name, sizeof(name));
 					// if we have a flag carrier
 					if (bs->flagcarrier != -1) {
 						ClientName(bs->flagcarrier, carriername, sizeof(carriername));
-						// tell the one furthest from the base not carrying the flag to accompany the flag carrier
-						if (teammates[2] != bs->flagcarrier) {
-							other = teammates[2];
-						} else {
-							other = teammates[1];
-						}
-
-						ClientName(other, name, sizeof(name));
 
 						if (bs->flagcarrier == bs->client) {
 							BotAI_BotInitialChat(bs, "cmd_accompanyme", name, NULL);
@@ -3415,9 +3415,9 @@ void BotCTFOrders_BothFlagsNotAtBase(bot_state_t *bs) {
 						}
 
 						ClientName(teammates[numteammates - i - 1], name, sizeof(name));
-						BotAI_BotInitialChat(bs, "cmd_getflag", name, NULL);
+						BotAI_BotInitialChat(bs, "cmd_returnflag", name, NULL);
 						BotSayTeamOrder(bs, teammates[numteammates - i - 1]);
-						BotSayVoiceTeamOrder(bs, teammates[numteammates - i - 1], VOICECHAT_GETFLAG);
+						BotSayVoiceTeamOrder(bs, teammates[numteammates - i - 1], VOICECHAT_RETURNFLAG);
 					}
 
 					break;
@@ -5169,6 +5169,8 @@ void BotTeamAI(bot_state_t *bs) {
 	if (Q_stricmp(netname, bs->teamleader) != 0) {
 		return;
 	}
+	// set default strategy
+	//bs->ctfstrategy = trap_Characteristic_BInteger(bs->character, CHARACTERISTIC_LEADER_STRATEGY, 1, 6); // Tobias FIXME: why doesn't this work after a map change? The ctfstrategy changes to a higher vale after a map chane :(
 
 	numteammates = BotNumTeamMates(bs);
 	// give orders
@@ -5178,100 +5180,229 @@ void BotTeamAI(bot_state_t *bs) {
 			// if someone wants to know what to do or if the number of teammates changed
 			if (bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
 				bs->forceorders = qfalse;
+				bs->numteammates = numteammates;
 			}
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotTeamOrders(bs);
 				// give orders again after 120 seconds
 				bs->teamgiveorders_time = FloatTime() + 120;
+// Tobias DEBUG
+				if (BotTeam(bs) == TEAM_RED) {
+					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
+				} else {
+					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
+				}
+// Tobias END
 			}
 
 			break;
 		}
 		case GT_CTF:
 		{
-			// if there were no flag captures the last 4 minutes
-			if (bs->lastflagcapture_time < FloatTime() - 240) {
-				bs->lastflagcapture_time = FloatTime();
-				// randomly change the CTF strategy
-				if (random() < 0.4) {
-					bs->ctfstrategy ^= CTFS_AGGRESSIVE; // Tobias FIXME: this doesn't work anymore because we can't flip between 0/1 any longer
-					bs->teamgiveorders_time = FloatTime();
+// Tobias DEBUG
+			if (BotTeam(bs) == TEAM_RED && bot_teamredstrategy.integer > 0) {
+				bs->ctfstrategy = bot_teamredstrategy.integer;
+			} else if (BotTeam(bs) == TEAM_BLUE && bot_teambluestrategy.integer > 0) {
+				bs->ctfstrategy = bot_teambluestrategy.integer;
+// Tobias END
+			} else {
+				// if the enemy team is leading by more than 1 point, or if the enemy team leads and time limit has expired to 60%, choose the most aggressive strategy
+				if (bs->ownteamscore + 1 < bs->enemyteamscore || (bs->ownteamscore < bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.6f)) {
+					bs->ctfstrategy = CTFS_MAX_AGGRESSIVE;
+				// if the own team is leading by more than 1 point, or if the own team leads and time limit has expired to 60%, choose the most defensive strategy
+				} else if (bs->ownteamscore - 1 > bs->enemyteamscore || (bs->ownteamscore > bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.6f)) {
+					bs->ctfstrategy = CTFS_MAX_DEFENSIVE;
+				} else {
+					// if there were no flag captures the last 4 minutes
+					if (bs->lastflagcapture_time < FloatTime() - 240) {
+						bs->lastflagcapture_time = FloatTime();
+						// randomly change the CTF strategy
+						if (random() < 0.4) {
+							bs->ctfstrategy = CTFS_AGGRESSIVE;
+						} else {
+							bs->ctfstrategy = CTFS_DEFENSIVE;
+						}
+						// give orders and eventually change the strategy
+						bs->teamgiveorders_time = FloatTime();
+					}
 				}
 			}
 			// if the flag status changed or someone wants to know what to do or if the number of teammates changed
 			if (bs->flagstatuschanged || bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
 				bs->flagstatuschanged = qfalse;
 				bs->forceorders = qfalse;
+				bs->numteammates = numteammates;
 			}
 			// if it's time to give orders
-			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 3) {
+			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotCTFOrders(bs);
 				bs->teamgiveorders_time = 0;
+// Tobias DEBUG
+				if (BotTeam(bs) == TEAM_RED) {
+					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
+				} else {
+					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
+				}
+// Tobias END
 			}
 
 			break;
 		}
 		case GT_1FCTF:
 		{
-			// if there were no flag captures the last 4 minutes
-			if (bs->lastflagcapture_time < FloatTime() - 240) {
-				bs->lastflagcapture_time = FloatTime();
-				// randomly change the CTF strategy
-				if (random() < 0.4) {
-					bs->ctfstrategy ^= CTFS_AGGRESSIVE; // Tobias FIXME: this doesn't work anymore because we can't flip between 0/1 any longer
-					bs->teamgiveorders_time = FloatTime();
+// Tobias DEBUG
+			if (BotTeam(bs) == TEAM_RED && bot_teamredstrategy.integer > 0) {
+				bs->ctfstrategy = bot_teamredstrategy.integer;
+			} else if (BotTeam(bs) == TEAM_BLUE && bot_teambluestrategy.integer > 0) {
+				bs->ctfstrategy = bot_teambluestrategy.integer;
+// Tobias END
+			} else {
+				// if the enemy team is leading by more than 2 points, or if the enemy team leads and time limit has expired to 70%, choose the most aggressive strategy
+				if (bs->ownteamscore + 2 < bs->enemyteamscore || (bs->ownteamscore < bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.7f)) {
+					bs->ctfstrategy = CTFS_MAX_AGGRESSIVE;
+				// if the own team is leading by more than 2 points, or if the own team leads and time limit has expired to 70%, choose the most defensive strategy
+				} else if (bs->ownteamscore - 2 > bs->enemyteamscore || (bs->ownteamscore > bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.7f)) {
+					bs->ctfstrategy = CTFS_MAX_DEFENSIVE;
+				} else {
+					// if there were no flag captures the last 2 minutes
+					if (bs->lastflagcapture_time < FloatTime() - 120) {
+						bs->lastflagcapture_time = FloatTime();
+						// randomly change the CTF strategy
+						if (random() < 0.4) {
+							bs->ctfstrategy = CTFS_AGGRESSIVE;
+						} else {
+							bs->ctfstrategy = CTFS_DEFENSIVE;
+						}
+						// give orders and eventually change the strategy
+						bs->teamgiveorders_time = FloatTime();
+					}
 				}
 			}
 			// if the flag status changed or someone wants to know what to do or if the number of teammates changed
 			if (bs->flagstatuschanged || bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
 				bs->flagstatuschanged = qfalse;
 				bs->forceorders = qfalse;
+				bs->numteammates = numteammates;
 			}
 			// if it's time to give orders
-			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 2) {
+			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				Bot1FCTFOrders(bs);
 				bs->teamgiveorders_time = 0;
+// Tobias DEBUG
+				if (BotTeam(bs) == TEAM_RED) {
+					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
+				} else {
+					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
+				}
+// Tobias END
 			}
 
 			break;
 		}
 		case GT_OBELISK:
 		{
+// Tobias DEBUG
+			if (BotTeam(bs) == TEAM_RED && bot_teamredstrategy.integer > 0) {
+				bs->ctfstrategy = bot_teamredstrategy.integer;
+			} else if (BotTeam(bs) == TEAM_BLUE && bot_teambluestrategy.integer > 0) {
+				bs->ctfstrategy = bot_teambluestrategy.integer;
+// Tobias END
+			} else {
+				// if the enemy team is leading by more than 1 point, or if the enemy team leads and time limit has expired to 50%, choose the most aggressive strategy
+				if (bs->ownteamscore + 1 < bs->enemyteamscore || (bs->ownteamscore < bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.5f)) {
+					bs->ctfstrategy = CTFS_MAX_AGGRESSIVE;
+				// if the own team is leading by more than 1 point, or if the own team leads and time limit has expired to 50%, choose the most defensive strategy
+				} else if (bs->ownteamscore - 1 > bs->enemyteamscore || (bs->ownteamscore > bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.5f)) {
+					bs->ctfstrategy = CTFS_MAX_DEFENSIVE;
+				} else {
+					// if none of the teams scored during the last 4 minutes
+					if (bs->lastteamscore_time < FloatTime() - 240) {
+						bs->lastteamscore_time = FloatTime();
+						// randomly change the CTF strategy
+						if (random() < 0.4) {
+							bs->ctfstrategy = CTFS_AGGRESSIVE;
+						} else {
+							bs->ctfstrategy = CTFS_DEFENSIVE;
+						}
+						// give orders and eventually change the strategy
+						bs->teamgiveorders_time = FloatTime();
+					}
+				}
+			}
 			// if someone wants to know what to do or if the number of teammates changed
 			if (bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
 				bs->forceorders = qfalse;
+				bs->numteammates = numteammates;
 			}
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotObeliskOrders(bs);
 				// give orders again after 30 seconds
 				bs->teamgiveorders_time = FloatTime() + 30;
+// Tobias DEBUG
+				if (BotTeam(bs) == TEAM_RED) {
+					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
+				} else {
+					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
+				}
+// Tobias END
 			}
 
 			break;
 		}
 		case GT_HARVESTER:
 		{
+// Tobias DEBUG
+			if (BotTeam(bs) == TEAM_RED && bot_teamredstrategy.integer > 0) {
+				bs->ctfstrategy = bot_teamredstrategy.integer;
+			} else if (BotTeam(bs) == TEAM_BLUE && bot_teambluestrategy.integer > 0) {
+				bs->ctfstrategy = bot_teambluestrategy.integer;
+// Tobias END
+			} else {
+				// if the enemy team is leading by more than the half of the capturelimit points and time limit has expired to 60%, choose the most aggressive strategy
+				if (bs->ownteamscore + (g_capturelimit.integer * 0.5f) < bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.6f) {
+					bs->ctfstrategy = CTFS_MAX_AGGRESSIVE;
+				// if the own team is leading by more than the half of the capturelimit points and time limit has expired to 60%, choose the most defensive strategy
+				} else if (bs->ownteamscore - (g_capturelimit.integer * 0.5f) > bs->enemyteamscore && level.time - level.startTime > (g_timelimit.integer * 60000) * 0.6f) {
+					bs->ctfstrategy = CTFS_MAX_DEFENSIVE;
+				} else {
+					// if none of the teams scored during the last 3 minutes
+					if (bs->lastteamscore_time < FloatTime() - 180) {
+						bs->lastteamscore_time = FloatTime();
+						// randomly change the CTF strategy
+						if (random() < 0.4) {
+							bs->ctfstrategy = CTFS_AGGRESSIVE;
+						} else {
+							bs->ctfstrategy = CTFS_DEFENSIVE;
+						}
+						// give orders and eventually change the strategy
+						bs->teamgiveorders_time = FloatTime();
+					}
+				}
+			}
 			// if someone wants to know what to do or if the number of teammates changed
 			if (bs->forceorders || bs->numteammates != numteammates) {
 				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
 				bs->forceorders = qfalse;
+				bs->numteammates = numteammates;
 			}
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotHarvesterOrders(bs);
 				// give orders again after 30 seconds
 				bs->teamgiveorders_time = FloatTime() + 30;
+// Tobias DEBUG
+				if (BotTeam(bs) == TEAM_RED) {
+					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
+				} else {
+					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
+				}
+// Tobias END
 			}
 
 			break;
