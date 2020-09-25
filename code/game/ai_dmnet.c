@@ -423,6 +423,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				if (bs->arrive_time > FloatTime() - 2) {
 					VectorSubtract(entinfo.origin, bs->origin, dir);
 					VectorToAngles(dir, bs->ideal_viewangles);
+					bs->ideal_viewangles[2] *= 0.5;
 				}
 			}
 			// look strategically around for enemies
@@ -430,6 +431,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotRoamGoal(bs, target);
 				VectorSubtract(target, bs->origin, dir);
 				VectorToAngles(dir, bs->ideal_viewangles);
+				bs->ideal_viewangles[2] *= 0.5;
 			}
 			// check if the bot wants to go for air
 			if (BotGoForAir(bs, bs->tfl, &bs->teamgoal, 400)) {
@@ -624,6 +626,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				BotRoamGoal(bs, target);
 				VectorSubtract(target, bs->origin, dir);
 				VectorToAngles(dir, bs->ideal_viewangles);
+				bs->ideal_viewangles[2] *= 0.5;
 			}
 			// don't crouch when swimming
 			if (trap_AAS_Swimming(bs->origin)) {
@@ -1192,6 +1195,7 @@ int BotLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) {
 				// look at the teammate
 				VectorSubtract(entinfo.origin, bs->origin, dir);
 				VectorToAngles(dir, bs->ideal_viewangles);
+				bs->ideal_viewangles[2] *= 0.5;
 				// just wait for the teammate
 				return qfalse;
 			}
@@ -1708,6 +1712,7 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 			BotRoamGoal(bs, target);
 			VectorSubtract(target, bs->origin, dir);
 			VectorToAngles(dir, bs->ideal_viewangles);
+			bs->ideal_viewangles[2] *= 0.5;
 		}
 	} else if (!(bs->flags & BFL_IDEALVIEWSET)) {
 		if (trap_BotMovementViewTarget(bs->ms, goal, bs->tfl, 300, target)) {
@@ -1716,6 +1721,8 @@ int AINode_Seek_ActivateEntity(bot_state_t *bs) {
 		} else {
 			VectorToAngles(moveresult.movedir, bs->ideal_viewangles);
 		}
+
+		bs->ideal_viewangles[2] *= 0.5;
 	}
 	// if the weapon is used for the bot movement
 	if (moveresult.flags & MOVERESULT_MOVEMENTWEAPON) {
@@ -1843,6 +1850,7 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 			BotRoamGoal(bs, target);
 			VectorSubtract(target, bs->origin, dir);
 			VectorToAngles(dir, bs->ideal_viewangles);
+			bs->ideal_viewangles[2] *= 0.5;
 		}
 	} else if (!(bs->flags & BFL_IDEALVIEWSET)) {
 		if (!trap_BotGetSecondGoal(bs->gs, &goal)) {
@@ -1856,6 +1864,8 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 		} else {
 			VectorToAngles(moveresult.movedir, bs->ideal_viewangles);
 		}
+
+		bs->ideal_viewangles[2] *= 0.5;
 	}
 	// if the weapon is used for the bot movement
 	if (moveresult.flags & MOVERESULT_MOVEMENTWEAPON) {
@@ -2023,6 +2033,7 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 			BotRoamGoal(bs, target);
 			VectorSubtract(target, bs->origin, dir);
 			VectorToAngles(dir, bs->ideal_viewangles);
+			bs->ideal_viewangles[2] *= 0.5;
 		}
 	} else if (!(bs->flags & BFL_IDEALVIEWSET)) {
 		if (trap_BotMovementViewTarget(bs->ms, &goal, bs->tfl, 300, target)) {
@@ -2035,7 +2046,10 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 			BotRoamGoal(bs, target);
 			VectorSubtract(target, bs->origin, dir);
 			VectorToAngles(dir, bs->ideal_viewangles);
+			bs->ideal_viewangles[2] *= 0.5;
 		}
+
+		bs->ideal_viewangles[2] *= 0.5;
 	}
 	// if the weapon is used for the bot movement
 	if (moveresult.flags & MOVERESULT_MOVEMENTWEAPON) {
@@ -2372,6 +2386,8 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 				VectorToAngles(moveresult.movedir, bs->ideal_viewangles);
 			}
 		}
+
+		bs->ideal_viewangles[2] *= 0.5;
 	}
 	// if the weapon is used for the bot movement
 	if (moveresult.flags & MOVERESULT_MOVEMENTWEAPON) {
@@ -2570,6 +2586,8 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 			} else {
 				VectorToAngles(moveresult.movedir, bs->ideal_viewangles);
 			}
+
+			bs->ideal_viewangles[2] *= 0.5;
 		}
 	}
 	// if the weapon is used for the bot movement
@@ -2721,6 +2739,8 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 			} else {
 				VectorToAngles(moveresult.movedir, bs->ideal_viewangles);
 			}
+
+			bs->ideal_viewangles[2] *= 0.5;
 		}
 	}
 	// if the weapon is used for the bot movement
