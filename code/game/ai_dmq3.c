@@ -900,13 +900,13 @@ void BotCTFRetreatGoals(bot_state_t *bs) {
 		// if not already rushing to the base
 		if (bs->ltgtype != LTG_RUSHBASE) {
 			BotRefuseOrder(bs);
-
 			// set the ltg type
 			bs->ltgtype = LTG_RUSHBASE;
 			// set the team goal time
 			bs->teamgoal_time = FloatTime() + CTF_RUSHBASE_TIME;
 			// away from rushing to base
 			bs->rushbaseaway_time = 0;
+			// the bot made its own decision
 			bs->decisionmaker = bs->client;
 			bs->ordered = qfalse;
 			// set the team status (offense, defense etc.)
@@ -936,6 +936,7 @@ void Bot1FCTFSeekGoals(bot_state_t *bs) {
 			bs->teamgoal_time = FloatTime() + CTF_RUSHBASE_TIME;
 			// away from rushing to base
 			bs->rushbaseaway_time = 0;
+			// the bot made its own decision
 			bs->decisionmaker = bs->client;
 			bs->ordered = qfalse;
 			// get an alternative route goal towards the enemy base
@@ -6115,7 +6116,6 @@ int BotGetActivateGoal(bot_state_t *bs, int entitynum, bot_activategoal_t *activ
 		} else if (!strcmp(classname, "target_relay") || !strcmp(classname, "target_delay")) {
 			if (trap_AAS_ValueForBSPEpairKey(ent, "targetname", targetname[i + 1], sizeof(targetname[0]))) {
 				i++;
-
 				cur_entities[i] = trap_AAS_NextBSPEntity(0);
 			}
 		}
