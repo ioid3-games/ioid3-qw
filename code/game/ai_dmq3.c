@@ -455,6 +455,8 @@ void BotSetTeamStatus(bot_state_t *bs) {
 	int teamtask;
 	aas_entityinfo_t entinfo;
 
+	teamtask = TEAMTASK_PATROL;
+
 	switch (bs->ltgtype) {
 		case LTG_GETFLAG:
 			teamtask = TEAMTASK_OFFENSE;
