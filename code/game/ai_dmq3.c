@@ -3824,7 +3824,7 @@ bot_moveresult_t BotAttackMove(bot_state_t *bs, int tfl) {
 		return moveresult;
 	}
 	// increase the strafe time
-	bs->attackstrafe_time += bs->thinktime;
+	bs->attackstrafe_time += bs->thinktime * 10;
 	// get the strafe change time
 	strafechange_time = 0.4 + (1 - attack_skill) * 0.2;
 
@@ -6571,12 +6571,8 @@ BotObstacleAvoidanceMove
 =======================================================================================================================================
 */
 void BotObstacleAvoidanceMove(bot_state_t *bs, bot_moveresult_t *moveresult, int speed, int movetype) {
-	vec3_t blocked_dir, avoidAngles, avoidRight_dir, avoidLeft_dir, block_pos;
-	vec3_t dir2, mins, maxs, hordir, sideward, rightwards, leftwards, angles, up = {0, 0, 1};
-	float blocked_dist, rightSucc, leftSucc, yaw, avoidRadius, arcAngle;
-	aas_entityinfo_t entinfo;
+	vec3_t dir2, hordir, sideward, angles, up = {0, 0, 1};
 	gentity_t *ent;
-	bsp_trace_t trace;
 
 	// just some basic dynamic obstacle avoidance code
 	hordir[0] = moveresult->movedir[0];
@@ -6587,110 +6583,22 @@ void BotObstacleAvoidanceMove(bot_state_t *bs, bot_moveresult_t *moveresult, int
 		VectorSet(angles, 0, 360 * random(), 0);
 		AngleVectorsForward(angles, hordir);
 	}
-	// try to crouch or jump over barrier
-	if (!trap_BotMoveInDirection(bs->ms, hordir, speed, movetype)) {
-		// get the (right) sideward vector
-		CrossProduct(hordir, up, sideward);
-		// get the direction the blocking obstacle is moving
-		ent = &g_entities[moveresult->blockentity];
-		dir2[2] = 0;
+	// get the (right) sideward vector
+	CrossProduct(hordir, up, sideward);
+	// get the direction the blocking obstacle is moving
+	ent = &g_entities[moveresult->blockentity];
+	dir2[2] = 0;
 
-		VectorCopy(ent->client->ps.velocity, dir2);
-		// if the blocking obstacle is moving
-		if (VectorLengthSquared(dir2) > 0) {
-			// we start moving to our right side, but if the blocking entity is also moving towards our right side flip the direction and move to the left side
-			if (DotProduct(dir2, sideward) > 50.0f) {
-				// flip the direction
-				VectorNegate(sideward, sideward);
-			}
-			// move sidwards
-			if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
-				// flip the direction
-				VectorNegate(sideward, sideward);
-				// move in the other direction
-				if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
-					// move in a random direction in the hope to get out
-					BotRandomMove(bs, moveresult, speed, movetype);
-				}
-			}
-		// if the blocking obstacle is not moving at all
-		} else {
-			trap_AAS_PresenceTypeBoundingBox(PRESENCE_NORMAL, mins, maxs);
-
-			mins[2] += STEPSIZE;
-			// get the blocked direction
-			yaw = VectorToYaw(blocked_dir);
-			// get the avoid radius
-			avoidRadius = sqrt((ent->r.maxs[0] * ent->r.maxs[0]) + (ent->r.maxs[1] * ent->r.maxs[1])) + sqrt((maxs[0] * maxs[0]) + (maxs[1] * maxs[1]));
-			// get info for the entity that is blocking the bot
-			BotEntityInfo(moveresult->blockentity, &entinfo);
-			// see if we're inside our avoidance radius
-			VectorSubtract(entinfo.origin, bs->origin, blocked_dir);
-
-			blocked_dist = VectorNormalize(blocked_dir);
-			arcAngle = (blocked_dist <= avoidRadius) ? 135 : ((avoidRadius / blocked_dist) * 90);
-
-			VectorClear(avoidAngles);
-			// test right
-			avoidAngles[YAW] = AngleNormalize360(yaw + arcAngle);
-
-			AngleVectorsForward(avoidAngles, avoidRight_dir);
-			VectorMA(bs->origin, blocked_dist, avoidRight_dir, block_pos);
-			BotAI_Trace(&trace, bs->origin, mins, maxs, block_pos, bs->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
-
-			if (!trace.allsolid && !trace.startsolid) {
-				if (trace.fraction >= 1.0f) {
-					// all clear, go for it (favor the right if both are equal)
-					VectorCopy(avoidRight_dir, rightwards);
-				}
-
-				rightSucc = trace.fraction;
-			} else {
-				rightSucc = 0.0f;
-			}
-			// now test left
-			arcAngle *= -1;
-
-			avoidAngles[YAW] = AngleNormalize360(yaw + arcAngle);
-
-			AngleVectorsForward(avoidAngles, avoidLeft_dir);
-			VectorMA(bs->origin, blocked_dist, avoidLeft_dir, block_pos);
-			BotAI_Trace(&trace, bs->origin, mins, maxs, block_pos, bs->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
-
-			if (!trace.allsolid && !trace.startsolid) {
-				if (trace.fraction >= 1.0f) {
-					// all clear, go for it (right side would have already succeeded if as good as this)
-					VectorCopy(avoidLeft_dir, leftwards);
-				}
-
-				leftSucc = trace.fraction;
-			} else {
-				leftSucc = 0.0f;
-			}
-			// both sides failed
-			if (leftSucc == 0.0f && rightSucc == 0.0f) {
-
-			}
-			// if the traces hit something, but got a relatively good distance
-			if (rightSucc * blocked_dist >= avoidRadius || leftSucc * blocked_dist >= avoidRadius) {
-				// favor the right, all things being equal
-				if (rightSucc >= leftSucc) {
-					VectorCopy(avoidRight_dir, rightwards);
-				} else {
-					VectorCopy(avoidLeft_dir, leftwards);
-				}
-
-				//return qtrue;
-			}
-			// move sidwards
-			if (!trap_BotMoveInDirection(bs->ms, rightwards, speed, movetype)) {
-				// move in the other direction
-				if (!trap_BotMoveInDirection(bs->ms, leftwards, speed, movetype)) {
-					// move in a random direction in the hope to get out
-					BotRandomMove(bs, moveresult, speed, movetype);
-				}
-			}
-		}
+	VectorCopy(ent->client->ps.velocity, dir2);
+	// we start moving to our right side, but if the blocking entity is also moving towards our right side or if the right side is blocked move to the left side
+	if (DotProduct(dir2, sideward) > 50.0f || moveresult->flags & MOVERESULT_BARRIER_WALK_LEFT) {
+		// flip the direction
+		VectorNegate(sideward, sideward);
+	}
+	// move sidwards
+	if (!trap_BotMoveInDirection(bs->ms, sideward, speed, movetype)) {
+		// move in a random direction in the hope to get out
+		BotRandomMove(bs, moveresult, speed, movetype);
 	}
 }
 

@@ -1226,6 +1226,41 @@ int BotCheckBarrierCrouch(bot_movestate_t *ms, vec3_t dir, float speed) {
 
 /*
 =======================================================================================================================================
+BotCheckBarrierWalkLeft
+=======================================================================================================================================
+*/
+int BotCheckBarrierWalkLeft(bot_movestate_t *ms, vec3_t dir, float speed) {
+	vec3_t start, hordir, sideward, mins, maxs, end, up = {0, 0, 1};
+	bsp_trace_t trace;
+
+	hordir[0] = dir[0];
+	hordir[1] = dir[1];
+	hordir[2] = 0;
+	
+	VectorNormalize(hordir);
+	// get the (right) sideward vector
+	CrossProduct(hordir, up, sideward);
+	VectorMA(ms->origin, 32, sideward, start);
+	VectorMA(start, speed, hordir, end); // Tobias NOTE: tweak this (replaced thinktime dependency)
+	AAS_PresenceTypeBoundingBox(PRESENCE_NORMAL, mins, maxs);
+	// a stepheight higher to avoid low ceiling
+	maxs[2] += sv_maxstep->value;
+	// trace horizontally in the move direction
+	trace = AAS_Trace(start, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
+	// this shouldn't happen... but we check anyway
+	if (trace.startsolid) {
+		return qtrue;
+	}
+	// if no obstacle at all
+	if (trace.fraction >= 1.0f) {
+		return qfalse;
+	}
+	// there is a barrier
+	return qtrue;
+}
+
+/*
+=======================================================================================================================================
 BotCheckBarrierJump
 
 Tobias NOTE: Currently the Scout is not handled here... e.g.: sv_maxbarrier->value + 30.
@@ -1402,7 +1437,7 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			tmpdir[1] = move.endpos[1] - ms->origin[1];
 			tmpdir[2] = 0;
 			// the bot is blocked by something
-			if (VectorLength(tmpdir) < speed * ms->thinktime * ms->thinktime * 0.5) {
+			if (VectorLength(tmpdir) < speed * ms->thinktime * 5) {
 				return qfalse;
 			}
 		}
@@ -1463,7 +1498,7 @@ void BotCheckBlocked(bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_mover
 	// get the current speed
 	currentspeed = DotProduct(ms->velocity, dir) + 32;
 	// do a full trace to check for distant obstacles to avoid, depending on current speed
-	VectorMA(ms->origin, currentspeed * 1.4, dir, end); // Tobias NOTE: tweak this, because this depends on bot_thinktime
+	VectorMA(ms->origin, currentspeed * 1.4f, dir, end); // Tobias NOTE: tweak this, because this depends on bot_thinktime
 	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
 	// if not started in solid and NOT hitting the world entity
 	if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE && trace.entityNum != ENTITYNUM_WORLD) {
@@ -1500,8 +1535,10 @@ void BotCheckBlocked(bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_mover
 		// if there is a barrier the bot can crouch through
 		} else if (BotCheckBarrierCrouch(ms, dir, (200 + currentspeed) * 0.1f)) {
 			result->flags |= MOVERESULT_BARRIER_CROUCH;
+		} else if (BotCheckBarrierWalkLeft(ms, dir, 64)) {
+			result->flags |= MOVERESULT_BARRIER_WALK_LEFT;
 		} else {
-			result->flags |= MOVERESULT_BARRIER_WALK;
+			result->flags |= MOVERESULT_BARRIER_WALK_RIGHT;
 		}
 	}
 }
@@ -3118,12 +3155,8 @@ BotMoveInGoalArea
 bot_moveresult_t BotMoveInGoalArea(bot_movestate_t *ms, bot_goal_t *goal) {
 	bot_moveresult_t_cleared(result);
 	vec3_t dir;
-	float dist, speed;
-#ifdef DEBUG
-	//botimport.Print(PRT_MESSAGE, "%s: moving straight to goal\n", ClientName(ms->entitynum - 1));
-	//AAS_ClearShownDebugLines();
-	//AAS_DebugLine(ms->origin, goal->origin, LINECOLOR_RED);
-#endif // DEBUG
+	int speed;
+
 	// move straight to the goal origin
 	dir[0] = goal->origin[0] - ms->origin[0];
 	dir[1] = goal->origin[1] - ms->origin[1];
@@ -3136,21 +3169,7 @@ bot_moveresult_t BotMoveInGoalArea(bot_movestate_t *ms, bot_goal_t *goal) {
 		result.traveltype = TRAVEL_WALK;
 	}
 
-	dist = VectorNormalize(dir);
-
-	if (dist > 100) {
-		dist = 100;
-	}
-
-	if (ms->moveflags & MFL_WALK) {
-		speed = 200;
-	} else {
-		speed = 400 - (400 - 4 * dist);
-	}
-
-	if (speed < 10) {
-		speed = 0;
-	}
+	speed = 400;
 	// check if blocked
 	BotCheckBlocked(ms, dir, qtrue, &result);
 	// elementary action move in direction
@@ -3496,7 +3515,7 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 		// special handling of jump pads when the bot uses a jump pad without knowing it
 		foundjumppad = qfalse;
 
-		VectorMA(ms->origin, -2 * ms->thinktime, ms->velocity, end);
+		VectorMA(ms->origin, -20 * ms->thinktime, ms->velocity, end);
 
 		numareas = AAS_TraceAreas(ms->origin, end, areas, NULL, 16);
 
@@ -3612,7 +3631,7 @@ void BotMoveToGoal(bot_moveresult_t *result, int movestate, bot_goal_t *goal, in
 	}
 	// FIXME: is it right to do this here?
 	if (result->blocked) {
-		ms->reachability_time -= 10 * ms->thinktime;
+		ms->reachability_time -= 100 * ms->thinktime;
 	}
 	// copy the last origin
 	VectorCopy(ms->origin, ms->lastorigin);

@@ -873,7 +873,7 @@ void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
 
 			bs->viewangles[i] += anglespeed;
 			bs->viewangles[i] = AngleMod(bs->viewangles[i]);
-			// demping
+			// damping
 			bs->viewanglespeed[i] *= 0.45 * (1 - factor);
 		}
 	}
@@ -1688,6 +1688,10 @@ int BotAIStartFrame(int time) {
 			continue;
 		}
 
+		if (g_entities[i].client->pers.connected != CON_CONNECTED) {
+			continue;
+		}
+
 		botstates[i]->botthink_residual += elapsed_time;
 
 		if (botstates[i]->botthink_residual >= thinktime) {
@@ -1701,17 +1705,7 @@ int BotAIStartFrame(int time) {
 				BotAI(i, (float)thinktime * 0.001);
 			}
 		}
-	}
-	// execute bot user commands every frame
-	for (i = 0; i < level.maxclients; i++) {
-		if (!botstates[i] || !botstates[i]->inuse) {
-			continue;
-		}
-
-		if (g_entities[i].client->pers.connected != CON_CONNECTED) {
-			continue;
-		}
-
+		// execute bot user commands every frame
 		BotUpdateInput(botstates[i], time, elapsed_time);
 		trap_BotUserCommand(botstates[i]->client, &botstates[i]->lastucmd);
 	}
