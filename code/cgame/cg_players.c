@@ -2210,13 +2210,7 @@ Float sprites over the player's head.
 static void CG_PlayerSprites(centity_t *cent, const refEntity_t *parent) {
 	int friendFlags, thirdPersonFlags, team;
 	vec3_t origin;
-// Tobias DEBUG
-	clientInfo_t *ci;
-	int clientNum;
 
-	clientNum = cent->currentState.clientNum;
-	ci = &cgs.clientinfo[clientNum];
-// Tobias END
 	VectorCopy(parent->origin, origin);
 
 	origin[2] += 42;
