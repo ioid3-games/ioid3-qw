@@ -4045,6 +4045,26 @@ void BotMapScripts(bot_state_t *bs) {
 	}
 }
 
+static vec3_t VEC_UP = {0, -1, 0};
+static vec3_t MOVEDIR_UP = {0, 0, 1};
+static vec3_t VEC_DOWN = {0, -2, 0};
+static vec3_t MOVEDIR_DOWN = {0, 0, -1};
+/*
+=======================================================================================================================================
+BotSetMovedir
+=======================================================================================================================================
+*/
+void BotSetMovedir(vec3_t angles, vec3_t movedir) {
+
+	if (VectorCompare(angles, VEC_UP)) {
+		VectorCopy(MOVEDIR_UP, movedir);
+	} else if (VectorCompare(angles, VEC_DOWN)) {
+		VectorCopy(MOVEDIR_DOWN, movedir);
+	} else {
+		AngleVectors(angles, movedir, NULL, NULL);
+	}
+}
+
 /*
 =======================================================================================================================================
 BotModelMinsMaxs
@@ -4135,7 +4155,7 @@ int BotFuncButtonActivateGoal(bot_state_t *bs, int bspent, bot_activategoal_t *a
 	// get the move direction from the angle
 	trap_AAS_FloatForBSPEpairKey(bspent, "angle", &angle);
 	VectorSet(angles, 0, angle, 0);
-	SetMovedir(angles, movedir);
+	BotSetMovedir(angles, movedir);
 	// button size
 	VectorSubtract(maxs, mins, size);
 	// button origin
@@ -5020,7 +5040,7 @@ void BotCheckConsoleMessages(bot_state_t *bs) {
 						if (trap_BotReplyChat(bs->cs, message, context, CONTEXT_REPLY, NULL, NULL, NULL, NULL, NULL, NULL, botname, netname)) {
 							// remove the console message
 							trap_BotRemoveConsoleMessage(bs->cs, handle);
-							bs->stand_time = FloatTime() + BotChatTime(bs);
+							bs->stand_time = FloatTime() + 0.5;
 							AIEnter_Stand(bs, "BotCheckConsoleMessages: reply chat");
 							break;
 						}
@@ -5563,7 +5583,7 @@ void BotDeathmatchAI(bot_state_t *bs, float thinktime) {
 	// if the bot entered the game less than 8 seconds ago
 	if (!bs->entergamechat && bs->entergame_time > FloatTime() - 8) {
 		if (BotChat_EnterGame(bs)) {
-			bs->stand_time = FloatTime() + BotChatTime(bs);
+			bs->stand_time = FloatTime() + 0.5;
 			AIEnter_Stand(bs, "BotDeathmatchAI: chat enter game");
 		}
 

@@ -86,7 +86,7 @@ static const int numNetSources = ARRAY_LEN(netSources);
 static const serverFilter_t serverFilters[] = {
 	{"All", ""},
 	{"Quake 3 Arena", ""},
-	{"Team Arena", BASETA},
+	{"Team Arena", ""},
 	{"Rocket Arena", "arena"},
 	{"Alliance", "alliance20"},
 	{"Weapons Factory Arena", "wfa"},

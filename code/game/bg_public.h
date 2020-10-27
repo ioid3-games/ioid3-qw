@@ -44,6 +44,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 #define DEFAULT_VIEWHEIGHT 26
 #define CROUCH_VIEWHEIGHT 12
 #define DEAD_VIEWHEIGHT -16
+#define TIMER_GESTURE 2294
 #define OBELISK_TARGET_HEIGHT 56
 
 /**************************************************************************************************************************************
@@ -447,6 +448,7 @@ typedef struct animation_s {
 } animation_t;
 // flip the togglebit every time an animation changes so a restart of the same anim can be detected
 #define ANIM_TOGGLEBIT 128
+#define DEFAULT_HEAD "sarge"
 
 typedef enum {
 	TEAM_RED,
