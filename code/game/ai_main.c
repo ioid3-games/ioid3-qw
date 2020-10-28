@@ -827,7 +827,7 @@ void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
 		maxchange = trap_Characteristic_BInteger(bs->character, CHARACTERISTIC_VIEW_MAXCHANGE, 1, 360);
 	} else {
 		factor = 0.05f;
-		maxchange = 360;
+		maxchange = 360; // Tobias FIXME: this was always wrong, I think. It doesn't make sense to increase the maxchange value without an enemy, the opposite is true! Probably they confused the if/else conditions here?
 	}
 
 	maxchange *= thinktime;
