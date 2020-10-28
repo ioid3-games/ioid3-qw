@@ -1369,7 +1369,7 @@ int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int type) {
 			tmpdir[1] = move.endpos[1] - ms->origin[1];
 			tmpdir[2] = 0;
 			// the bot is blocked by something
-			if (VectorLength(tmpdir) < speed * ms->thinktime * ms->thinktime * 0.5) {
+			if (VectorLength(tmpdir) < speed * ms->thinktime * 0.5) { // Tobias CHECK: should we remove this completely? We can also randomize this a bit more (ms->thinktime * ms->thinktime * 0.005) to get rid of the 'dance-with-blocker' problem...
 				return qfalse;
 			}
 		}
@@ -1430,7 +1430,7 @@ void BotCheckBlocked(bot_movestate_t *ms, vec3_t dir, int checkbottom, bot_mover
 	// get the current speed
 	currentspeed = DotProduct(ms->velocity, dir) + 32;
 	// do a full trace to check for distant obstacles to avoid, depending on current speed
-	VectorMA(ms->origin, currentspeed * 1.4, dir, end); // Tobias NOTE: tweak this, because this depends on bot_thinktime
+	VectorMA(ms->origin, currentspeed * 1.4, dir, end); // Tobias NOTE: tweak this (replaced thinktime dependency)
 	trace = AAS_Trace(ms->origin, mins, maxs, end, ms->entitynum, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP|CONTENTS_BODY|CONTENTS_CORPSE);
 	// if not started in solid and NOT hitting the world entity
 	if (!trace.startsolid && trace.entityNum != ENTITYNUM_NONE && trace.entityNum != ENTITYNUM_WORLD) {
@@ -3086,11 +3086,7 @@ bot_moveresult_t BotMoveInGoalArea(bot_movestate_t *ms, bot_goal_t *goal) {
 	bot_moveresult_t_cleared(result);
 	vec3_t dir;
 	float dist, speed;
-#ifdef DEBUG
-	//botimport.Print(PRT_MESSAGE, "%s: moving straight to goal\n", ClientName(ms->entitynum - 1));
-	//AAS_ClearShownDebugLines();
-	//AAS_DebugLine(ms->origin, goal->origin, LINECOLOR_RED);
-#endif // DEBUG
+
 	// move straight to the goal origin
 	dir[0] = goal->origin[0] - ms->origin[0];
 	dir[1] = goal->origin[1] - ms->origin[1];
