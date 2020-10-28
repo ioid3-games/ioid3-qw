@@ -2051,7 +2051,7 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 	}
 
 	if (bs->killedenemy_time > FloatTime() - 2) {
-		if (random() < bs->thinktime * 10) {
+		if (random() < bs->thinktime) {
 			if (BotValidChatPosition(bs)) {
 				trap_EA_Gesture(bs->client);
 			}
