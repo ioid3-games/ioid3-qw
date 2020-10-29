@@ -1489,7 +1489,7 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 			EA_Crouch(ms->client);
 		}
 	}
-
+	// check for a gap
 	dist = BotGapDistance(ms->origin, hordir, ms->entitynum);
 
 	if (ms->moveflags & MFL_WALK) {
