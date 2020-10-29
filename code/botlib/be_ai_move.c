@@ -1414,7 +1414,7 @@ BotTravel_Walk
 */
 bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) {
 	float dist, speed, currentspeed;
-	vec3_t hordir, sideward, up = {0, 0, 1};
+	vec3_t hordir;
 	bot_moveresult_t_cleared(result);
 
 	// first move straight to the reachability start
@@ -1424,7 +1424,7 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 
 	dist = VectorNormalize(hordir);
 	// check if blocked
-	BotCheckBlocked(ms, hordir, qtrue, &result);
+	BotCheckBlocked(ms, hordir, qtrue, &result); // Tobias NOTE: checking for blocked movement without doing a move?
 
 	if (dist < 10) {
 		// move straight to the reachability end
@@ -1443,34 +1443,20 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 			EA_Crouch(ms->client);
 		}
 	}
-
+	// check for a gap
 	dist = BotGapDistance(ms->origin, hordir, 200, ms->entitynum);
 
 	if (ms->moveflags & MFL_WALK) {
 		speed = 200;
 	} else {
 		if (dist > 0) {
-			speed = 400 - (200 - dist);
+			speed = 400 - (200 - dist); // Tobias NOTE: should be 400 - (200 - gapdist) some day
 		} else {
 			speed = 400;
 		}
 	}
-
-	if (dist > 0) {
-		VectorNormalize(hordir);
-		// get the sideward vector
-		CrossProduct(hordir, up, sideward);
-		// if there is NO gap at the right side
-		if (!BotGapDistance(ms->origin, sideward, 100, ms->entitynum)) {
-			EA_Move(ms->client, sideward, 400);
-		} else {
-			VectorNegate(sideward, sideward);
-			// if there is NO gap at the left side
-			if (!BotGapDistance(ms->origin, sideward, 100, ms->entitynum)) {
-				EA_Move(ms->client, sideward, 400);
-			}
-		}
-	}
+	// check if blocked
+	BotCheckBlocked(ms, hordir, qtrue, &result);
 	// elementary action move in direction
 	EA_Move(ms->client, hordir, speed);
 	// save the movement direction
