@@ -1588,7 +1588,7 @@ BotTravel_Walk
 bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) {
 	float dist, speed, currentspeed;
 	int gapdist;
-	vec3_t hordir, sideward, up = {0, 0, 1};
+	vec3_t hordir;
 	bot_moveresult_t_cleared(result);
 
 	// first move straight to the reachability start
@@ -1598,7 +1598,7 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 
 	dist = VectorNormalize(hordir);
 	// check if blocked
-	BotCheckBlocked(ms, hordir, qtrue, &result);
+	BotCheckBlocked(ms, hordir, qtrue, &result); // Tobias NOTE: checking for blocked movement without doing a move?
 
 	if (dist < 10) {
 		// move straight to the reachability end
@@ -1617,34 +1617,13 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 			EA_Crouch(ms->client);
 		}
 	}
+	// check for a gap
+	gapdist = BotGapDistance(ms, ms->origin, hordir);
 
 	if (ms->moveflags & MFL_WALK) {
 		speed = 200;
 	} else {
-		// check for nearby gap
-		gapdist = BotGapDistance(ms, ms->origin, hordir);
-		// if there is a gap
 		if (gapdist > 0) {
-			VectorNormalize(hordir);
-			// get the sideward vector
-			CrossProduct(hordir, up, sideward);
-			// if there is NO gap at the right side
-			if (!BotGapDistance(ms, ms->origin, sideward)) {
-				// check if blocked
-				BotCheckBlocked(ms, sideward, qtrue, &result);
-				// elementary action move in direction
-				EA_Move(ms->client, sideward, 400);
-			} else {
-				VectorNegate(sideward, sideward);
-				// if there is NO gap at the left side
-				if (!BotGapDistance(ms, ms->origin, sideward)) {
-					// check if blocked
-					BotCheckBlocked(ms, sideward, qtrue, &result);
-					// elementary action move in direction
-					EA_Move(ms->client, sideward, 400);
-				}
-			}
-
 			if (gapdist > 270) {
 				gapdist = 270;
 			}
@@ -1957,7 +1936,7 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 	VectorSubtract(reach->start, ms->origin, dir);
 	VectorNormalize(dir);
 	// check if blocked
-	BotCheckBlocked(ms, dir, qtrue, &result);
+	BotCheckBlocked(ms, dir, qtrue, &result); // Tobias NOTE: checking for blocked movement without doing a move?
 	// if the reachability start and end are practically above each other
 	VectorSubtract(reach->end, reach->start, dir);
 
