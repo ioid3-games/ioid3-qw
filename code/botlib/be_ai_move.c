@@ -1426,7 +1426,7 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 
 	dist = VectorNormalize(hordir);
 	// check if blocked
-	BotCheckBlocked(ms, hordir, qtrue, &result);
+	BotCheckBlocked(ms, hordir, qtrue, &result); // Tobias NOTE: checking for blocked movement without doing a move?
 
 	if (dist < 10) {
 		// move straight to the reachability end
@@ -1443,7 +1443,7 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 			EA_Crouch(ms->client);
 		}
 	}
-
+	// check for a gap
 	dist = BotGapDistance(ms->origin, hordir, ms->entitynum);
 
 	if (ms->moveflags & MFL_WALK) {
@@ -1456,7 +1456,7 @@ bot_moveresult_t BotTravel_Walk(bot_movestate_t *ms, aas_reachability_t *reach) 
 		EA_Walk(ms->client);
 	} else {
 		if (dist > 0) {
-			speed = 400 - (360 - 2 * dist);
+			speed = 400 - (360 - 2 * dist); // Tobias NOTE: should be 400 - (200 - gapdist) some day
 		} else {
 			speed = 400;
 		}
