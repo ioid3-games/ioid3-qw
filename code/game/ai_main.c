@@ -895,7 +895,7 @@ void BotChangeViewAngles(bot_state_t *bs, float thinktime) {
 
 			bs->viewangles[i] += anglespeed;
 			bs->viewangles[i] = AngleMod(bs->viewangles[i]);
-			// demping
+			// damping
 			bs->viewanglespeed[i] *= 0.45 * (1 - factor);
 		}
 	}
