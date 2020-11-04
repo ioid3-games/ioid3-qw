@@ -3933,7 +3933,7 @@ void AAS_Reachability_JumpPad(void) {
 					if (AAS_ReachabilityExists(link->areanum, area2num)) {
 						continue;
 					}
-					// create a rocket or bfg jump reachability from area1 to area2
+					// create a jumppad reachability from area1 to area2
 					lreach = AAS_AllocReachability();
 
 					if (!lreach) {
