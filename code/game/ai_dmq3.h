@@ -107,7 +107,7 @@ int BotTeamFlagCarrierVisible(bot_state_t *bs);
 // returns visible enemy flag carrier if available
 int BotEnemyFlagCarrierVisible(bot_state_t *bs);
 // get the number of all teammates inside a specific range, regardless if they are visible or not
-int BotCountAllTeamMates(bot_state_t *bs, float range);
+int BotCountAllTeamMates(bot_state_t *bs, vec3_t origin, float range);
 // get the number of visible teammates and enemies
 void BotCountVisibleTeamMatesAndEnemies(bot_state_t *bs, int *teammates, int *enemies, float range);
 // get the number of visible enemies
@@ -123,7 +123,7 @@ qboolean BotEntityVisible(playerState_t *ps, float fov, int ent);
 // the bot will aim at the current enemy
 void BotAimAtEnemy(bot_state_t *bs);
 // check if the bot should attack
-qboolean BotCheckAttack(bot_state_t *bs);
+void BotCheckAttack(bot_state_t *bs);
 // AI when the bot is blocked
 void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, bot_aienter_t activatedonefunc);
 // AI to predict obstacles

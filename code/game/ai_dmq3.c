@@ -4741,7 +4741,7 @@ BotCountAllTeamMates
 Counts all teammates inside a specific range, regardless if they are visible or not.
 =======================================================================================================================================
 */
-int BotCountAllTeamMates(bot_state_t *bs, float range) {
+int BotCountAllTeamMates(bot_state_t *bs, vec3_t origin, float range) {
 	int teammates, i;
 	aas_entityinfo_t entinfo;
 	vec3_t dir;
@@ -4768,7 +4768,7 @@ int BotCountAllTeamMates(bot_state_t *bs, float range) {
 			continue;
 		}
 		// if not within range
-		VectorSubtract(entinfo.origin, bs->origin, dir);
+		VectorSubtract(entinfo.origin, origin, dir);
 
 		if (VectorLengthSquared(dir) > Square(range)) {
 			continue;
@@ -5102,8 +5102,6 @@ void BotAimAtEnemy(bot_state_t *bs) {
 	if (aim_accuracy > 1.0f) {
 		aim_accuracy = 1.0f;
 	}
-
-	bs->allowHitWorld = qfalse;
 	// if the enemy is NOT visible
 	if (!BotEntityVisible(&bs->cur_ps, 360, bs->enemy)) {
 		VectorCopy(bs->lastenemyorigin, bestorigin);
@@ -5131,8 +5129,7 @@ void BotAimAtEnemy(bot_state_t *bs) {
 							bestorigin[2] -= 20;
 						}
 					}
-					// allow the bot to hit the world
-					bs->allowHitWorld = qtrue;
+
 					aim_accuracy = 1.0f;
 				}
 			}
@@ -5243,8 +5240,6 @@ void BotAimAtEnemy(bot_state_t *bs) {
 							// if the projectile will not be blocked
 							if (trace.fraction >= 1.0f) {
 								VectorCopy(groundtarget, bestorigin);
-								// allow the bot to hit the world (shooting at the ground)
-								bs->allowHitWorld = qtrue;
 							}
 						}
 					}
@@ -5423,39 +5418,39 @@ static qboolean BotMayRadiusDamageTeamMate(bot_state_t *bs, vec3_t origin, float
 BotCheckAttack
 =======================================================================================================================================
 */
-qboolean BotCheckAttack(bot_state_t *bs) {
+void BotCheckAttack(bot_state_t *bs) {
 	float attack_accuracy, aim_accuracy, reactiontime, firethrottle, *mins, *maxs;
-	int attackentity, fov, weaponfov, weaponrange, mask;
-	vec3_t forward, right, start, end, targetpoint, dir, angles;
+	int attackentity, fov, weaponfov, mask;
+	vec3_t forward, right, start, dir, angles;
 	weaponinfo_t wi;
 	bsp_trace_t trace;
 	aas_entityinfo_t entinfo;
-	static vec3_t rmins = {-4, -4, -4}, rmaxs = {4, 4, 4}; // rockets/missiles
+	static vec3_t rmins = {-2, -2, -2}, rmaxs = {2, 2, 2}; // rockets/missiles
 
 	attackentity = bs->enemy;
 
 	if (attackentity < 0) {
-		return qfalse;
+		return;
 	}
 
 	if (bs->weaponnum <= WP_NONE || bs->weaponnum >= WP_NUM_WEAPONS) {
-		return qfalse;
+		return;
 	}
 	// get the entity information
 	BotEntityInfo(attackentity, &entinfo);
 	// if the entity information is valid
 	if (!entinfo.valid) {
-		return qfalse;
+		return;
 	}
 	// if the entity isn't dead
 	if (EntityIsDead(&entinfo)) {
-		return qfalse;
+		return;
 	}
 	// if attacking an obelisk
 	if (attackentity >= MAX_CLIENTS && (entinfo.number == redobelisk.entitynum || entinfo.number == blueobelisk.entitynum)) {
 		// if the obelisk is respawning
 		if (g_entities[entinfo.number].activator && g_entities[entinfo.number].activator->s.frame == 2) {
-			return qfalse;
+			return;
 		}
 	}
 
@@ -5477,25 +5472,19 @@ qboolean BotCheckAttack(bot_state_t *bs) {
 	// wait until we have had time to react
 	if (bs->enemysight_time > FloatTime() - reactiontime) {
 		bs->aimnotperfect_time = FloatTime();
-		return qfalse;
+		return;
 	}
 
 	if (bs->teleport_time > FloatTime() - reactiontime) {
-		return qfalse;
-	}
-
-	VectorSubtract(bs->aimtarget, bs->eye, dir);
-	// if using a close combat weapon and the enemy is too far away
-	if (BotUsesCloseCombatWeapon(bs) && BotWantsToRetreat(bs) && VectorLengthSquared(dir) > Square(60)) {
-		return qfalse;
+		return;
 	}
 	// if changing weapons
 	if (bs->weaponchange_time > FloatTime() - 0.1) {
-		return qfalse;
+		return;
 	}
 	// check fire throttle characteristic
 	if (bs->firethrottlewait_time > FloatTime()) {
-		return qfalse;
+		return;
 	}
 
 	firethrottle = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_FIRETHROTTLE, 0, 1);
@@ -5514,123 +5503,112 @@ qboolean BotCheckAttack(bot_state_t *bs) {
 		}
 	}
 
-	if (attack_accuracy != 0.5) {
-		// get some weapon specific attack values
-		switch (bs->weaponnum) {
-			case WP_GAUNTLET:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY, 0, 1);
-				weaponfov = 90;
-				weaponrange = 42;
-				mins = NULL;
-				maxs = NULL;
-				mask = MASK_SHOT;
-				break;
-			case WP_MACHINEGUN:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_MACHINEGUN, 0, 1);
-				weaponfov = 20;
-				weaponrange = 100000;
-				mins = NULL;
-				maxs = NULL;
-				mask = MASK_SHOT;
-				break;
-			case WP_CHAINGUN:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_CHAINGUN, 0, 1);
-				weaponfov = 80;
-				weaponrange = 100000;
-				mins = NULL;
-				maxs = NULL;
-				mask = MASK_SHOT;
-				break;
-			case WP_SHOTGUN:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_SHOTGUN, 0, 1);
-				weaponfov = 20;
-				weaponrange = 500;
-				mins = NULL;
-				maxs = NULL;
-				mask = MASK_SHOT;
-				break;
-			case WP_NAILGUN:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_NAILGUN, 0, 1);
-				weaponfov = 40;
-				weaponrange = 500;
-				mins = NULL;
-				maxs = NULL;
-				mask = MASK_SHOT;
-				break;
-			case WP_PROXLAUNCHER:
-			case WP_GRENADELAUNCHER:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_GRENADELAUNCHER, 0, 1);
-				weaponfov = 120;
-				weaponrange = 2000;
-				mins = rmins;
-				maxs = rmaxs;
-				mask = MASK_SHOT;
-				break;
-			case WP_NAPALMLAUNCHER:
-			case WP_ROCKETLAUNCHER:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_ROCKETLAUNCHER, 0, 1);
-				weaponfov = 60;
-				weaponrange = 1000;
-				mins = rmins;
-				maxs = rmaxs;
-				mask = MASK_SHOT;
-				break;
-			case WP_BEAMGUN:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_BEAMGUN, 0, 1);
-				weaponfov = 80;
-				weaponrange = BEAMGUN_RANGE;
-				mins = NULL;
-				maxs = NULL;
-				mask = MASK_SHOT;
-				break;
-			case WP_RAILGUN:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_RAILGUN, 0, 1);
-				weaponfov = 20;
-				weaponrange = 100000;
-				mins = NULL;
-				maxs = NULL;
-				mask = MASK_SHOT;
-				break;
-			case WP_PLASMAGUN:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_PLASMAGUN, 0, 1);
-				weaponfov = 20;
-				weaponrange = 1000;
-				mins = rmins;
-				maxs = rmaxs;
-				mask = MASK_SHOT;
-				break;
-			case WP_BFG:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_BFG10K, 0, 1);
-				weaponfov = 20;
-				weaponrange = 1000;
-				mins = rmins;
-				maxs = rmaxs;
-				mask = MASK_SHOT;
-				break;
-			default:
-				aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY, 0, 1);
-				weaponfov = 50;
-				weaponrange = 1000;
-				mins = rmins;
-				maxs = rmaxs;
-				mask = MASK_SHOT;
-				break;
-		}
-
-		weaponfov += 30 - (30 * aim_accuracy);
-	// simulate old style Q3A Gladiator bot behaviour
-	} else {
-		weaponfov = 50;
-		weaponrange = 1000;
-		mins = NULL;
-		maxs = NULL;
-		mask = MASK_SHOT;
+	VectorSubtract(bs->aimtarget, bs->eye, dir);
+	// if using a close combat weapon and the enemy is too far away
+	if (BotUsesCloseCombatWeapon(bs) && BotWantsToRetreat(bs) && VectorLengthSquared(dir) > Square(60)) {
+		return;
 	}
+	// get some weapon specific attack values
+	switch (bs->weaponnum) {
+		case WP_GAUNTLET:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY, 0, 1);
+			weaponfov = 90;
+			mins = NULL;
+			maxs = NULL;
+			mask = MASK_SHOT;
+			break;
+		case WP_MACHINEGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_MACHINEGUN, 0, 1);
+			weaponfov = 20;
+			mins = NULL;
+			maxs = NULL;
+			mask = MASK_SHOT;
+			break;
+		case WP_CHAINGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_CHAINGUN, 0, 1);
+			weaponfov = 80;
+			mins = NULL;
+			maxs = NULL;
+			mask = MASK_SHOT;
+			break;
+		case WP_SHOTGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_SHOTGUN, 0, 1);
+			weaponfov = 20;
+			mins = NULL;
+			maxs = NULL;
+			mask = MASK_SHOT;
+			break;
+		case WP_NAILGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_NAILGUN, 0, 1);
+			weaponfov = 40;
+			mins = NULL;
+			maxs = NULL;
+			mask = MASK_SHOT;
+			break;
+		case WP_PROXLAUNCHER:
+		case WP_GRENADELAUNCHER:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_GRENADELAUNCHER, 0, 1);
+			weaponfov = 120;
+			mins = rmins;
+			maxs = rmaxs;
+			mask = MASK_SHOT;
+			break;
+		case WP_NAPALMLAUNCHER:
+		case WP_ROCKETLAUNCHER:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_ROCKETLAUNCHER, 0, 1);
+			weaponfov = 60;
+			mins = rmins;
+			maxs = rmaxs;
+			mask = MASK_SHOT;
+			break;
+		case WP_BEAMGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_BEAMGUN, 0, 1);
+			weaponfov = 80;
+			mins = NULL;
+			maxs = NULL;
+			mask = MASK_SHOT;
+			break;
+		case WP_RAILGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_RAILGUN, 0, 1);
+			weaponfov = 20;
+			mins = NULL;
+			maxs = NULL;
+			mask = MASK_SHOT;
+			break;
+		case WP_PLASMAGUN:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_PLASMAGUN, 0, 1);
+			weaponfov = 20;
+			mins = rmins;
+			maxs = rmaxs;
+			mask = MASK_SHOT;
+			break;
+		case WP_BFG:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY_BFG10K, 0, 1);
+			weaponfov = 20;
+			mins = rmins;
+			maxs = rmaxs;
+			mask = MASK_SHOT;
+			break;
+		default:
+			aim_accuracy = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_AIM_ACCURACY, 0, 1);
+			weaponfov = 50;
+			mins = rmins;
+			maxs = rmaxs;
+			mask = MASK_SHOT;
+			break;
+	}
+
+	weaponfov += 30 - (30 * aim_accuracy);
 
 	if (VectorLengthSquared(dir) < Square(100)) {
 		fov = 120;
 	} else {
-		fov = weaponfov;
+		if (attack_accuracy != 0.5) {
+			fov = weaponfov;
+		// simulate old style Q3A Gladiator bot behaviour
+		} else {
+			fov = 50;
+		}
 	}
 
 	VectorToAngles(dir, angles);
@@ -5642,12 +5620,12 @@ qboolean BotCheckAttack(bot_state_t *bs) {
 		}
 		// so don't shoot too early with those weapons
 		if (bs->weaponnum == WP_RAILGUN && (bs->aimnotperfect_time > FloatTime() - 0.1)) {
-			return qfalse;
+			return;
 		}
 	}
 
 	if (!InFieldOfVision(bs->viewangles, fov, angles)) {
-		return qfalse;
+		return;
 	}
 	// get the start point shooting from
 	VectorCopy(bs->origin, start);
@@ -5664,34 +5642,29 @@ qboolean BotCheckAttack(bot_state_t *bs) {
 	// a little back to make sure not inside a very close enemy
 	VectorMA(start, -8, forward, start);
 	// end point aiming at
-	VectorMA(start, weaponrange, forward, end);
+	BotAI_Trace(&trace, start, mins, maxs, bs->aimtarget, bs->client, mask); // Tobias CHECK: why do higher mins/max values stop bots from shooting rockets etc. near walls?
 
-	if (attack_accuracy > 0.5) {
-		VectorCopy(end, targetpoint);
-	// simulate old style Q3A Gladiator bot behaviour
-	} else {
-		VectorCopy(bs->aimtarget, targetpoint);
-	}
-
-	BotAI_Trace(&trace, start, mins, maxs, targetpoint, bs->entitynum, mask);
-
-	if (!bs->allowHitWorld && trace.fraction < 1.0f && trace.entityNum != attackentity) {
-		return qfalse;
+	if (trace.fraction < 1.0f && trace.entityNum != attackentity) {
+		return;
 	}
 	// if the entity is a client
 	if (trace.entityNum >= 0 && trace.entityNum < MAX_CLIENTS) {
 		if (trace.entityNum != attackentity) {
 			// if a teammate is hit
 			if (BotSameTeam(bs, trace.entityNum)) {
-				return qfalse;
+				return;
 			}
 		}
 	}
 	// check if a teammate gets radial damage
 	if (wi.proj.damagetype & DAMAGETYPE_RADIAL) {
 		if (BotMayRadiusDamageTeamMate(bs, trace.endpos, wi.proj.radius)) {
-			return qfalse;
+			return;
 		}
+	}
+
+	if (bot_noshoot.integer) {
+		return;
 	}
 	// if fire has to be release to activate weapon
 	if (wi.flags & WFL_FIRERELEASED) {
@@ -5703,8 +5676,6 @@ qboolean BotCheckAttack(bot_state_t *bs) {
 	}
 
 	bs->flags ^= BFL_ATTACKED;
-
-	return qfalse;
 }
 
 /*
