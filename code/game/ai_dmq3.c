@@ -5662,10 +5662,6 @@ void BotCheckAttack(bot_state_t *bs) {
 			return;
 		}
 	}
-
-	if (bot_noshoot.integer) {
-		return;
-	}
 	// if fire has to be release to activate weapon
 	if (wi.flags & WFL_FIRERELEASED) {
 		if (bs->flags & BFL_ATTACKED) {
