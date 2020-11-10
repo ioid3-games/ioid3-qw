@@ -868,7 +868,7 @@ void ClientThink_Real(gentity_t *ent) {
 	if (client->ps.powerups[PW_HASTE]) {
 		client->ps.speed *= 1.3;
 	}
-	// Let go of the hook if we aren't firing
+	// let go of the hook if we aren't firing
 	if (client->ps.weapon == WP_GRAPPLING_HOOK && client->hook && !(ucmd->buttons & BUTTON_ATTACK)) {
 		Weapon_HookFree(client->hook);
 	}

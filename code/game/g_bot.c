@@ -580,7 +580,7 @@ static void AddBotToSpawnQueue(int clientNum, int delay) {
 		}
 	}
 
-	G_Printf(S_COLOR_YELLOW "Unable to delay spawn\n");
+	G_Printf(S_COLOR_YELLOW "Unable to delay bot spawn\n");
 	ClientBegin(clientNum);
 }
 
