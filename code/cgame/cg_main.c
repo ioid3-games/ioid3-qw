@@ -155,7 +155,6 @@ vmCvar_t cg_thirdPersonRange;
 vmCvar_t cg_thirdPersonAngle;
 vmCvar_t cg_drawLagometer;
 vmCvar_t cg_drawAttacker;
-vmCvar_t cg_synchronousClients;
 vmCvar_t cg_singlePlayer;
 vmCvar_t cg_teamChatTime;
 vmCvar_t cg_teamChatHeight;
@@ -175,10 +174,6 @@ vmCvar_t cg_noVoiceText;
 vmCvar_t cg_hudFiles;
 vmCvar_t cg_scorePlum;
 vmCvar_t cg_smoothClients;
-vmCvar_t pmove_fixed;
-//vmCvar_t cg_pmove_fixed;
-vmCvar_t pmove_msec;
-vmCvar_t cg_pmove_msec;
 vmCvar_t cg_cameraMode;
 vmCvar_t cg_cameraOrbit;
 vmCvar_t cg_timescaleFadeEnd;
@@ -209,12 +204,12 @@ vmCvar_t cg_recordSPDemoName;
 
 typedef struct {
 	vmCvar_t *vmCvar;
-	char *cvarName;
-	char *defaultString;
-	int cvarFlags;
+	const char *cvarName;
+	const char *defaultString;
+	const int cvarFlags;
 } cvarTable_t;
 
-static cvarTable_t cvarTable[] = {
+static const cvarTable_t cgameCvarTable[] = {
 	{&cg_ignore, "cg_ignore", "0", 0}, // used for debugging
 	{&cg_autoswitch, "cg_autoswitch", "1", CVAR_ARCHIVE},
 	{&cg_drawGun, "cg_drawGun", "1", CVAR_ARCHIVE},
@@ -296,7 +291,6 @@ static cvarTable_t cvarTable[] = {
 	{&cg_buildScript, "com_buildScript", "0", 0}, // force loading of all possible data amd error on failures
 	{&cg_paused, "cl_paused", "0", CVAR_ROM},
 	{&cg_blood, "com_blood", "1", CVAR_ARCHIVE},
-	{&cg_synchronousClients, "g_synchronousClients", "0", CVAR_SYSTEMINFO},
 	{&cg_enableDust, "cg_enableDust", "1", 0},
 	{&cg_enableBreath, "cg_enableBreath", "1", 0},
 	{&cg_obeliskRespawnDelay, "g_obeliskRespawnDelay", "10", CVAR_SYSTEMINFO},
@@ -315,8 +309,6 @@ static cvarTable_t cvarTable[] = {
 	{&cg_scorePlum, "cg_scorePlum", "0", CVAR_USERINFO|CVAR_ARCHIVE},
 	{&cg_smoothClients, "cg_smoothClients", "1", CVAR_USERINFO|CVAR_ARCHIVE},
 	{&cg_cameraMode, "com_cameraMode", "0", CVAR_CHEAT},
-	{&pmove_fixed, "pmove_fixed", "0", CVAR_SYSTEMINFO},
-	{&pmove_msec, "pmove_msec", "8", CVAR_SYSTEMINFO},
 	{&cg_noTaunt, "cg_noTaunt", "0", CVAR_ARCHIVE},
 	{&cg_noProjectileTrail, "cg_noProjectileTrail", "0", CVAR_ARCHIVE},
 	{&cg_smallFont, "ui_smallFont", "0.25", CVAR_ARCHIVE},
@@ -333,8 +325,6 @@ static cvarTable_t cvarTable[] = {
 	{&cg_atmosphericEffects, "cg_atmosphericEffects", "1", CVAR_ARCHIVE}
 };
 
-static int cvarTableSize = ARRAY_LEN(cvarTable);
-
 /*
 =======================================================================================================================================
 CG_RegisterCvars
@@ -342,10 +332,10 @@ CG_RegisterCvars
 */
 void CG_RegisterCvars(void) {
 	int i;
-	cvarTable_t *cv;
+	const cvarTable_t *cv;
 	char var[MAX_TOKEN_CHARS];
 
-	for (i = 0, cv = cvarTable; i < cvarTableSize; i++, cv++) {
+	for (i = 0, cv = cgameCvarTable; i < ARRAY_LEN(cgameCvarTable); i++, cv++) {
 		trap_Cvar_Register(cv->vmCvar, cv->cvarName, cv->defaultString, cv->cvarFlags);
 	}
 	// see if we are also running the server on this machine
@@ -389,9 +379,9 @@ CG_UpdateCvars
 */
 void CG_UpdateCvars(void) {
 	int i;
-	cvarTable_t *cv;
+	const cvarTable_t *cv;
 
-	for (i = 0, cv = cvarTable; i < cvarTableSize; i++, cv++) {
+	for (i = 0, cv = cgameCvarTable; i < ARRAY_LEN(cgameCvarTable); i++, cv++) {
 		trap_Cvar_Update(cv->vmCvar);
 	}
 	// check for modications here
@@ -510,10 +500,13 @@ CG_Argv
 =======================================================================================================================================
 */
 const char *CG_Argv(int arg) {
-	static char buffer[MAX_STRING_CHARS];
+	static char buffer[2][MAX_STRING_CHARS];
+	static int index = 0;
 
-	trap_Argv(arg, buffer, sizeof(buffer));
-	return buffer;
+	index ^= 1;
+
+	trap_Argv(arg, buffer[index], sizeof(buffer[0]));
+	return buffer[index];
 }
 
 /*
@@ -588,7 +581,7 @@ The server says this item is used on this level.
 static void CG_RegisterItemSounds(int itemNum) {
 	gitem_t *item;
 	char data[MAX_QPATH];
-	char *s, *start;
+	const char *s, *start;
 	int len;
 
 	item = &bg_itemlist[itemNum];
@@ -996,7 +989,7 @@ static void CG_RegisterGraphics(void) {
 	// precache status bar pics
 	CG_LoadingString("game media");
 
-	for (i = 0; i < 11; i++) {
+	for (i = 0; i < ARRAY_LEN(sb_nums); i++) {
 		cgs.media.numberShaders[i] = trap_R_RegisterShader(sb_nums[i]);
 	}
 
@@ -1284,6 +1277,7 @@ const char *CG_ConfigString(int index) {
 
 	if (index < 0 || index >= MAX_CONFIGSTRINGS) {
 		CG_Error("CG_ConfigString: bad index: %i", index);
+		return "";
 	}
 
 	return cgs.gameState.stringData + cgs.gameState.stringOffsets[index];
@@ -2218,6 +2212,7 @@ void CG_Init(int serverMessageNum, int serverCommandSequence, int clientNum) {
 	cgs.levelStartTime = atoi(s);
 
 	CG_ParseServerinfo();
+	CG_ParseSysteminfo();
 	// load the new map
 	CG_LoadingString("collision map");
 	trap_CM_LoadMap(cgs.mapname);
