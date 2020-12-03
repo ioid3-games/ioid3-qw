@@ -55,8 +55,7 @@ ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 // added this for better walking off ledges
 #define INSIDEUNITS_WALKOFFLEDGESTART 0.1
 #define INSIDEUNITS_WALKOFFLEDGEEND 5
-#define INSIDEUNITS_SWIMSTART 1
-#define INSIDEUNITS_SWIMEND 2
+#define INSIDEUNITS_SWIM 2
 #define INSIDEUNITS_WATERJUMP 15
 // area flag used for weapon jumping
 #define AREA_WEAPONJUMP 8192 // valid area to weapon jump to
@@ -908,7 +907,7 @@ int AAS_Reachability_Swim(int area1num, int area2num) {
 	aas_lreachability_t *lreach;
 	aas_face_t *face1;
 	aas_plane_t *plane;
-	vec3_t start, end;
+	vec3_t start;
 
 	if (!AAS_AreaSwim(area1num) || !AAS_AreaSwim(area2num)) {
 		return qfalse;
@@ -957,9 +956,8 @@ int AAS_Reachability_Swim(int area1num, int area2num) {
 
 					plane = &aasworld.planes[face1->planenum ^ side1];
 
-					VectorCopy(start, end);
-					VectorMA(start, INSIDEUNITS_SWIMSTART, plane->normal, lreach->start);
-					VectorMA(end, INSIDEUNITS_SWIMEND, plane->normal, lreach->end);
+					VectorCopy(start, lreach->start);
+					VectorMA(lreach->start, INSIDEUNITS_SWIM, plane->normal, lreach->end);
 
 					lreach->traveltype = TRAVEL_SWIM;
 					lreach->traveltime = 1;
@@ -1619,8 +1617,8 @@ int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, int area2
 							lreach->facenum = 0;
 							lreach->edgenum = ground_bestarea2groundedgenum;
 
-							VectorCopy(ground_beststart, lreach->start);
-							VectorCopy(ground_bestend, lreach->end);
+							VectorMA(ground_beststart, INSIDEUNITS_WALKOFFLEDGESTART, ground_bestnormal, lreach->start);
+							VectorMA(ground_bestend, INSIDEUNITS_WALKOFFLEDGEEND, ground_bestnormal, lreach->end);
 
 							lreach->traveltype = TRAVEL_WALKOFFLEDGE;
 							lreach->traveltime = aassettings.rs_startwalkoffledge + fabs(ground_bestdist) * 50 / aassettings.phys_gravity;

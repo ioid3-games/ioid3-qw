@@ -501,7 +501,7 @@ static int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t 
 		// if very close... go away for some time
 		VectorSubtract(goal->origin, bs->origin, dir);
 
-		if (VectorLengthSquared(dir) < Square(70)) {
+		if (VectorLengthSquared(dir) < Square(256)) {
 			trap_BotResetAvoidReach(bs->ms);
 			bs->defendaway_time = FloatTime() + 3 + 3 * random();
 
@@ -2116,8 +2116,8 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 		AIEnter_Respawn(bs, "BATTLE FIGHT: bot dead.");
 		return qfalse;
 	}
-	// if no enemy
-	if (bs->enemy < 0 || (g_gametype.integer > GT_TOURNAMENT && bs->enemy < level.maxclients && level.clients[bs->client].sess.sessionTeam == level.clients[bs->enemy].sess.sessionTeam)) {
+	// if the bot has no enemy
+	if (bs->enemy < 0 || BotSameTeam(bs, bs->enemy)) {
 		bs->enemy = -1;
 		AIEnter_Seek_LTG(bs, "BATTLE FIGHT: no enemy.");
 		return qfalse;
@@ -2273,8 +2273,8 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 		AIEnter_Respawn(bs, "BATTLE CHASE: bot dead.");
 		return qfalse;
 	}
-	// if no enemy
-	if (bs->enemy < 0) {
+	// if the bot has no enemy
+	if (bs->enemy < 0 || BotSameTeam(bs, bs->enemy)) {
 		AIEnter_Seek_LTG(bs, "BATTLE CHASE: no enemy.");
 		return qfalse;
 	}
@@ -2295,9 +2295,9 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 		AIEnter_Battle_Fight(bs, "BATTLE CHASE: enemy visible.");
 		return qfalse;
 	}
-	// if there is another enemy
-	if (BotFindEnemy(bs, -1)) {
-		AIEnter_Battle_Fight(bs, "BATTLE CHASE: better enemy.");
+	// if there is another better enemy
+	if (BotFindEnemy(bs, bs->enemy)) { // Tobias NOTE: was -1
+		AIEnter_Battle_Fight(bs, "BATTLE CHASE: found new better enemy.");
 		return qfalse;
 	}
 	// there is no last enemy area
@@ -2439,8 +2439,8 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 		AIEnter_Respawn(bs, "BATTLE RETREAT: bot dead.");
 		return qfalse;
 	}
-	// if no enemy
-	if (bs->enemy < 0) {
+	// if the bot has no enemy
+	if (bs->enemy < 0 || BotSameTeam(bs, bs->enemy)) {
 		AIEnter_Seek_LTG(bs, "BATTLE RETREAT: no enemy.");
 		return qfalse;
 	}
@@ -2508,7 +2508,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 	} else if (bs->enemyvisible_time < FloatTime()) {
 		// if there is another enemy
 		if (BotFindEnemy(bs, -1)) {
-			AIEnter_Battle_Fight(bs, "BATTLE RETREAT: another enemy.");
+			AIEnter_Battle_Fight(bs, "BATTLE RETREAT: found enemy.");
 			return qfalse;
 		}
 		// check if the bot has to deactivate obstacles
@@ -2632,8 +2632,8 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 		AIEnter_Respawn(bs, "BATTLE NBG: bot dead.");
 		return qfalse;
 	}
-	// if no enemy
-	if (bs->enemy < 0) {
+	// if the bot has no enemy
+	if (bs->enemy < 0 || BotSameTeam(bs, bs->enemy)) {
 		AIEnter_Seek_NBG(bs, "BATTLE NBG: no enemy.");
 		return qfalse;
 	}
@@ -2648,6 +2648,10 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 	if (EntityIsDead(&entinfo)) {
 		AIEnter_Seek_NBG(bs, "BATTLE NBG: enemy dead.");
 		return qfalse;
+	}
+	// if there is another better enemy
+	if (BotFindEnemy(bs, bs->enemy)) {
+		return qtrue;
 	}
 	// if in lava or slime the bot should be able to get out
 	if (BotInLavaOrSlime(bs)) {
@@ -2744,22 +2748,6 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 	}
 	// attack the enemy if possible
 	BotCheckAttack(bs);
-	// if there is an enemy
-	if (BotFindEnemy(bs, -1)) {
-		trap_BotResetLastAvoidReach(bs->ms);
-		// empty the goal stack
-		trap_BotEmptyGoalStack(bs->gs);
-
-		if (BotWantsToRetreat(bs)) {
-			// keep the current long term goal and retreat
-			AIEnter_Battle_Retreat(bs, "BATTLE NBG: another enemy.");
-			return qfalse;
-		} else {
-			// go fight
-			AIEnter_Battle_Fight(bs, "BATTLE NBG: another enemy.");
-			return qfalse;
-		}
-	}
 
 	return qtrue;
 }

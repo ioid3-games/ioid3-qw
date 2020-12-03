@@ -239,7 +239,6 @@ static int BotFirstReachabilityArea(vec3_t origin, int *areas, int numareas, qbo
 					trace = AAS_Trace(origin, NULL, NULL, center, -1, CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BOTCLIP);
 					// if no solids were found
 					if (!trace.startsolid && !trace.allsolid && trace.fraction >= 1.0f) {
-						bestDist = dist;
 						best = areas[i];
 						break;
 					}
@@ -1402,7 +1401,12 @@ static int BotWalkInDirection(bot_movestate_t *ms, vec3_t dir, float speed, int 
 		VectorCopy(ms->origin, origin);
 
 		origin[2] += 0.5;
-		scoutFlag = ms->moveflags & MFL_SCOUT ? qtrue : qfalse;
+
+		if (ms->moveflags & MFL_SCOUT) {
+			scoutFlag = qtrue;
+		} else {
+			scoutFlag = qfalse;
+		}
 		// movement prediction
 		predictSuccess = AAS_PredictClientMovement(&move, ms->entitynum, origin, presencetype, qtrue, scoutFlag, ms->velocity, cmdmove, cmdframes, maxframes, 0.1f, stopevent, 0);
 		// check if prediction failed
@@ -1746,7 +1750,11 @@ bot_moveresult_t BotTravel_BarrierJump(bot_movestate_t *ms, aas_reachability_t *
 	// get command movement
 	VectorScale(hordir, 400, cmdmove);
 
-	scoutFlag = ms->moveflags & MFL_SCOUT ? qtrue : qfalse;
+	if (ms->moveflags & MFL_SCOUT) {
+		scoutFlag = qtrue;
+	} else {
+		scoutFlag = qfalse;
+	}
 	// movement prediction
 	predictSuccess = AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, scoutFlag, ms->velocity, cmdmove, 2, 2, 0.1f, SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP, 0);
 	// check if prediction failed
@@ -1820,11 +1828,19 @@ BotTravel_Swim
 */
 bot_moveresult_t BotTravel_Swim(bot_movestate_t *ms, aas_reachability_t *reach) {
 	vec3_t dir;
+	float dist;
 	bot_moveresult_t_cleared(result);
 
-	// swim straight to reachability end
+	// swim straight to reachability start
 	VectorSubtract(reach->start, ms->origin, dir);
-	VectorNormalize(dir);
+
+	dist = VectorNormalize(dir);
+
+	if (dist < 10) {
+		// swim straight to reachability end
+		VectorSubtract(reach->end, ms->origin, dir);
+		VectorNormalize(dir);
+	}
 	// check if blocked
 	BotCheckBlocked(ms, dir, qtrue, &result);
 	// elementary action move in direction
@@ -1963,7 +1979,11 @@ bot_moveresult_t BotTravel_WalkOffLedge(bot_movestate_t *ms, aas_reachability_t 
 		// get command movement
 		VectorScale(hordir, 400, cmdmove);
 
-		scoutFlag = ms->moveflags & MFL_SCOUT ? qtrue : qfalse;
+		if (ms->moveflags & MFL_SCOUT) {
+			scoutFlag = qtrue;
+		} else {
+			scoutFlag = qfalse;
+		}
 		// movement prediction
 		predictSuccess = AAS_PredictClientMovement(&move, ms->entitynum, reach->end, PRESENCE_NORMAL, qtrue, scoutFlag, ms->velocity, cmdmove, 2, 2, 0.1f, SE_TOUCHJUMPPAD|SE_HITGROUNDDAMAGE|SE_ENTERLAVA|SE_ENTERSLIME|SE_GAP, 0);
 		// check if prediction failed
