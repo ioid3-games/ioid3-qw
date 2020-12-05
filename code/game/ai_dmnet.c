@@ -1801,6 +1801,21 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 	BotMapScripts(bs);
 	// no enemy
 	bs->enemy = -1;
+	// if there is an enemy
+	if (BotFindEnemy(bs, -1)) {
+		if (BotWantsToRetreat(bs)) {
+			// keep the current long term goal and retreat
+			AIEnter_Battle_NBG(bs, "SEEK NBG: found enemy.");
+			return qfalse;
+		} else {
+			trap_BotResetLastAvoidReach(bs->ms);
+			// empty the goal stack
+			trap_BotEmptyGoalStack(bs->gs);
+			// go fight
+			AIEnter_Battle_Fight(bs, "SEEK NBG: found enemy.");
+			return qfalse;
+		}
+	}
 	// if the bot has no goal
 	if (!trap_BotGetTopGoal(bs->gs, &goal)) {
 		bs->nbg_time = 0;
@@ -1864,21 +1879,6 @@ int AINode_Seek_NBG(bot_state_t *bs) {
 	// if the weapon is used for the bot movement
 	if (moveresult.flags & MOVERESULT_MOVEMENTWEAPON) {
 		bs->weaponnum = moveresult.weapon;
-	}
-	// if there is an enemy
-	if (BotFindEnemy(bs, -1)) {
-		if (BotWantsToRetreat(bs)) {
-			// keep the current long term goal and retreat
-			AIEnter_Battle_NBG(bs, "SEEK NBG: found enemy.");
-			return qfalse;
-		} else {
-			trap_BotResetLastAvoidReach(bs->ms);
-			// empty the goal stack
-			trap_BotEmptyGoalStack(bs->gs);
-			// go fight
-			AIEnter_Battle_Fight(bs, "SEEK NBG: found enemy.");
-			return qfalse;
-		}
 	}
 
 	return qtrue;
@@ -1967,11 +1967,11 @@ int AINode_Seek_LTG(bot_state_t *bs) {
 	if (!BotLongTermGoal(bs, bs->tfl, qfalse, &goal)) {
 		return qtrue;
 	}
+	// check if the bot wants to camp
+	BotWantsToCamp(bs);
 	// check for nearby goals periodicly
 	if (bs->check_time < FloatTime()) {
 		bs->check_time = FloatTime() + 0.5;
-		// check if the bot wants to camp
-		BotWantsToCamp(bs);
 		// get the range to check for picking up nearby goal items
 		if (bs->ltgtype == LTG_DEFENDKEYAREA) {
 			range = 400;
@@ -2116,9 +2116,12 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 		AIEnter_Respawn(bs, "BATTLE FIGHT: bot dead.");
 		return qfalse;
 	}
+	// if there is another better enemy
+	if (BotFindEnemy(bs, bs->enemy)) {
+		return qtrue;
+	}
 	// if the bot has no enemy
 	if (bs->enemy < 0 || BotSameTeam(bs, bs->enemy)) {
-		bs->enemy = -1;
 		AIEnter_Seek_LTG(bs, "BATTLE FIGHT: no enemy.");
 		return qfalse;
 	}
@@ -2128,10 +2131,6 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	if (!entinfo.valid) {
 		AIEnter_Seek_LTG(bs, "BATTLE FIGHT: enemy invalid.");
 		return qfalse;
-	}
-	// if there is another better enemy
-	if (BotFindEnemy(bs, bs->enemy)) {
-		return qtrue;
 	}
 	// if the enemy is dead
 	if (bs->enemydeath_time) {
@@ -2157,6 +2156,14 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 			bs->enemydeath_time = FloatTime();
 		}
 	}
+	// if in lava or slime the bot should be able to get out
+	if (BotInLavaOrSlime(bs)) {
+		bs->tfl |= TFL_LAVA|TFL_SLIME;
+	}
+	// if the bot has the scout powerup
+	if (BotHasScout(bs)) {
+		bs->tfl |= TFL_SCOUTBARRIER|TFL_SCOUTJUMP;
+	}
 	// update the last time the enemy was visible
 	if (BotEntityVisible(&bs->cur_ps, 360, bs->enemy)) {
 		bs->enemyvisible_time = FloatTime();
@@ -2177,15 +2184,8 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 			bs->lastenemyareanum = areanum;
 		}
 	}
-	// update the attack inventory values
-	BotUpdateBattleInventory(bs, bs->enemy);
 	// if the enemy is NOT visible
 	if (bs->enemyvisible_time < FloatTime()) {
-		if (bs->enemy == redobelisk.entitynum || bs->enemy == blueobelisk.entitynum) {
-			AIEnter_Battle_Chase(bs, "BATTLE FIGHT: obelisk out of sight.");
-			return qfalse;
-		}
-
 		if (BotWantsToChase(bs)) {
 			AIEnter_Battle_Chase(bs, "BATTLE FIGHT: enemy out of sight.");
 			return qfalse;
@@ -2194,13 +2194,9 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 			return qfalse;
 		}
 	}
-	// if in lava or slime the bot should be able to get out
-	if (BotInLavaOrSlime(bs)) {
-		bs->tfl |= TFL_LAVA|TFL_SLIME;
-	}
-	// if the bot has the scout powerup
-	if (BotHasScout(bs)) {
-		bs->tfl |= TFL_SCOUTBARRIER|TFL_SCOUTJUMP;
+	// predict obstacles
+	if (BotAIPredictObstacles(bs, &goal, AIEnter_Battle_Fight)) { // Tobias NOTE: added but obsolet?
+		return qfalse;
 	}
 	// do attack movements
 	moveresult = BotAttackMove(bs, bs->tfl);
@@ -2212,11 +2208,13 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	}
 	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, NULL);
+	// update the attack inventory values
+	BotUpdateBattleInventory(bs, bs->enemy);
 	// aim at the enemy
 	BotAimAtEnemy(bs);
 	// attack the enemy if possible
 	BotCheckAttack(bs);
-	// if the bot wants to retreat
+	// if the bot wants to retreat (the bot could have been damage during the fight)
 	if (!(bs->flags & BFL_FIGHTSUICIDAL)) {
 		if (BotWantsToRetreat(bs)) {
 			AIEnter_Battle_Retreat(bs, "BATTLE FIGHT: wants to retreat.");
@@ -2273,6 +2271,11 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 		AIEnter_Respawn(bs, "BATTLE CHASE: bot dead.");
 		return qfalse;
 	}
+	// if there is another better enemy
+	if (BotFindEnemy(bs, bs->enemy)) { // Tobias NOTE: we use bs->enemy now, was -1?
+		AIEnter_Battle_Fight(bs, "BATTLE CHASE: found new better enemy.");
+		return qfalse;
+	}
 	// if the bot has no enemy
 	if (bs->enemy < 0 || BotSameTeam(bs, bs->enemy)) {
 		AIEnter_Seek_LTG(bs, "BATTLE CHASE: no enemy.");
@@ -2290,21 +2293,6 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 		AIEnter_Seek_LTG(bs, "BATTLE CHASE: enemy dead.");
 		return qfalse;
 	}
-	// if the enemy is visible
-	if (BotEntityVisible(&bs->cur_ps, 360, bs->enemy)) {
-		AIEnter_Battle_Fight(bs, "BATTLE CHASE: enemy visible.");
-		return qfalse;
-	}
-	// if there is another better enemy
-	if (BotFindEnemy(bs, bs->enemy)) { // Tobias NOTE: was -1
-		AIEnter_Battle_Fight(bs, "BATTLE CHASE: found new better enemy.");
-		return qfalse;
-	}
-	// there is no last enemy area
-	if (!bs->lastenemyareanum) {
-		AIEnter_Seek_LTG(bs, "BATTLE CHASE: no enemy area.");
-		return qfalse;
-	}
 	// if in lava or slime the bot should be able to get out
 	if (BotInLavaOrSlime(bs)) {
 		bs->tfl |= TFL_LAVA|TFL_SLIME;
@@ -2319,6 +2307,16 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 	}
 	// map specific code
 	BotMapScripts(bs);
+	// if the enemy is visible
+	if (BotEntityVisible(&bs->cur_ps, 360, bs->enemy)) {
+		AIEnter_Battle_Fight(bs, "BATTLE CHASE: enemy visible.");
+		return qfalse;
+	}
+	// there is no last enemy area
+	if (!bs->lastenemyareanum) {
+		AIEnter_Seek_LTG(bs, "BATTLE CHASE: no enemy area.");
+		return qfalse;
+	}
 	// create the chase goal
 	goal.entitynum = bs->enemy;
 	goal.areanum = bs->lastenemyareanum;
@@ -2349,8 +2347,6 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 			return qfalse;
 		}
 	}
-	// update the attack inventory values
-	BotUpdateBattleInventory(bs, bs->enemy);
 	// predict obstacles
 	if (BotAIPredictObstacles(bs, &goal, AIEnter_Battle_Chase)) {
 		return qfalse;
@@ -2367,6 +2363,8 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 	BotAIBlocked(bs, &moveresult, AIEnter_Battle_Chase);
 	// check if the bot has to deactivate obstacles
 	BotClearPath(bs, &moveresult);
+	// update the attack inventory values
+	BotUpdateBattleInventory(bs, bs->enemy);
 	// if the view angles are used for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEW|MOVERESULT_MOVEMENTVIEWSET|MOVERESULT_SWIMVIEW)) {
 		VectorCopy(moveresult.ideal_viewangles, bs->ideal_viewangles);
@@ -2388,6 +2386,8 @@ int AINode_Battle_Chase(bot_state_t *bs) {
 	if (moveresult.flags & MOVERESULT_MOVEMENTWEAPON) {
 		bs->weaponnum = moveresult.weapon;
 	}
+	// attack the enemy if possible
+	BotCheckAttack(bs);
 	// if the bot is in the area the enemy was last seen in
 	if (bs->areanum == bs->lastenemyareanum) {
 		bs->chase_time = 0;
@@ -2439,6 +2439,10 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 		AIEnter_Respawn(bs, "BATTLE RETREAT: bot dead.");
 		return qfalse;
 	}
+	// if there is another better enemy
+	if (BotFindEnemy(bs, bs->enemy)) {
+		return qtrue;
+	}
 	// if the bot has no enemy
 	if (bs->enemy < 0 || BotSameTeam(bs, bs->enemy)) {
 		AIEnter_Seek_LTG(bs, "BATTLE RETREAT: no enemy.");
@@ -2456,10 +2460,6 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 		AIEnter_Seek_LTG(bs, "BATTLE RETREAT: enemy dead.");
 		return qfalse;
 	}
-	// if there is another better enemy
-	if (BotFindEnemy(bs, bs->enemy)) {
-		return qtrue;
-	}
 	// if in lava or slime the bot should be able to get out
 	if (BotInLavaOrSlime(bs)) {
 		bs->tfl |= TFL_LAVA|TFL_SLIME;
@@ -2470,8 +2470,6 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 	}
 	// map specific code
 	BotMapScripts(bs);
-	// update the attack inventory values
-	BotUpdateBattleInventory(bs, bs->enemy);
 	// if the bot doesn't want to retreat anymore... probably picked up some nice items
 	if (BotWantsToChase(bs)) {
 		// empty the goal stack, when chasing, only the enemy is the goal
@@ -2506,13 +2504,11 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 		return qfalse;
 	// else if the enemy is NOT visible
 	} else if (bs->enemyvisible_time < FloatTime()) {
-		// if there is another enemy
+		// if there is an enemy
 		if (BotFindEnemy(bs, -1)) {
 			AIEnter_Battle_Fight(bs, "BATTLE RETREAT: found enemy.");
 			return qfalse;
 		}
-		// check if the bot has to deactivate obstacles
-		BotClearPath(bs, &moveresult);
 	}
 	// check the team scores
 	BotCheckTeamScores(bs);
@@ -2566,6 +2562,10 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 	}
 	// check if the bot is blocked
 	BotAIBlocked(bs, &moveresult, AIEnter_Battle_Retreat);
+	// check if the bot has to deactivate obstacles
+	BotClearPath(bs, &moveresult);
+	// update the attack inventory values
+	BotUpdateBattleInventory(bs, bs->enemy);
 	// if the view is fixed for the movement
 	if (moveresult.flags & (MOVERESULT_MOVEMENTVIEW|MOVERESULT_SWIMVIEW)) {
 		VectorCopy(moveresult.ideal_viewangles, bs->ideal_viewangles);
@@ -2591,6 +2591,7 @@ int AINode_Battle_Retreat(bot_state_t *bs) {
 	}
 	// attack the enemy if possible
 	BotCheckAttack(bs);
+
 	return qtrue;
 }
 
@@ -2632,6 +2633,10 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 		AIEnter_Respawn(bs, "BATTLE NBG: bot dead.");
 		return qfalse;
 	}
+	// if there is another better enemy
+	if (BotFindEnemy(bs, bs->enemy)) {
+		return qtrue;
+	}
 	// if the bot has no enemy
 	if (bs->enemy < 0 || BotSameTeam(bs, bs->enemy)) {
 		AIEnter_Seek_NBG(bs, "BATTLE NBG: no enemy.");
@@ -2648,10 +2653,6 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 	if (EntityIsDead(&entinfo)) {
 		AIEnter_Seek_NBG(bs, "BATTLE NBG: enemy dead.");
 		return qfalse;
-	}
-	// if there is another better enemy
-	if (BotFindEnemy(bs, bs->enemy)) {
-		return qtrue;
 	}
 	// if in lava or slime the bot should be able to get out
 	if (BotInLavaOrSlime(bs)) {
@@ -2685,6 +2686,19 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 		if (areanum && trap_AAS_AreaReachability(areanum)) {
 			VectorCopy(target, bs->lastenemyorigin);
 			bs->lastenemyareanum = areanum;
+		}
+	}
+	// if the enemy is NOT visible
+	if (bs->enemyvisible_time < FloatTime()) {
+		if (BotWantsToChase(bs)) {
+			// empty the goal stack, when chasing, only the enemy is the goal
+			trap_BotEmptyGoalStack(bs->gs); // Tobias NOTE: really needed? What's about Obelisks?
+			// go chase the enemy
+			AIEnter_Battle_Chase(bs, "BATTLE NBG: enemy out of sight.");
+			return qfalse;
+		} else {
+			AIEnter_Seek_NBG(bs, "BATTLE NBG: enemy out of sight.");
+			return qfalse;
 		}
 	}
 	// if the bot has no goal or touches the current goal
