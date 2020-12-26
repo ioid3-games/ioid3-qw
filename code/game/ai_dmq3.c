@@ -3968,7 +3968,7 @@ const int BotFindEnemy(bot_state_t *bs, int curenemy) {
 		target[2] += 1;
 
 		BotAI_Trace(&trace, bs->eye, NULL, NULL, target, bs->client, CONTENTS_SOLID);
-
+		// if a full trace or the hitent is hit
 		if (trace.fraction >= 1 || trace.entityNum == goal->entitynum) {
 			if (goal->entitynum == bs->enemy) {
 				return qfalse;
