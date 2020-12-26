@@ -2098,6 +2098,7 @@ AINode_Battle_Fight
 */
 int AINode_Battle_Fight(bot_state_t *bs) {
 	int areanum;
+	bot_goal_t goal;
 	vec3_t target;
 	aas_entityinfo_t entinfo;
 	bot_moveresult_t moveresult;
