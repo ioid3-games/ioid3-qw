@@ -162,6 +162,7 @@ void CG_ParseServerinfo(void) {
 	char *mapname;
 
 	info = CG_ConfigString(CS_SERVERINFO);
+
 	cgs.gametype = atoi(Info_ValueForKey(info, "g_gametype"));
 
 	trap_Cvar_SetValue("g_gametype", cgs.gametype);
@@ -171,6 +172,7 @@ void CG_ParseServerinfo(void) {
 	cgs.capturelimit = atoi(Info_ValueForKey(info, "capturelimit"));
 	cgs.timelimit = atoi(Info_ValueForKey(info, "timelimit"));
 	cgs.maxclients = atoi(Info_ValueForKey(info, "sv_maxclients"));
+
 	mapname = Info_ValueForKey(info, "mapname");
 
 	Com_sprintf(cgs.mapname, sizeof(cgs.mapname), "maps/%s.bsp", mapname);
