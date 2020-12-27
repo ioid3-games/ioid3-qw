@@ -1032,7 +1032,7 @@ static float CG_DrawScores(float y) {
 		color[1] = 0.0f;
 		color[2] = 1.0f;
 		color[3] = 0.33f;
-
+		// second score
 		s = va("%2i", s2);
 		w = CG_DrawStrlen(s) * BIGCHAR_WIDTH + 8;
 		x -= w;
@@ -1090,7 +1090,7 @@ static float CG_DrawScores(float y) {
 		color[1] = 0.0f;
 		color[2] = 0.0f;
 		color[3] = 0.33f;
-
+		// first score
 		s = va("%2i", s1);
 		w = CG_DrawStrlen(s) * BIGCHAR_WIDTH + 8;
 		x -= w;
