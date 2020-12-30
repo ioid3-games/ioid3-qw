@@ -32,6 +32,10 @@ void BotDeathmatchAI(bot_state_t *bs, float thinktime);
 void BotFreeWaypoints(bot_waypoint_t *wp);
 // update the inventory during battle
 void BotUpdateBattleInventory(bot_state_t *bs, int enemy);
+// get the range for picking up items when the bot is involved in fighting
+const int BotNearbyGoalPickupRange_NoLTG(bot_state_t *bs);
+// get the range for picking up items when the bot is going for his long term goal
+const int BotNearbyGoalPickupRange_LTG(bot_state_t *bs);
 // return true if the bot is dead
 qboolean BotIsDead(bot_state_t *bs);
 // returns true if the bot is in observer mode
@@ -64,6 +68,8 @@ void BotTeamGoals(bot_state_t *bs, int retreat);
 const int BotAggression(bot_state_t *bs);
 // returns how bad the bot feels
 float BotFeelingBad(bot_state_t *bs);
+// the bot should NOT walk further, he should wait for a specific period of time
+qboolean BotAIWaiting(bot_state_t *bs, bot_goal_t *goal);
 // returns true if the bot is in hurry and should only pick up useful items
 qboolean BotOnlyPickupImportantItems(bot_state_t *bs);
 // returns true if the bot wants to retreat

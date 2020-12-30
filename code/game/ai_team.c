@@ -148,7 +148,7 @@ static int BotGetNextPlayer(bot_state_t *bs, int lastPlayer, playerState_t *ps) 
 	int currentClient;
 
 	for (currentClient = lastPlayer + 1; currentClient < level.maxclients; currentClient++) {
-		if (bs && bs->entitynum == currentClient) {
+		if (bs && bs->client == currentClient) {
 			continue;
 		}
 
@@ -200,7 +200,7 @@ static int BotGetNextPlayerOrMonster(bot_state_t *bs, int lastPlayer, playerStat
 	}
 
 	for (currentClient = lastPlayer + 1; currentClient < level.num_entities; currentClient++) {
-		if (bs && bs->entitynum == currentClient) {
+		if (bs && bs->client == currentClient) {
 			continue;
 		}
 
@@ -5200,13 +5200,6 @@ void BotTeamAI(bot_state_t *bs) {
 				BotTeamOrders(bs);
 				// give orders again after 120 seconds
 				bs->teamgiveorders_time = FloatTime() + 120;
-// Tobias DEBUG
-				if (BotTeam(bs) == TEAM_RED) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
-				} else {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
-				}
-// Tobias END
 			}
 
 			break;
@@ -5251,14 +5244,8 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				BotCTFOrders(bs);
-				bs->teamgiveorders_time = 0;
-// Tobias DEBUG
-				if (BotTeam(bs) == TEAM_RED) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
-				} else {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
-				}
-// Tobias END
+				// give orders again after 30 seconds
+				bs->teamgiveorders_time = FloatTime() + 30;
 			}
 
 			break;
@@ -5303,14 +5290,8 @@ void BotTeamAI(bot_state_t *bs) {
 			// if it's time to give orders
 			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 5) {
 				Bot1FCTFOrders(bs);
-				bs->teamgiveorders_time = 0;
-// Tobias DEBUG
-				if (BotTeam(bs) == TEAM_RED) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
-				} else {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
-				}
-// Tobias END
+				// give orders again after 30 seconds
+				bs->teamgiveorders_time = FloatTime() + 30;
 			}
 
 			break;
@@ -5356,13 +5337,6 @@ void BotTeamAI(bot_state_t *bs) {
 				BotObeliskOrders(bs);
 				// give orders again after 30 seconds
 				bs->teamgiveorders_time = FloatTime() + 30;
-// Tobias DEBUG
-				if (BotTeam(bs) == TEAM_RED) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
-				} else {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
-				}
-// Tobias END
 			}
 
 			break;
@@ -5408,13 +5382,6 @@ void BotTeamAI(bot_state_t *bs) {
 				BotHarvesterOrders(bs);
 				// give orders again after 30 seconds
 				bs->teamgiveorders_time = FloatTime() + 30;
-// Tobias DEBUG
-				if (BotTeam(bs) == TEAM_RED) {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_RED "Red Team Strategy = %i\n", bs->ctfstrategy);
-				} else {
-					BotAI_Print(PRT_MESSAGE, S_COLOR_CYAN "Blue Team Strategy = %i\n", bs->ctfstrategy);
-				}
-// Tobias END
 			}
 
 			break;
